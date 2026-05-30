@@ -104,6 +104,31 @@
 <div id="toast-root"></div>
 <script src="../public/Js/shared.js"></script>
 <script src="../public/Js/admin-inventory.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically makes all EJS links work as HTML 
+  // so we don't have to modify the original backend JS files!
+  setInterval(() => {
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', h.replace('.ejs', '.html'));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) el.setAttribute('onclick', oc.replace('.ejs', '.html'));
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        setTimeout(() => location.href = 'login.html', 700);
+      };
+    }
+  });
+</script>
 </body>
 </html>
 
