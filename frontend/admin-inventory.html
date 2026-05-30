@@ -105,10 +105,11 @@
 <script src="../public/Js/shared.js"></script>
 <script src="../public/Js/admin-inventory.js"></script>
 
+
 <script>
   // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
   setInterval(() => {
-    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    const isMain = window.location.pathname.endsWith('/index.html') || window.location.pathname.endsWith('/') || !window.location.pathname.includes('/frontend/');
     
     function fixLink(href) {
       if (!href || !href.includes('.ejs')) return href;
@@ -136,6 +137,16 @@
         }
       }
     });
+    
+    // FIX IMAGE PATHS FOR MAIN FOLDER
+    document.querySelectorAll('img').forEach(img => {
+      let src = img.getAttribute('src');
+      if (src && src.startsWith('../public/')) {
+        if (isMain) {
+          img.setAttribute('src', src.replace('../public/', 'public/'));
+        }
+      }
+    });
   }, 250);
 
   window.addEventListener('load', () => {
@@ -143,7 +154,7 @@
       window.doLogout = async function() {
         localStorage.removeItem('as_session');
         if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
-        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        const isMain = window.location.pathname.endsWith('/index.html') || window.location.pathname.endsWith('/') || !window.location.pathname.includes('/frontend/');
         setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
       };
     }
