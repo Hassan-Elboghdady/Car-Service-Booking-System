@@ -12,25 +12,25 @@
     <div class="role-tag">Admin Panel</div>
   </div>
   <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
-    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
-    <a href="admin-bookings.html"><span class="s-icon">📅</span> Bookings</a>
-    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+    <a href="admin-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.ejs"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.ejs"><span class="s-icon">🔧</span> Services</a>
   </nav>
   <div class="sidebar-section">Management</div><nav class="sidebar-nav">
-    <a href="admin-staff.html"><span class="s-icon">👥</span> Staff</a>
-    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
-    <a href="admin-payments.html"><span class="s-icon">💳</span> Payments</a>
-    <a href="admin-inventory.html"><span class="s-icon">📦</span> Inventory</a>
+    <a href="admin-staff.ejs"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.ejs"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.ejs"><span class="s-icon">💳</span> Payments</a>
+    <a href="admin-inventory.ejs"><span class="s-icon">📦</span> Inventory</a>
   </nav>
   <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
-    <a href="admin-reports.html" class="active"><span class="s-icon">📈</span> Reports</a>
-    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+    <a href="admin-reports.ejs" class="active"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.ejs"><span class="s-icon">⭐</span> Reviews</a>
   </nav>
   <div class="sidebar-section">System</div><nav class="sidebar-nav">
-    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
-    <a href="admin-cms.html"><span class="s-icon">📝</span> CMS</a>
-    <a href="admin-settings.html"><span class="s-icon">⚙️</span> Settings</a>
-    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="admin-notifications.ejs"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.ejs"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.ejs"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
     <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
   </nav>
 </aside>
@@ -70,16 +70,35 @@
 <script src="../public/Js/admin-reports.js"></script>
 
 <script>
-  // MAGIC SCRIPT: Automatically makes all EJS links work as HTML 
-  // so we don't have to modify the original backend JS files!
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
   setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
     document.querySelectorAll('a').forEach(a => {
       let h = a.getAttribute('href');
-      if (h && h.includes('.ejs')) a.setAttribute('href', h.replace('.ejs', '.html'));
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
     });
     document.querySelectorAll('[onclick]').forEach(el => {
       let oc = el.getAttribute('onclick');
-      if (oc && oc.includes('.ejs')) el.setAttribute('onclick', oc.replace('.ejs', '.html'));
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
     });
   }, 250);
 
@@ -88,7 +107,8 @@
       window.doLogout = async function() {
         localStorage.removeItem('as_session');
         if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
-        setTimeout(() => location.href = 'login.html', 700);
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
       };
     }
   });

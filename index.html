@@ -7,10 +7,10 @@
   <title>AutoServe  Premium Car Service Booking Egypt</title>
   <meta name="description"
     content="Book professional car servicing, repairs & detailing online. AutoServe Egypt  fast, reliable, affordable." />
-  <link rel="stylesheet" href="../public/Css/shared.css" />
-  <link rel="stylesheet" href="../public/Css/index.css" />
+  <link rel="stylesheet" href="public/Css/shared.css" />
+  <link rel="stylesheet" href="public/Css/index.css" />
   <!-- Intro Overlay -->
-  <link rel="stylesheet" href="../public/Css/intro-overlay.css?v=3" />
+  <link rel="stylesheet" href="public/Css/intro-overlay.css?v=3" />
 </head>
 
 <body>
@@ -31,8 +31,8 @@
         <p id="hero-sub">Professional car servicing, maintenance & detailing  bookable in under 2 minutes. Trusted by
           thousands of Egyptian drivers.</p>
         <div class="hero-actions">
-          <a href="booking.html" class="btn btn-primary btn-xl" id="hero-cta">Book a Service</a>
-          <a href="services.html" class="btn btn-white btn-xl">Explore Services</a>
+          <a href="booking.ejs" class="btn btn-primary btn-xl" id="hero-cta">Book a Service</a>
+          <a href="services.ejs" class="btn btn-white btn-xl">Explore Services</a>
         </div>
         <div style="display:flex;align-items:center;gap:12px;margin-top:24px;flex-wrap:wrap">
           <span style="font-size:.8rem;color:rgba(255,255,255,.6);font-weight:500;letter-spacing:.5px">FOLLOW US</span>
@@ -137,7 +137,7 @@
         </div>
       </div>
       <div class="text-center mt-48">
-        <a href="booking.html" class="btn btn-primary btn-lg">Book Your Service Now →</a>
+        <a href="booking.ejs" class="btn btn-primary btn-lg">Book Your Service Now →</a>
       </div>
     </div>
   </section>
@@ -152,7 +152,7 @@
       </div>
       <div class="grid-4" id="feat-services-grid"></div>
       <div class="text-center mt-32">
-        <a href="services.html" class="btn btn-outline btn-lg">View All 18 Services →</a>
+        <a href="services.ejs" class="btn btn-outline btn-lg">View All 18 Services →</a>
       </div>
     </div>
   </section>
@@ -203,7 +203,7 @@
               </div>
             </div>
           </div>
-          <a href="booking.html" class="btn btn-primary btn-lg mt-32">Book Now →</a>
+          <a href="booking.ejs" class="btn btn-primary btn-lg mt-32">Book Now →</a>
         </div>
         <div class="why-right">
           <div class="stats-panel">
@@ -275,30 +275,49 @@
       <h2>Ready to Give Your Car the Care It Deserves?</h2>
       <p>Book your first service today and get a <strong>free diagnostic check</strong> worth EGP 199.</p>
       <div class="cta-actions">
-        <a href="booking.html" class="btn btn-white btn-xl">Book Now  Free Diagnostic</a>
-        <a href="services.html" class="btn btn-outline btn-xl"
+        <a href="booking.ejs" class="btn btn-white btn-xl">Book Now  Free Diagnostic</a>
+        <a href="services.ejs" class="btn btn-outline btn-xl"
           style="color:#fff;border-color:rgba(255,255,255,.4)">Browse Services</a>
       </div>
     </div>
   </section>
 
   <div id="footer-wrap"></div>
-  <script src="../public/Js/shared.js"></script>
-  <script src="../public/Js/index.js"></script>
+  <script src="public/Js/shared.js"></script>
+  <script src="public/Js/index.js"></script>
   <!-- Intro Overlay -->
-  <script src="../public/Js/intro-overlay.js?v=3"></script>
+  <script src="public/Js/intro-overlay.js?v=3"></script>
 
 <script>
-  // MAGIC SCRIPT: Automatically makes all EJS links work as HTML 
-  // so we don't have to modify the original backend JS files!
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
   setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
     document.querySelectorAll('a').forEach(a => {
       let h = a.getAttribute('href');
-      if (h && h.includes('.ejs')) a.setAttribute('href', h.replace('.ejs', '.html'));
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
     });
     document.querySelectorAll('[onclick]').forEach(el => {
       let oc = el.getAttribute('onclick');
-      if (oc && oc.includes('.ejs')) el.setAttribute('onclick', oc.replace('.ejs', '.html'));
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
     });
   }, 250);
 
@@ -307,7 +326,8 @@
       window.doLogout = async function() {
         localStorage.removeItem('as_session');
         if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
-        setTimeout(() => location.href = 'login.html', 700);
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
       };
     }
   });

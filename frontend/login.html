@@ -16,7 +16,7 @@
     <!-- LEFT PANEL -->
     <div class="auth-left">
       <div class="auth-left-inner">
-        <a href="index.html" class="auth-brand" style="display:flex;align-items:center;">
+        <a href="index.ejs" class="auth-brand" style="display:flex;align-items:center;">
           <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:48px; border-radius:6px;">
           <div style="margin-left:12px;font-weight:800;font-size:1.8rem;color:var(--text)">Auto<span style="color:var(--primary)">Serve</span></div>
         </a>
@@ -50,7 +50,7 @@
     <!-- RIGHT PANEL -->
     <div class="auth-right">
       <div class="auth-box">
-        <a href="index.html" class="auth-logo-sm" style="display:flex; justify-content:center; align-items:center; margin-bottom: 24px; text-decoration:none;">
+        <a href="index.ejs" class="auth-logo-sm" style="display:flex; justify-content:center; align-items:center; margin-bottom: 24px; text-decoration:none;">
           <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px;">
           <div style="margin-left:10px;font-weight:800;font-size:1.4rem;color:var(--text)">Auto<span style="color:var(--primary)">Serve</span></div>
         </a>
@@ -135,7 +135,7 @@
           <div class="car-section">
             <h4 class="car-section-title">🚗 Add Your Car <span class="optional-tag">Required</span></h4>
             <p class="car-section-note">Only cars we can service are accepted. If your car is not in our list, we cannot
-              create your account yet — please <a href="contact.html">contact us</a>.</p>
+              create your account yet — please <a href="contact.ejs">contact us</a>.</p>
             <div class="form-group">
               <label class="form-label" for="rc-brand">Car Brand *</label>
               <select class="form-control" id="rc-brand">
@@ -170,7 +170,7 @@
           <div class="form-group terms-check-group">
             <label class="terms-check">
               <input type="checkbox" id="rc-terms" />
-              I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a> and Privacy Policy
+              I agree to the <a href="terms.ejs" target="_blank">Terms & Conditions</a> and Privacy Policy
             </label>
           </div>
 
@@ -229,7 +229,7 @@
           <div class="form-group terms-check-group">
             <label class="terms-check">
               <input type="checkbox" id="rs-terms" />
-              I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a>
+              I agree to the <a href="terms.ejs" target="_blank">Terms & Conditions</a>
             </label>
           </div>
           <button class="btn btn-primary btn-block" id="reg-staff-btn">Create Staff Account →</button>
@@ -255,16 +255,35 @@
   </script>
 
 <script>
-  // MAGIC SCRIPT: Automatically makes all EJS links work as HTML 
-  // so we don't have to modify the original backend JS files!
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
   setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
     document.querySelectorAll('a').forEach(a => {
       let h = a.getAttribute('href');
-      if (h && h.includes('.ejs')) a.setAttribute('href', h.replace('.ejs', '.html'));
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
     });
     document.querySelectorAll('[onclick]').forEach(el => {
       let oc = el.getAttribute('onclick');
-      if (oc && oc.includes('.ejs')) el.setAttribute('onclick', oc.replace('.ejs', '.html'));
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
     });
   }, 250);
 
@@ -273,7 +292,8 @@
       window.doLogout = async function() {
         localStorage.removeItem('as_session');
         if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
-        setTimeout(() => location.href = 'login.html', 700);
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
       };
     }
   });

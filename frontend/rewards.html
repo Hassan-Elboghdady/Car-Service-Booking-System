@@ -20,7 +20,7 @@
 
 <div class="page-header">
   <div class="container">
-    <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep"></span><span>Rewards</span></div>
+    <div class="breadcrumb"><a href="index.ejs">Home</a><span class="breadcrumb-sep"></span><span>Rewards</span></div>
     <h1>Loyalty Rewards </h1>
     <p>Earn points with every service and redeem them for exclusive rewards.</p>
   </div>
@@ -49,7 +49,7 @@
       <div style="text-align:center;position:relative;z-index:1">
         <div style="font-size:5rem;margin-bottom:8px" id="tier-icon-big"></div>
         <div style="font-size:.85rem;opacity:.7">Keep earning to level up!</div>
-        <a href="booking.html" class="btn btn-white mt-16">Book & Earn </a>
+        <a href="booking.ejs" class="btn btn-white mt-16">Book & Earn </a>
       </div>
     </div>
 
@@ -219,16 +219,35 @@
 </script>
 
 <script>
-  // MAGIC SCRIPT: Automatically makes all EJS links work as HTML 
-  // so we don't have to modify the original backend JS files!
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
   setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
     document.querySelectorAll('a').forEach(a => {
       let h = a.getAttribute('href');
-      if (h && h.includes('.ejs')) a.setAttribute('href', h.replace('.ejs', '.html'));
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
     });
     document.querySelectorAll('[onclick]').forEach(el => {
       let oc = el.getAttribute('onclick');
-      if (oc && oc.includes('.ejs')) el.setAttribute('onclick', oc.replace('.ejs', '.html'));
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
     });
   }, 250);
 
@@ -237,7 +256,8 @@
       window.doLogout = async function() {
         localStorage.removeItem('as_session');
         if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
-        setTimeout(() => location.href = 'login.html', 700);
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
       };
     }
   });
