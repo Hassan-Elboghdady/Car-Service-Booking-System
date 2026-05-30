@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Services  AutoServe Egypt</title>
+  <meta name="description" content="Explore all AutoServe services  maintenance, repairs, detailing & km-based packages. Professional car care in Nasr City, Cairo."/>
+  <link rel="stylesheet" href="../public/Css/shared.css"/>
+  <link rel="stylesheet" href="../public/Css/services.css"/>
+</head>
+<body>
+<div id="navbar-wrap"></div>
+
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.ejs">Home</a><span class="breadcrumb-sep"></span><span>Services</span></div>
+    <h1>Our Services</h1>
+    <p>Professional automotive care at realistic, competitive prices  transparent quoting before any work begins.</p>
+  </div>
+</div>
+
+<!-- -- SERVICES CATALOGUE -- -->
+<section class="section">
+  <div class="container">
+
+    <!-- Filter Bar -->
+    <div class="svc-filter-bar">
+      <button class="svc-filter-btn active" data-cat="all"> All Services</button>
+      <button class="svc-filter-btn" data-cat="maintenance"> Maintenance</button>
+      <button class="svc-filter-btn" data-cat="cleaning"> Cleaning</button>
+      <button class="svc-filter-btn" data-cat="repair"> Repair</button>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid-3" id="services-grid"></div>
+  </div>
+</section>
+
+<!-- -- MILEAGE PACKAGES -- -->
+<section class="section" style="background:var(--gray-50)">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag">Mileage-Based</div>
+      <h2> Scheduled Maintenance Packages</h2>
+      <p>Every car has different service needs based on how many km it has driven. Choose the package that matches your odometer  pricing varies by car model.</p>
+    </div>
+
+
+
+    <div class="mileage-grid" id="mileage-grid"></div>
+  </div>
+</section>
+
+<!-- -- CUSTOM REQUEST -- -->
+<section class="section">
+  <div class="container-sm">
+    <div class="section-header">
+      <div class="tag">Custom</div>
+      <h2>Need Something Specific?</h2>
+      <p>Don't see what you need? Submit a request and we'll respond within 2 hours.</p>
+    </div>
+    <div class="card card-body">
+      <div id="custom-alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" for="c-name">Name *</label><input class="form-control" id="c-name" placeholder="Your name"/></div>
+        <div class="form-group"><label class="form-label" for="c-phone">Phone *</label><input class="form-control" id="c-phone" placeholder="01012345678"/></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="c-svc">Service Needed *</label><input class="form-control" id="c-svc" placeholder="Describe the service or issue"/></div>
+      <div class="form-group"><label class="form-label" for="c-car">Your Car</label><input class="form-control" id="c-car" placeholder="e.g. Toyota Corolla 2022"/></div>
+      <div class="form-group"><label class="form-label" for="c-details">Additional Details</label><textarea class="form-control" id="c-details" rows="3" placeholder="Any specific instructions"></textarea></div>
+      <button class="btn btn-primary" id="custom-submit">Submit Request ?</button>
+    </div>
+  </div>
+</section>
+
+<div id="footer-wrap"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/services.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+</html>
+

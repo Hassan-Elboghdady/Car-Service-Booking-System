@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Schedule  AutoServe Staff</title>
+<link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Staff Panel</div>
+  </div>
+  <div class="sidebar-section">My Work</div>
+  <nav class="sidebar-nav">
+    <a href="staff-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="staff-jobs.ejs"><span class="s-icon"></span> My Jobs</a>
+    <a href="staff-schedule.ejs" class="active"><span class="s-icon"></span> Schedule</a>
+  </nav>
+  <div class="sidebar-section">Service</div>
+  <nav class="sidebar-nav">
+    <a href="staff-issues.ejs"><span class="s-icon"></span> Report Issue</a>
+  </nav>
+  <div class="sidebar-section">Account</div>
+  <nav class="sidebar-nav">
+    <a href="profile.ejs"><span class="s-icon"></span> Profile</a>
+    <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">My Schedule</span></div>
+  </div>
+  <div class="content-area">
+    <div class="card card-body mb-20">
+      <div class="flex-between flex-wrap" style="gap:12px">
+        <h3 style="margin-bottom:0">Week View</h3>
+        <input type="date" class="form-control" id="sched-week" style="width:auto"/>
+      </div>
+    </div>
+    <div id="week-schedule"></div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/staff-schedule.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+</html>
+

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login & Register – AutoServe</title>
+  <meta name="description" content="Sign in or create your AutoServe account to book car services." />
+  <link rel="stylesheet" href="../public/Css/shared.css" />
+  <link rel="stylesheet" href="../public/Css/login.css" />
+</head>
+
+<body>
+
+  <div class="auth-page">
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+      <div class="auth-left-inner">
+        <a href="index.ejs" class="auth-brand" style="display:flex;align-items:center;">
+          <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:48px; border-radius:6px;">
+          <div style="margin-left:12px;font-weight:800;font-size:1.8rem;color:var(--text)">Auto<span style="color:var(--primary)">Serve</span></div>
+        </a>
+        <h1>Book Your Car Service <span class="highlight">Online</span></h1>
+        <p>Join thousands of Egyptian drivers who trust AutoServe for professional car care.</p>
+        <div class="auth-features">
+          <div class="auth-feat"><span class="feat-icon">📱</span>
+            <div><strong>Book in 2 Minutes</strong>
+              <p>Fast, easy online booking anytime</p>
+            </div>
+          </div>
+          <div class="auth-feat"><span class="feat-icon">🔧</span>
+            <div><strong>Expert Technicians</strong>
+              <p>Certified, professional service</p>
+            </div>
+          </div>
+          <div class="auth-feat"><span class="feat-icon">🎁</span>
+            <div><strong>Earn Rewards</strong>
+              <p>Points on every service booking</p>
+            </div>
+          </div>
+          <div class="auth-feat"><span class="feat-icon">📍</span>
+            <div><strong id="login-location-title">Nasr City, Cairo</strong>
+              <p id="login-location-detail">15 El-Nasr Road · +202 2501 5000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+      <div class="auth-box">
+        <a href="index.ejs" class="auth-logo-sm" style="display:flex; justify-content:center; align-items:center; margin-bottom: 24px; text-decoration:none;">
+          <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px;">
+          <div style="margin-left:10px;font-weight:800;font-size:1.4rem;color:var(--text)">Auto<span style="color:var(--primary)">Serve</span></div>
+        </a>
+
+        <!-- Tab switcher: Customer | Staff | (hidden Admin) -->
+        <div class="auth-tabs" id="auth-tabs">
+          <button class="auth-tab active" data-role="customer">Customer</button>
+          <button class="auth-tab" data-role="staff">Staff</button>
+        </div>
+
+        <!-- Login / Register sub-tabs per role -->
+        <div class="sub-tabs" id="sub-tabs">
+          <button class="sub-tab active" data-sub="login">Login</button>
+          <button class="sub-tab" data-sub="register">Create Account</button>
+        </div>
+
+        <!-- ── LOGIN FORM ── -->
+        <div id="panel-login" class="auth-panel">
+          <div id="login-alert"></div>
+          <div class="form-group">
+            <label class="form-label" for="l-email">Email Address</label>
+            <input class="form-control" id="l-email" type="email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="l-password">Password</label>
+            <div class="input-eye-wrap">
+              <input class="form-control" id="l-password" type="password" placeholder="Your password"
+                autocomplete="current-password" />
+              <button class="eye-btn" type="button" onclick="toggleEye('l-password','l-eye')" id="l-eye">👁</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" id="login-btn">Login →</button>
+          <p class="auth-switch">Don't have an account? <a href="#" onclick="switchSub('register')">Create one free</a>
+          </p>
+        </div>
+
+        <!-- ── CUSTOMER REGISTER FORM ── -->
+        <div id="panel-register-customer" class="auth-panel" style="display:none">
+          <div id="reg-cust-alert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="rc-first">First Name *</label>
+              <input class="form-control" id="rc-first" placeholder="Mohamed" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rc-last">Last Name *</label>
+              <input class="form-control" id="rc-last" placeholder="Ali" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rc-email">Email Address *</label>
+            <input class="form-control" id="rc-email" type="email" placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rc-phone">Phone Number * <span
+                style="font-size:.72rem;color:var(--gray-500)">(Egyptian mobile, 11 digits)</span></label>
+            <input class="form-control" id="rc-phone" type="tel" placeholder="01012345678" maxlength="11" />
+            <div class="form-hint">Format: 01X XXXXXXXX — must start with 010, 011, 012 or 015</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rc-password">Password *</label>
+            <div class="input-eye-wrap">
+              <input class="form-control" id="rc-password" type="password" placeholder="Min 8 characters" />
+              <button class="eye-btn" type="button" onclick="toggleEye('rc-password','rc-eye')" id="rc-eye">👁</button>
+            </div>
+            <div class="pwd-strength">
+              <div class="pwd-strength-bar">
+                <div class="pwd-strength-fill" id="rc-strength-bar" style="width:0%"></div>
+              </div>
+              <div class="pwd-strength-label" id="rc-strength-label">Enter a password</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rc-confirm">Confirm Password *</label>
+            <div class="input-eye-wrap">
+              <input class="form-control" id="rc-confirm" type="password" placeholder="Repeat password" />
+              <button class="eye-btn" type="button" onclick="toggleEye('rc-confirm','rc-ceye')" id="rc-ceye">👁</button>
+            </div>
+          </div>
+
+          <!-- Car Selection -->
+          <div class="car-section">
+            <h4 class="car-section-title">🚗 Add Your Car <span class="optional-tag">Required</span></h4>
+            <p class="car-section-note">Only cars we can service are accepted. If your car is not in our list, we cannot
+              create your account yet — please <a href="contact.ejs">contact us</a>.</p>
+            <div class="form-group">
+              <label class="form-label" for="rc-brand">Car Brand *</label>
+              <select class="form-control" id="rc-brand">
+                <option value="">Select brand…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rc-model">Model *</label>
+              <select class="form-control" id="rc-model" disabled>
+                <option value="">Select model…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rc-year">Year *</label>
+              <select class="form-control" id="rc-year" disabled>
+                <option value="">Select year…</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="rc-plate">License Plate *</label>
+                <input class="form-control" id="rc-plate" placeholder="أ ب ج 1234" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="rc-color">Color *</label>
+                <input class="form-control" id="rc-color" placeholder="e.g. Silver" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <div class="form-group terms-check-group">
+            <label class="terms-check">
+              <input type="checkbox" id="rc-terms" />
+              I agree to the <a href="terms.ejs" target="_blank">Terms & Conditions</a> and Privacy Policy
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="reg-cust-btn">Create Account →</button>
+          <p class="auth-switch">Already have an account? <a href="#" onclick="switchSub('login')">Login</a></p>
+        </div>
+
+        <!-- ── STAFF REGISTER FORM ── -->
+        <div id="panel-register-staff" class="auth-panel" style="display:none">
+          <div id="reg-staff-alert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="rs-first">First Name *</label>
+              <input class="form-control" id="rs-first" placeholder="Ahmed" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rs-last">Last Name *</label>
+              <input class="form-control" id="rs-last" placeholder="Hassan" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rs-email">Email *</label>
+            <input class="form-control" id="rs-email" type="email" placeholder="staff@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rs-phone">Phone * <span
+                style="font-size:.72rem;color:var(--gray-500)">(Egyptian mobile, 11 digits)</span></label>
+            <input class="form-control" id="rs-phone" type="tel" placeholder="01012345678" maxlength="11" />
+            <div class="form-hint">Format: 01X XXXXXXXX — must start with 010, 011, 012 or 015</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rs-password">Password *</label>
+            <div class="input-eye-wrap">
+              <input class="form-control" id="rs-password" type="password" placeholder="Min 8 characters" />
+              <button class="eye-btn" type="button" onclick="toggleEye('rs-password','rs-eye')" id="rs-eye">👁</button>
+            </div>
+            <div class="pwd-strength">
+              <div class="pwd-strength-bar">
+                <div class="pwd-strength-fill" id="rs-strength-bar" style="width:0%"></div>
+              </div>
+              <div class="pwd-strength-label" id="rs-strength-label">Enter a password</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rs-confirm">Confirm Password *</label>
+            <div class="input-eye-wrap">
+              <input class="form-control" id="rs-confirm" type="password" placeholder="Repeat password" />
+              <button class="eye-btn" type="button" onclick="toggleEye('rs-confirm','rs-ceye')" id="rs-ceye">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rs-code">Staff Access Code *</label>
+            <input class="form-control" id="rs-code" placeholder="Enter the code given by your admin" />
+            <div class="form-hint">This code is provided by your AutoServe admin.</div>
+          </div>
+          <div class="form-group terms-check-group">
+            <label class="terms-check">
+              <input type="checkbox" id="rs-terms" />
+              I agree to the <a href="terms.ejs" target="_blank">Terms & Conditions</a>
+            </label>
+          </div>
+          <button class="btn btn-primary btn-block" id="reg-staff-btn">Create Staff Account →</button>
+          <p class="auth-switch">Already have an account? <a href="#" onclick="switchSub('login')">Login</a></p>
+        </div>
+
+      </div><!-- /auth-box -->
+    </div><!-- /auth-right -->
+  </div><!-- /auth-page -->
+
+  <div id="toast-root"></div>
+  <script src="../public/Js/shared.js"></script>
+  <script src="../public/Js/login.js"></script>
+  <script>
+    // Load CMS contact info into left panel
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const cms = JSON.parse(localStorage.getItem('as_cms') || '{}');
+        if (cms.address) document.getElementById('login-location-title').textContent = cms.address;
+        if (cms.phone1)  document.getElementById('login-location-detail').textContent = cms.phone1;
+      } catch(e) {}
+    });
+  </script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+
+</html>

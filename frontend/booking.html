@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Book a Service  AutoServe</title>
+  <meta name="description" content="Book your car service in 4 easy steps. Choose vehicle, service, date & confirm."/>
+  <link rel="stylesheet" href="../public/Css/shared.css"/>
+  <link rel="stylesheet" href="../public/Css/booking.css"/>
+</head>
+<body>
+<div id="navbar-wrap"></div>
+
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.ejs">Home</a><span class="breadcrumb-sep"></span><span>Booking</span></div>
+    <h1>Book a Service</h1>
+    <p>Choose your vehicle, select services, pick a date & confirm  done in minutes.</p>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container">
+    <div id="booking-auth-guard"></div>
+    <div id="booking-wizard" style="display:none">
+
+      <!-- Progress steps -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1"><div class="step-circle">1</div><div class="step-label">Vehicle</div></div>
+        <div class="wizard-connector"></div>
+        <div class="wizard-step" data-step="2"><div class="step-circle">2</div><div class="step-label">Services</div></div>
+        <div class="wizard-connector"></div>
+        <div class="wizard-step" data-step="3"><div class="step-circle">3</div><div class="step-label">Date & Time</div></div>
+        <div class="wizard-connector"></div>
+        <div class="wizard-step" data-step="4"><div class="step-circle">4</div><div class="step-label">Confirm</div></div>
+      </div>
+
+      <div class="wizard-layout">
+        <div class="wizard-main">
+
+          <!-- Step 1: Vehicle -->
+          <div class="wizard-panel active" id="step-1">
+            <h3 class="wizard-panel-title">Choose Your Vehicle</h3>
+            <div id="step1-cars"></div>
+            <button class="btn btn-ghost btn-sm mt-16" onclick="openModal('add-car-from-booking')">+ Add New Vehicle</button>
+          </div>
+
+          <!-- Step 2: Services -->
+          <div class="wizard-panel" id="step-2">
+            <h3 class="wizard-panel-title">Select Services <span style="font-size:.8rem;color:var(--gray-500);font-weight:400">(multi-select  one mileage package)</span></h3>
+
+            <!-- Filter tabs -->
+            <div class="svc-filter-bar" id="svc-filter-bar">
+              <button class="svc-filter-btn active" data-cat="all"> All</button>
+              <button class="svc-filter-btn" data-cat="maintenance"> Maintenance</button>
+              <button class="svc-filter-btn" data-cat="cleaning"> Cleaning</button>
+              <button class="svc-filter-btn" data-cat="repair"> Repair</button>
+              <button class="svc-filter-btn" data-cat="mileage"> Mileage Packages</button>
+            </div>
+
+            <!-- Search -->
+            <div style="margin:12px 0">
+              <input class="form-control" id="svc-search" placeholder="Search services" style="max-width:320px"/>
+            </div>
+
+            <!-- Selection count -->
+            <div class="flex-between mb-12">
+              <span id="svc-selected-count" style="font-size:.85rem;color:var(--gray-500)">No services selected</span>
+              <button class="btn btn-ghost btn-sm" onclick="clearServices()" id="clear-svcs-btn" style="display:none">Clear all</button>
+            </div>
+
+            <div id="step2-services"></div>
+          </div>
+
+          <!-- Step 3: Date & Time -->
+          <div class="wizard-panel" id="step-3">
+            <h3 class="wizard-panel-title"> Date & Time</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="bk-date">Preferred Date *</label>
+                <input class="form-control" type="date" id="bk-date"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bk-time">Preferred Time *</label>
+                <select class="form-control" id="bk-time">
+                  <option value="">Choose time</option>
+                  <option>08:00 AM</option><option>09:00 AM</option><option>10:00 AM</option>
+                  <option>11:00 AM</option><option>12:00 PM</option><option>01:00 PM</option>
+                  <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bk-notes">Notes for Technician</label>
+              <textarea class="form-control" id="bk-notes" rows="3" placeholder="Any additional info for our team"></textarea>
+            </div>
+            <div class="coupon-row">
+              <input class="form-control" id="bk-coupon" placeholder="Coupon code (optional)"/>
+              <button class="btn btn-ghost" id="apply-coupon-btn">Apply</button>
+            </div>
+            <div id="coupon-result"></div>
+          </div>
+
+          <!-- Step 4: Confirm -->
+          <div class="wizard-panel" id="step-4">
+            <h3 class="wizard-panel-title">Review & Confirm</h3>
+            <div id="step4-summary" class="booking-summary-box"></div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="wizard-sidebar">
+          <div class="card card-body">
+            <h4 style="margin-bottom:16px">Booking Summary</h4>
+            <div id="sidebar-summary">
+              <p style="color:var(--gray-400);font-size:.85rem">Your selections will appear here.</p>
+            </div>
+            <div class="wizard-nav" style="margin-top:24px">
+              <button class="btn btn-ghost btn-block" id="prev-btn" style="display:none">← Back</button>
+              <button class="btn btn-primary btn-block" id="next-btn">Continue →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add car modal -->
+<div class="modal-overlay" id="add-car-from-booking">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Vehicle</div>
+      <button class="modal-close" onclick="closeModal('add-car-from-booking')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Brand *</label><select class="form-control" id="ab-brand"><option value="">Select</option></select></div>
+      <div class="form-group"><label class="form-label">Model *</label><select class="form-control" id="ab-model" disabled><option value="">Select</option></select></div>
+      <div class="form-group"><label class="form-label">Year *</label><select class="form-control" id="ab-year" disabled><option value="">Select</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Plate *</label><input class="form-control" id="ab-plate" placeholder="أ ب ج 1234"/></div>
+        <div class="form-group"><label class="form-label">Color *</label><input class="form-control" id="ab-color" placeholder="e.g. Black"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-car-from-booking')">Cancel</button>
+      <button class="btn btn-primary" id="ab-save">Add Car</button>
+    </div>
+  </div>
+</div>
+
+<div id="footer-wrap"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/booking.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+</html>
+

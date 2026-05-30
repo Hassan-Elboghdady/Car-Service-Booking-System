@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vehicle Management  AutoServe Admin</title><link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
+    <a href="admin-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.ejs"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.ejs"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div><nav class="sidebar-nav">
+    <a href="admin-staff.ejs"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.ejs" class="active"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.ejs"><span class="s-icon">💳</span> Payments</a>
+    <a href="admin-inventory.ejs"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
+    <a href="admin-reports.ejs"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.ejs"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div><nav class="sidebar-nav">
+    <a href="admin-notifications.ejs"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.ejs"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.ejs"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Vehicle Management</span></div>
+    <div class="flex-gap">
+      <button class="btn btn-outline btn-sm" onclick="openBrandModalForAdd()">+ Add Brand</button>
+      <button class="btn btn-primary btn-sm" onclick="openCarModalForAdd()">+ Add Car</button>
+    </div>
+  </div>
+  <div class="content-area">
+    <div class="grid-4 mb-28" id="v-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px">
+      <!-- All cars table -->
+      <div class="card">
+        <div class="card-header flex-between">
+          <h3>All Registered Vehicles</h3>
+          <input class="form-control" id="v-search" placeholder="Search" style="width:200px;padding:8px 14px"/>
+        </div>
+        <div class="table-wrap" style="border:none;border-radius:0">
+          <table>
+            <thead><tr><th>Owner</th><th>Brand</th><th>Model</th><th>Year</th><th>Plate</th><th>Color</th><th>Bookings</th><th style="width: 80px;">Actions</th></tr></thead>
+            <tbody id="v-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Maintenance reminders -->
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px"> Maintenance Reminders</h4>
+        <div id="maintenance-reminders"></div>
+        <div class="alert alert-info mt-16" style="font-size:.8rem">Monthly reminders are sent to customers whose last service was 90+ days ago.</div>
+      </div>
+    </div>
+    
+    <!-- Car Database Manager -->
+    <div class="card" style="margin-top: 28px;">
+      <div class="card-header flex-between">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.3rem"></span>
+          <h3 style="margin:0">Car Database Manager (Brands & Models)</h3>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openBrandModalForAdd()">+ Add Brand</button>
+      </div>
+      <div class="card-body">
+        <div id="db-brands-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:20px;">
+          <!-- Brands will be rendered here dynamically -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+<!-- Modals -->
+<div class="modal-overlay" id="brand-modal">
+  <div class="modal" style="max-width:550px">
+    <div class="modal-header">
+      <div class="modal-title">Add New Car Brand</div>
+      <button class="modal-close" onclick="closeModal('brand-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="ab-name">Brand Name</label>
+        <input type="text" class="form-control" id="ab-name" placeholder="e.g. Mercedes, Honda">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Brand Logo Method</label>
+        <select class="form-control" id="ab-logo-method" onchange="toggleBrandLogoInput()">
+          <option value="url">Image URL</option>
+          <option value="upload">File Upload</option>
+        </select>
+      </div>
+      <div class="form-group" id="ab-logo-url-group">
+        <label class="form-label" for="ab-logo-url">Logo Image URL</label>
+        <input type="text" class="form-control" id="ab-logo-url" placeholder="https://example.com/logo.png">
+      </div>
+      <div class="form-group" id="ab-logo-file-group" style="display:none">
+        <label class="form-label" for="ab-logo-file">Upload Logo Image</label>
+        <input type="file" class="form-control" id="ab-logo-file" accept="image/*">
+      </div>
+      
+      <!-- Dynamic Models Builder Section -->
+      <div class="form-group" style="border-top:1px solid var(--gray-200); padding-top:16px; margin-top:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <label class="form-label" style="margin-bottom:0; font-weight:700;">Car Models</label>
+          <button type="button" class="btn btn-outline btn-sm" id="ab-add-model-btn" style="padding:4px 10px; font-size:0.75rem;">+ Add Model</button>
+        </div>
+        <div id="ab-models-list" style="display:flex; flex-direction:column; gap:12px; max-height:240px; overflow-y:auto; padding-right:6px;">
+          <!-- Dynamic rows will be inserted here -->
+        </div>
+      </div>
+      
+      <div id="ab-alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('brand-modal')">Cancel</button>
+      <button class="btn btn-primary" id="ab-save-btn">Save Brand</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="car-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">Add Car Model to Brand</div>
+      <button class="modal-close" onclick="closeModal('car-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="ac-brand">Select Brand</label>
+        <select class="form-control" id="ac-brand">
+          <option value="">Select Brand...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ac-model">Model Name</label>
+        <input type="text" class="form-control" id="ac-model" placeholder="e.g. Camry, Civic, C-Class">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ac-years">Supported Years</label>
+        <input type="text" class="form-control" id="ac-years" placeholder="e.g. 2015-2026 or 2018,2019,2020">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Car Picture Method</label>
+        <select class="form-control" id="ac-pic-method" onchange="toggleCarPicInput()">
+          <option value="url">Image URL</option>
+          <option value="upload">File Upload</option>
+        </select>
+      </div>
+      <div class="form-group" id="ac-pic-url-group">
+        <label class="form-label" for="ac-pic-url">Picture Image URL</label>
+        <input type="text" class="form-control" id="ac-pic-url" placeholder="https://example.com/car.jpg">
+      </div>
+      <div class="form-group" id="ac-pic-file-group" style="display:none">
+        <label class="form-label" for="ac-pic-file">Upload Car Picture</label>
+        <input type="file" class="form-control" id="ac-pic-file" accept="image/*">
+      </div>
+      <div id="ac-alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('car-modal')">Cancel</button>
+      <button class="btn btn-primary" id="ac-save-btn">Save Car Model</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="edit-model-modal">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header">
+      <div class="modal-title">Edit Model</div>
+      <button class="modal-close" onclick="closeModal('edit-model-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="em-brand-name">
+      <input type="hidden" id="em-model-name-orig">
+      <div class="form-group">
+        <label class="form-label" for="em-model-name">Model Name</label>
+        <input type="text" class="form-control" id="em-model-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="em-years">Supported Years</label>
+        <input type="text" class="form-control" id="em-years" placeholder="e.g. 2019-2025">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Car Picture Method</label>
+        <select class="form-control" id="em-pic-method" onchange="toggleEditCarPicInput()">
+          <option value="url">Image URL</option>
+          <option value="upload">File Upload</option>
+        </select>
+      </div>
+      <div class="form-group" id="em-pic-url-group">
+        <label class="form-label" for="em-pic-url">Picture Image URL</label>
+        <input type="text" class="form-control" id="em-pic-url" placeholder="https://example.com/car.jpg">
+      </div>
+      <div class="form-group" id="em-pic-file-group" style="display:none">
+        <label class="form-label" for="em-pic-file">Upload Car Picture</label>
+        <input type="file" class="form-control" id="em-pic-file" accept="image/*">
+      </div>
+      <div id="em-alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edit-model-modal')">Cancel</button>
+      <button class="btn btn-primary" id="em-save-btn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/admin-vehicles.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+</html>
+

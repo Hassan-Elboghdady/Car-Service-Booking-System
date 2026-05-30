@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>My Jobs  AutoServe Staff</title>
+<link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Staff Panel</div>
+  </div>
+  <div class="sidebar-section">My Work</div>
+  <nav class="sidebar-nav">
+    <a href="staff-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="staff-jobs.ejs" class="active"><span class="s-icon"></span> My Jobs</a>
+    <a href="staff-schedule.ejs"><span class="s-icon"></span> Schedule</a>
+  </nav>
+  <div class="sidebar-section">Service</div>
+  <nav class="sidebar-nav">
+    <a href="staff-issues.ejs"><span class="s-icon"></span> Report Issue</a>
+  </nav>
+  <div class="sidebar-section">Account</div>
+  <nav class="sidebar-nav">
+    <a href="profile.ejs"><span class="s-icon"></span> Profile</a>
+    <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Jobs</span></div>
+  </div>
+  <div class="content-area">
+
+    <!-- Main tab: My Jobs vs Available -->
+    <div style="display:flex;gap:0;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--gray-200);width:fit-content;margin-bottom:24px">
+      <button class="btn btn-primary" data-jtab="mine" style="border-radius:0;border:none"> My Jobs</button>
+      <button class="btn btn-ghost" data-jtab="available" style="border-radius:0;border:none;border-left:1px solid var(--gray-200)"> Available Jobs</button>
+    </div>
+
+    <!-- Status filter (only for My Jobs) -->
+    <div class="tabs mb-24" id="status-filters">
+      <button class="tab-btn active" data-jf="all">All</button>
+      <button class="tab-btn" data-jf="pending">Pending</button>
+      <button class="tab-btn" data-jf="in_progress">In Progress</button>
+      <button class="tab-btn" data-jf="completed">Completed</button>
+    </div>
+
+    <div id="jobs-grid"></div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/staff-jobs.js"></script>
+
+<script>
+  // MAGIC SCRIPT: Automatically routes links between main folder and frontend folder
+  setInterval(() => {
+    const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+    
+    function fixLink(href) {
+      if (!href || !href.includes('.ejs')) return href;
+      let page = href.split('/').pop().replace('.ejs', '.html');
+      if (isMain) {
+        if (page === 'index.html') return 'index.html';
+        return 'frontend/' + page;
+      } else {
+        if (page === 'index.html') return '../index.html';
+        return page;
+      }
+    }
+
+    document.querySelectorAll('a').forEach(a => {
+      let h = a.getAttribute('href');
+      if (h && h.includes('.ejs')) a.setAttribute('href', fixLink(h));
+    });
+    document.querySelectorAll('[onclick]').forEach(el => {
+      let oc = el.getAttribute('onclick');
+      if (oc && oc.includes('.ejs')) {
+        let match = oc.match(/'([^']+)'/);
+        if(match) {
+           let newHref = fixLink(match[1]);
+           el.setAttribute('onclick', oc.replace(match[1], newHref));
+        }
+      }
+    });
+  }, 250);
+
+  window.addEventListener('load', () => {
+    if (typeof doLogout === 'function') {
+      window.doLogout = async function() {
+        localStorage.removeItem('as_session');
+        if (typeof showToast === 'function') showToast('Logged out successfully', 'success');
+        const isMain = window.location.pathname.endsWith('/index.html') || !window.location.pathname.includes('/frontend/');
+        setTimeout(() => location.href = isMain ? 'frontend/login.html' : 'login.html', 700);
+      };
+    }
+  });
+</script>
+</body>
+</html>
+
