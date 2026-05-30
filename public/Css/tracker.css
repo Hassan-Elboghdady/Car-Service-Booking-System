@@ -1,0 +1,38 @@
+/* tracker.css */
+.tracker-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+.tracker-steps-card { overflow: visible; }
+
+/* Steps */
+.tracker-steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+.tracker-step { display: flex; gap: 18px; position: relative; padding-bottom: 32px; }
+.tracker-step:last-child { padding-bottom: 0; }
+.ts-left { display: flex; flex-direction: column; align-items: center; }
+.ts-circle { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--gray-300); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #fff; z-index: 1; flex-shrink: 0; transition: var(--transition); }
+.tracker-step.done   .ts-circle { border-color: var(--success); background: var(--success); }
+.tracker-step.active .ts-circle { border-color: var(--primary); background: var(--primary); animation: pulseRing 1.5s infinite; }
+.tracker-step.done   .ts-circle::after { content:'✓'; color:#fff; font-weight:700; font-size:1rem; }
+.tracker-step:not(.done):not(.active) .ts-icon { opacity: .35; }
+.ts-line { width: 3px; flex: 1; background: var(--gray-200); margin: 6px 0; border-radius: 2px; }
+.tracker-step.done .ts-line { background: var(--success); }
+.ts-body { padding-top: 10px; flex: 1; }
+.ts-body h4 { font-size: .95rem; margin-bottom: 4px; }
+.ts-body p  { font-size: .8rem; }
+.ts-time { font-size: .72rem; color: var(--gray-400); margin-top: 4px; }
+
+/* Info panel */
+.tracker-info-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--gray-100); font-size: .85rem; }
+.tracker-info-row:last-child { border: none; }
+.ti-label { color: var(--gray-500); }
+
+/* Timeline */
+.tl-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.tl-item:last-child { border: none; }
+.tl-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.tl-dot.red   { background: var(--primary); }
+.tl-dot.green { background: var(--success); }
+.tl-dot.blue  { background: var(--info); }
+.tl-dot.gray  { background: var(--gray-400); }
+.tl-text { font-size: .82rem; }
+.tl-time { font-size: .72rem; color: var(--gray-400); }
+
+@media(max-width:768px) { .tracker-layout { grid-template-columns: 1fr; } }

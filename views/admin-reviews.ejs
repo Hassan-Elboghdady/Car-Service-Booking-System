@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reviews  AutoServe Admin</title>
+  <link rel="stylesheet" href="../public/Css/shared.css" />
+</head>
+
+<body>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="name">Auto<span>Serve</span></div>
+        <div class="role-tag">Admin Panel</div>
+      </div>
+      <div class="sidebar-section">Overview</div>
+      <nav class="sidebar-nav">
+        <a href="admin-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+        <a href="admin-bookings.ejs"><span class="s-icon">📅</span> Bookings</a>
+        <a href="admin-services.ejs"><span class="s-icon">🔧</span> Services</a>
+      </nav>
+      <div class="sidebar-section">Management</div>
+      <nav class="sidebar-nav">
+        <a href="admin-staff.ejs"><span class="s-icon">👥</span> Staff</a>
+        <a href="admin-vehicles.ejs"><span class="s-icon">🚗</span> Vehicles</a>
+        <a href="admin-payments.ejs"><span class="s-icon">💳</span> Payments</a>
+        <a href="admin-inventory.ejs"><span class="s-icon">📦</span> Inventory</a>
+      </nav>
+      <div class="sidebar-section">Analytics</div>
+      <nav class="sidebar-nav">
+        <a href="admin-reports.ejs"><span class="s-icon">📈</span> Reports</a>
+        <a href="admin-reviews.ejs" class="active"><span class="s-icon">⭐</span> Reviews</a>
+      </nav>
+      <div class="sidebar-section">System</div>
+      <nav class="sidebar-nav">
+        <a href="admin-notifications.ejs"><span class="s-icon">🔔</span> Notifications</a>
+        <a href="admin-cms.ejs"><span class="s-icon">📝</span> CMS</a>
+        <a href="admin-settings.ejs"><span class="s-icon">⚙️</span> Settings</a>
+        <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+        <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+      </nav>
+    </aside>
+    <div class="main-content">
+      <div class="main-header">
+        <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span
+            class="main-title">Reviews & Ratings</span></div>
+      </div>
+      <div class="content-area">
+        <div class="grid-4 mb-28" id="rv-stats"></div>
+
+        <!-- Customer Reviews -->
+        <div class="card mb-24">
+          <div class="card-header flex-between">
+            <h3>⭐ Customer Reviews</h3>
+            <div class="tabs" id="rv-tabs" style="margin:0">
+              <button class="tab-btn active" data-rv="all">All</button>
+              <button class="tab-btn" data-rv="approved">Approved</button>
+              <button class="tab-btn" data-rv="pending">Pending</button>
+            </div>
+          </div>
+          <div class="card-body" id="rv-list"></div>
+        </div>
+
+        <!-- Customer Reports / Issues with Reply -->
+        <div class="card mb-24">
+          <div class="card-header">
+            <h3> Customer Reports</h3>
+            <p style="font-size:.82rem;color:var(--gray-400);margin:0">Reply to customer complaints. Your reply shows up
+              on their My Bookings page.</p>
+          </div>
+          <div class="card-body" id="reports-list"></div>
+        </div>
+
+        <!-- Staff Problems -->
+        <div class="card mb-24">
+          <div class="card-header">
+            <h3> Staff Problems</h3>
+            <p style="font-size:.82rem;color:var(--gray-400);margin:0">Issues reported by staff members. Reply here  your reply is shown to the staff member.</p>
+          </div>
+          <div class="card-body" id="staff-problems-list"></div>
+        </div>
+
+        <!-- Contact Us Messages -->
+        <div class="card">
+          <div class="card-header">
+            <h3> Contact Us Messages</h3>
+            <p style="font-size:.82rem;color:var(--gray-400);margin:0">Messages sent via the Contact page. Reply here 
+              your reply is shown to the customer.</p>
+          </div>
+          <div class="card-body" id="contact-msgs-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toast-root"></div>
+  <script src="../public/Js/shared.js"></script>
+  <script src="../public/Js/admin-reviews.js"></script>
+</body>
+
+</html>
