@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Settings  AutoServe Admin</title><link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.html"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div><nav class="sidebar-nav">
+    <a href="admin-staff.html"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.html"><span class="s-icon">💳</span> Payments</a>
+    <a href="admin-inventory.html"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
+    <a href="admin-reports.html"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div><nav class="sidebar-nav">
+    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.html" class="active"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">System Settings</span></div>
+  </div>
+  <div class="content-area" style="max-width:720px">
+    <!-- Account -->
+    <div class="card card-body mb-24">
+      <h4 style="margin-bottom:16px"> Admin Account</h4>
+      <div id="set-acct-alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name</label><input class="form-control" id="set-first"/></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input class="form-control" id="set-last"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="set-email" type="email"/></div>
+      <button class="btn btn-primary" id="set-acct-save">Update Account</button>
+    </div>
+    <!-- Password -->
+    <div class="card card-body mb-24">
+      <h4 style="margin-bottom:16px"> Change Password</h4>
+      <div id="set-pwd-alert"></div>
+      <div class="form-group"><label class="form-label">Current Password</label><input class="form-control" id="set-cur-pwd" type="password"/></div>
+      <div class="form-group"><label class="form-label">New Password</label><input class="form-control" id="set-new-pwd" type="password"/></div>
+      <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-control" id="set-conf-pwd" type="password"/></div>
+      <button class="btn btn-primary" id="set-pwd-save">Change Password</button>
+    </div>
+    <!-- Danger zone -->
+    <div class="card card-body" style="border-left:4px solid var(--danger)">
+      <h4 style="margin-bottom:8px;color:var(--danger)"> Danger Zone</h4>
+      <p style="font-size:.85rem;margin-bottom:16px">These actions are permanent and cannot be undone.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-danger" onclick="clearDemoData()"> Clear All Demo Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/admin-settings.js"></script>
+</body>
+</html>
+

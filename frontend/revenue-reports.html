@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Revenue Reports  AutoServe Admin</title>
+  <link rel="stylesheet" href="../public/Css/shared.css"/>
+  <link rel="stylesheet" href="../public/Css/revenue-reports.css"/>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand"><div class="name">Auto<span>Serve</span></div><div class="role-tag">Admin Panel</div></div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="booking-management.html"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div>
+  <nav class="sidebar-nav">
+    <a href="customer-management.html"><span class="s-icon"></span> Customers</a>
+    <a href="admin-staff.html"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="inventory.html"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div>
+  <nav class="sidebar-nav">
+    <a href="revenue-reports.html" class="active"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div>
+  <nav class="sidebar-nav">
+    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.html"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Financial Reports</span></div>
+    <div class="flex-gap">
+      <select class="form-control" id="report-period" style="width:auto; height:36px; padding:0 12px">
+        <option value="30">Last 30 Days</option>
+        <option value="90">Last 90 Days</option>
+        <option value="365">This Year</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="window.print()"> Print Report</button>
+    </div>
+  </div>
+  <div class="content-area">
+    <div class="grid-4 mb-28" id="report-stats"></div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+      <div class="card card-body">
+        <h4 style="margin-bottom:20px">Earnings by Service Category</h4>
+        <div id="category-chart"></div>
+      </div>
+      <div class="card card-body">
+        <h4 style="margin-bottom:20px">Monthly Revenue Growth</h4>
+        <div id="growth-chart"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Top Performing Services</h3></div>
+      <div class="table-wrap" style="border:none;border-radius:0">
+        <table>
+          <thead>
+            <tr>
+              <th>Service Name</th>
+              <th>Bookings</th>
+              <th>Total Revenue</th>
+              <th>Avg. Ticket</th>
+              <th>Growth</th>
+            </tr>
+          </thead>
+          <tbody id="top-services-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/revenue-reports.js"></script>
+</body>
+</html>
+

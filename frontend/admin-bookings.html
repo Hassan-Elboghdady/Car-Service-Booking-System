@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Booking Management  AutoServe Admin</title>
+<link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.html" class="active"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div>
+  <nav class="sidebar-nav">
+    <a href="admin-staff.html"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.html"><span class="s-icon">💳</span> Payments</a>
+    <a href="admin-inventory.html"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div>
+  <nav class="sidebar-nav">
+    <a href="admin-reports.html"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div>
+  <nav class="sidebar-nav">
+    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.html"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Booking Management</span></div>
+    <a href="booking.html" class="btn btn-primary btn-sm">+ New Booking</a>
+  </div>
+  <div class="content-area">
+    <div class="grid-4 mb-28" id="bm-stats"></div>
+    <div class="card">
+      <div class="card-header">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <div class="tabs" id="status-tabs" style="margin:0">
+            <button class="tab-btn active" data-status="all">All</button>
+            <button class="tab-btn" data-status="pending">Pending</button>
+            <button class="tab-btn" data-status="in_progress">In Progress</button>
+            <button class="tab-btn" data-status="completed">Completed</button>
+            <button class="tab-btn" data-status="cancelled">Cancelled</button>
+          </div>
+          <input class="form-control" id="bm-search" placeholder="Search customer, car" style="max-width:220px;padding:8px 14px"/>
+        </div>
+      </div>
+      <div class="table-wrap" style="border:none;border-radius:0">
+        <table>
+          <thead><tr><th>ID</th><th>Customer</th><th>Vehicle</th><th>Service</th><th>Date/Time</th><th>Total</th><th>Staff</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="bm-tbody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer"><span id="bm-count" class="text-muted" style="font-size:.82rem"></span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Booking detail/edit modal -->
+<div class="modal-overlay" id="bm-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header"><div class="modal-title">Booking Details</div><button class="modal-close" onclick="closeModal('bm-modal')">✕</button></div>
+    <div class="modal-body" id="bm-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('bm-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/admin-bookings.js"></script>
+</body>
+</html>
+
