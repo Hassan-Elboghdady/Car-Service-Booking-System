@@ -1,0 +1,16 @@
+const express = require('express');
+const { getAllItems, createItem, updateItem, deleteItem, adjustQuantity } = require('../controllers/inventoryController');
+const { protect, authorize } = require('../middleware/authMiddleware');
+
+const router = express.Router();
+
+router.use(protect);
+router.use(authorize('admin')); // All inventory operations require admin role
+
+router.get('/', getAllItems);
+router.post('/', createItem);
+router.put('/:id', updateItem);
+router.delete('/:id', deleteItem);
+router.put('/:id/adjust', adjustQuantity);
+
+module.exports = router;

@@ -1,0 +1,6 @@
+/* inventory.css */
+#low-stock-list { display: flex; flex-direction: column; gap: 12px; }
+.low-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(230,0,35,0.05); border-radius: 8px; border: 1px solid rgba(230,0,35,0.1); }
+.low-item-icon { font-size: 1.2rem; }
+.low-item-info { flex: 1; font-size: 0.82rem; }
+.low-item-info strong { display: block; }
