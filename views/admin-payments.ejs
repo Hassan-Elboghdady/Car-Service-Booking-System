@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Payments  AutoServe Admin</title><link rel="stylesheet" href="../public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
+    <a href="admin-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.ejs"><span class="s-icon">📅</span> Bookings</a>
+    <a href="admin-services.ejs"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div><nav class="sidebar-nav">
+    <a href="admin-staff.ejs"><span class="s-icon">👥</span> Staff</a>
+    <a href="admin-vehicles.ejs"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.ejs" class="active"><span class="s-icon">💳</span> Payments</a>
+    <a href="admin-inventory.ejs"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
+    <a href="admin-reports.ejs"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.ejs"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div><nav class="sidebar-nav">
+    <a href="admin-notifications.ejs"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.ejs"><span class="s-icon">📝</span> CMS</a>
+    <a href="admin-settings.ejs"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Payments & Billing</span></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('coupon-modal')">+ Add Coupon</button>
+  </div>
+  <div class="content-area">
+    <div class="grid-4 mb-28" id="pay-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+      <!-- Transactions table -->
+      <div class="card">
+        <div class="card-header"><h3>Transactions (Completed Bookings)</h3></div>
+        <div class="table-wrap" style="border:none;border-radius:0">
+          <table>
+            <thead><tr><th>Booking</th><th>Customer</th><th>Service</th><th>Date</th><th>Amount</th><th>Method</th></tr></thead>
+            <tbody id="pay-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Coupons -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card card-body">
+          <h4 style="margin-bottom:14px"> Discount Coupons</h4>
+          <div id="coupons-list"></div>
+        </div>
+        <div class="card card-body">
+          <h4 style="margin-bottom:14px">Payment Methods</h4>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:.85rem">
+            <div class="flex-between"><span> Cash</span><span class="badge badge-green">Active</span></div>
+            <div class="flex-between"><span> Card (Visa/MC)</span><span class="badge badge-green">Active</span></div>
+            <div class="flex-between"><span> Bank Transfer</span><span class="badge badge-green">Active</span></div>
+            <div class="flex-between"><span> InstaPay</span><span class="badge badge-green">Active</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Coupon Modal -->
+<div class="modal-overlay" id="coupon-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Coupon Code</div><button class="modal-close" onclick="closeModal('coupon-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Coupon Code *</label><input class="form-control" id="cp-code" placeholder="e.g. SUMMER30"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Discount % *</label><input class="form-control" id="cp-disc" type="number" min="1" max="100" placeholder="20"/></div>
+        <div class="form-group"><label class="form-label">Min Order (EGP)</label><input class="form-control" id="cp-min" type="number" placeholder="0"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-control" id="cp-exp" type="date"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('coupon-modal')">Cancel</button>
+      <button class="btn btn-primary" id="cp-save">Add Coupon</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/admin-payments.js"></script>
+</body>
+</html>
+

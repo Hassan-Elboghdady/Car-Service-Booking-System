@@ -1,0 +1,75 @@
+// admin-payments.js
+window.addEventListener('DOMContentLoaded', async () => {
+  seedData(); if (!requireRole('admin')) return; initSidebar();
+  await renderAll();
+  document.getElementById('cp-save').addEventListener('click', addCoupon);
+});
+
+async function renderAll() {
+  const allB = await bookingsAPI.allWithDetails();
+  const completed = allB.filter(b=>b.status==='completed');
+  const totalRev  = completed.reduce((s,b)=>s+(b.total||0),0);
+  const avg       = completed.length ? Math.round(totalRev/completed.length) : 0;
+
+  document.getElementById('pay-stats').innerHTML = [
+    {l:'Total Revenue',   v:'EGP '+totalRev.toLocaleString(), i:SVG_ICONS.revenue, c:'green'},
+    {l:'Transactions',    v:completed.length, i:SVG_ICONS.clipboard, c:'blue'},
+    {l:'Avg per Booking', v:'EGP '+avg, i:SVG_ICONS.trendingUp, c:'yellow'},
+    {l:'Pending',         v:'EGP '+allB.filter(b=>b.status==='pending').reduce((s,b)=>s+(b.total||0),0), i:SVG_ICONS.clock, c:'red'},
+  ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
+
+  const methods = ['Cash','Card','Bank Transfer','InstaPay'];
+  document.getElementById('pay-tbody').innerHTML = completed.map((b,i)=>`
+    <tr>
+      <td><code style="font-size:.72rem">${b.id.slice(-8)}</code></td>
+      <td>${b.user?.firstName||''} ${b.user?.lastName||''}</td>
+      <td>${b.service?.name||''}</td>
+      <td>${formatDate(b.date)}</td>
+      <td style="font-weight:800;color:var(--primary)">EGP ${b.total||''}</td>
+      <td>${methods[i%methods.length]}</td>
+    </tr>`).join('') || '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No transactions yet.</p></div></td></tr>';
+
+  const coupons = getAll(KEYS.COUPONS)||[];
+  // Add default coupons if empty
+  if (!coupons.length) {
+    store.set(KEYS.COUPONS,[
+      {id:'cp1',code:'SAVE20',discount:20,minOrder:0,active:true,exp:'2026-12-31'},
+      {id:'cp2',code:'FIRST10',discount:10,minOrder:0,active:true,exp:'2026-12-31'},
+      {id:'cp3',code:'AUTO50',discount:50,minOrder:500,active:true,exp:'2026-06-30'},
+    ]);
+  }
+  const cpList = getAll(KEYS.COUPONS)||[];
+  document.getElementById('coupons-list').innerHTML = cpList.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+      <div>
+        <div style="font-family:monospace;font-weight:700;font-size:.85rem">${c.code}</div>
+        <div style="font-size:.72rem;color:var(--gray-500)">${c.discount}% off  Min EGP ${c.minOrder||0}</div>
+      </div>
+      <div class="flex-gap" style="gap:6px">
+        <span class="badge ${c.active?'badge-green':'badge-gray'}">${c.active?'Active':'Inactive'}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeCoupon('${c.id}')">${SVG_ICONS.trash}</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--gray-400);font-size:.85rem">No coupons yet.</p>';
+}
+
+window.removeCoupon = async (id) => {
+  const list = (getAll(KEYS.COUPONS)||[]).filter(c=>c.id!==id);
+  store.set(KEYS.COUPONS, list); await renderAll(); showToast('Coupon removed','success');
+};
+
+function addCoupon() {
+  const code = document.getElementById('cp-code').value.trim().toUpperCase();
+  const disc = parseInt(document.getElementById('cp-disc').value)||0;
+  const min  = parseInt(document.getElementById('cp-min').value)||0;
+  const exp  = document.getElementById('cp-exp').value;
+  if (!code||!disc) { showToast('Code and discount required','error'); return; }
+  const list = getAll(KEYS.COUPONS)||[];
+  if (list.some(c => c.code === code)) {
+    showToast(`Coupon code "${code}" already exists!`, 'error');
+    return;
+  }
+  list.push({id:genId('cp'),code,discount:disc,minOrder:min,exp,active:true});
+  store.set(KEYS.COUPONS, list);
+  closeModal('coupon-modal');
+  renderAll(); showToast(`Coupon "${code}" added!`,'success');
+}
