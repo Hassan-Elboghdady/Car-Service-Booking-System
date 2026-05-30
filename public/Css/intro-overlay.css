@@ -1,0 +1,222 @@
+/* ============================================================
+   CINEMATIC V12 SUPERCAR INTRO OVERLAY
+   intro-overlay.css
+   Insert: <link rel="stylesheet" href="intro-overlay.css"> in <head>
+   ============================================================ */
+
+#ci-overlay * { box-sizing: border-box; margin: 0; padding: 0; }
+
+#ci-overlay {
+  position: fixed; inset: 0; z-index: 999999;
+  background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden; user-select: none;
+  transition: opacity 1.1s ease;
+}
+
+/* ── Fog ── */
+.ci-fog {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px); pointer-events: none;
+  animation: ci-fog linear infinite;
+}
+@keyframes ci-fog {
+  0%   { transform: translate(0,0) scale(1);       opacity: var(--fo); }
+  33%  { transform: translate(40px,-25px) scale(1.08); opacity: calc(var(--fo)*0.7); }
+  66%  { transform: translate(-25px,35px) scale(0.94); opacity: var(--fo); }
+  100% { transform: translate(0,0) scale(1);       opacity: calc(var(--fo)*0.8); }
+}
+
+/* ── Ambient center glow ── */
+#ci-ambient {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 55%, rgba(200,0,0,0) 0%, transparent 65%);
+  transition: background 0.15s linear;
+}
+
+/* ── Vignette ── */
+#ci-overlay::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+  z-index: 1;
+}
+
+/* ── Content ── */
+.ci-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+}
+
+/* ── Brand ── */
+.ci-brand {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 0.35em;
+  color: rgba(255,255,255,0.18); text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.ci-brand span { color: #cc2200; }
+
+/* ── Gauge wrap ── */
+.ci-tach-wrap { position: relative; width: 300px; height: 300px; }
+.ci-tach { width: 100%; height: 100%; overflow: visible; }
+
+.ci-track {
+  fill: none; stroke: rgba(255,255,255,0.07);
+  stroke-width: 10; stroke-linecap: round;
+}
+.ci-fill-arc {
+  fill: none; stroke: url(#ci-arc-grad);
+  stroke-width: 10; stroke-linecap: round;
+}
+
+/* ── Center Button ── */
+.ci-btn-ring {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 148px; height: 148px; border-radius: 50%;
+  background: conic-gradient(
+    rgba(200,0,0,0.9) 0deg, rgba(255,70,0,0.7) 90deg,
+    rgba(200,0,0,0.9) 180deg, rgba(255,70,0,0.7) 270deg,
+    rgba(200,0,0,0.9) 360deg
+  );
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(255,60,0,0.5),
+              0 0 30px rgba(255,0,0,0.45),
+              0 0 70px rgba(200,0,0,0.2);
+  animation: ci-ring-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ci-ring-pulse {
+  0%,100% { box-shadow: 0 0 0 1px rgba(255,60,0,0.5), 0 0 30px rgba(255,0,0,0.45), 0 0 70px rgba(200,0,0,0.2); }
+  50%      { box-shadow: 0 0 0 3px rgba(255,80,0,0.9), 0 0 50px rgba(255,30,0,0.75), 0 0 110px rgba(200,0,0,0.4); }
+}
+
+#ci-btn {
+  width: 122px; height: 122px; border-radius: 50%; border: none; outline: none;
+  background: radial-gradient(circle at 38% 32%, #2a2a2a 0%, #141414 45%, #050505 100%);
+  cursor: pointer; touch-action: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.1),
+              inset 0 -2px 4px rgba(0,0,0,0.7),
+              0 4px 12px rgba(0,0,0,0.9);
+  transition: transform 0.1s ease;
+}
+#ci-btn.pressed { transform: scale(0.92); animation: ci-vibe 0.07s linear infinite; }
+@keyframes ci-vibe {
+  0%   { transform: scale(0.92) translate(0,0); }
+  25%  { transform: scale(0.92) translate(-1px, 1px); }
+  50%  { transform: scale(0.92) translate(1px,-1px); }
+  75%  { transform: scale(0.92) translate(-1px,-1px); }
+  100% { transform: scale(0.92) translate(1px, 1px); }
+}
+
+.ci-btn-icon { font-size: 1.9rem; line-height: 1; filter: drop-shadow(0 0 8px rgba(255,80,0,0.9)); }
+.ci-btn-label {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.42rem; font-weight: 900; letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.45); text-transform: uppercase;
+}
+
+/* ── RPM Number ── */
+.ci-rpm-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#ci-rpm-num {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 4.2rem; font-weight: 700; color: #fff; line-height: 1;
+  letter-spacing: 0.04em; min-width: 5ch; text-align: center;
+  text-shadow: 0 0 20px rgba(255,60,0,0.3);
+  transition: color 0.3s ease, text-shadow 0.2s ease;
+}
+#ci-rpm-num.redline {
+  color: #ff2000;
+  text-shadow: 0 0 8px #ff2000, 0 0 25px #ff4000, 0 0 55px rgba(255,0,0,0.5);
+  animation: ci-rl-flicker 0.09s ease infinite alternate;
+}
+@keyframes ci-rl-flicker { from { opacity:1; } to { opacity:0.82; } }
+
+.ci-rpm-unit {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.28); text-transform: uppercase;
+}
+
+/* ── Zone Text ── */
+#ci-zone {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.2); text-transform: uppercase;
+  min-height: 1.2em; transition: color 0.4s ease;
+}
+
+/* ── Hint ── */
+#ci-hint {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.32); text-transform: uppercase;
+  transition: opacity 0.4s ease, color 0.3s ease;
+}
+#ci-hint.active { color: rgba(255,110,0,0.85); }
+
+/* ── Screen Shake keyframes ── */
+@keyframes ci-shake-lo {
+  0%,100%{transform:translate(0,0)}20%{transform:translate(-2px,1px)}
+  40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,2px)}80%{transform:translate(1px,-2px)}
+}
+@keyframes ci-shake-hi {
+  0%,100%{transform:translate(0,0) rotate(0deg)}15%{transform:translate(-4px,2px) rotate(-0.3deg)}
+  30%{transform:translate(4px,-2px) rotate(0.3deg)}50%{transform:translate(-3px,3px) rotate(-0.2deg)}
+  70%{transform:translate(3px,-3px) rotate(0.2deg)}85%{transform:translate(-2px,1px)}
+}
+@keyframes ci-shake-max {
+  0%,100%{transform:translate(0,0) rotate(0deg)}10%{transform:translate(-7px,3px) rotate(-0.5deg)}
+  25%{transform:translate(7px,-3px) rotate(0.5deg)}40%{transform:translate(-5px,4px) rotate(-0.3deg)}
+  55%{transform:translate(5px,-5px) rotate(0.3deg)}70%{transform:translate(-3px,2px)}85%{transform:translate(3px,-2px)}
+}
+
+/* ── Flash ── */
+#ci-flash {
+  position: absolute; inset: 0; z-index: 10;
+  background: radial-gradient(ellipse at center, #fff 0%, rgba(255,120,0,0.95) 50%, rgba(255,0,0,0.6) 100%);
+  opacity: 0; pointer-events: none; transition: opacity 0.05s ease;
+}
+
+/* ── Streaks ── */
+.ci-streak {
+  position: absolute; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,100,0,0.7), transparent);
+  animation: ci-streak 0.55s ease-out forwards;
+}
+@keyframes ci-streak { from{opacity:0.9;transform:scaleX(0)} to{opacity:0;transform:scaleX(1)} }
+
+/* ── Sparks ── */
+.ci-spark {
+  position: absolute; width: 2px; border-radius: 1px; pointer-events: none;
+  animation: ci-spark-fly var(--d) ease-out forwards;
+}
+@keyframes ci-spark-fly {
+  0%   { transform: translate(0,0); height: 10px; opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)); height: 2px; opacity: 0; }
+}
+
+/* ── Redline bar ── */
+#ci-rl-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #ff2200 50%, transparent);
+  opacity: 0; pointer-events: none;
+}
+#ci-overlay.in-rl #ci-rl-bar { animation: ci-rl-bar 0.1s ease infinite alternate; }
+@keyframes ci-rl-bar { from{opacity:0.4} to{opacity:1} }
+
+/* ── Skip ── */
+#ci-skip {
+  position: absolute; bottom: 26px; right: 30px;
+  background: none; border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.22); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 6px 16px; border-radius: 20px; cursor: pointer; outline: none;
+  transition: all 0.25s ease; z-index: 5;
+}
+#ci-skip:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.5); }
+
+/* ── Fade out ── */
+#ci-overlay.ci-out { opacity: 0; pointer-events: none; }

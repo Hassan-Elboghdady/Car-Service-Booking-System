@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Staff Management  AutoServe Admin</title>
+  <link rel="stylesheet" href="../public/Css/shared.css" />
+</head>
+
+<body>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><img src="../public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:auto"><div class="role-tag">Admin Panel</div></div>
+      <div class="sidebar-section">Overview</div>
+      <nav class="sidebar-nav">
+        <a href="admin-dashboard.ejs"><span class="s-icon">📊</span> Dashboard</a>
+        <a href="admin-bookings.ejs"><span class="s-icon">📅</span> Bookings</a>
+        <a href="admin-services.ejs"><span class="s-icon">🔧</span> Services</a>
+      </nav>
+      <div class="sidebar-section">Management</div>
+      <nav class="sidebar-nav">
+        <a href="admin-staff.ejs" class="active"><span class="s-icon">👥</span> Staff</a>
+        <a href="admin-vehicles.ejs"><span class="s-icon">🚗</span> Vehicles</a>
+        <a href="admin-payments.ejs"><span class="s-icon">💳</span> Payments</a>
+        <a href="admin-inventory.ejs"><span class="s-icon">📦</span> Inventory</a>
+      </nav>
+      <div class="sidebar-section">Analytics</div>
+      <nav class="sidebar-nav">
+        <a href="admin-reports.ejs"><span class="s-icon">📈</span> Reports</a>
+        <a href="admin-reviews.ejs"><span class="s-icon">⭐</span> Reviews</a>
+      </nav>
+      <div class="sidebar-section">System</div>
+      <nav class="sidebar-nav">
+        <a href="admin-notifications.ejs"><span class="s-icon">🔔</span> Notifications</a>
+        <a href="admin-cms.ejs"><span class="s-icon">📝</span> CMS</a>
+        <a href="admin-settings.ejs"><span class="s-icon">⚙️</span> Settings</a>
+        <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
+        <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <div class="main-header">
+        <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span
+            class="main-title">Staff Management</span></div>
+        <div class="flex-gap">
+          <button class="btn btn-outline btn-sm" onclick="openModal('code-modal')"> Generate Staff Code</button>
+        </div>
+      </div>
+      <div class="content-area">
+        <!-- Stats -->
+        <div class="grid-4 mb-28" id="staff-stats"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+          <!-- Staff Table -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Staff Members</h3>
+            </div>
+            <div class="table-wrap" style="border:none;border-radius:0">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Jobs Done</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Codes Panel -->
+          <div class="card card-body">
+            <h4 style="margin-bottom:16px"> Staff Access Codes</h4>
+            <div id="codes-list"></div>
+            <button class="btn btn-outline btn-block mt-16" onclick="openModal('code-modal')">+ Generate New
+              Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Staff Modal -->
+  <div class="modal-overlay" id="staff-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Add Staff Member</div><button class="modal-close"
+          onclick="closeModal('staff-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" style="margin-bottom:16px">The new staff member will receive a staff code to
+          register themselves. Or fill in the details below to create a direct account.</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">First Name *</label><input class="form-control"
+              id="sf-first" placeholder="Ahmed" /></div>
+          <div class="form-group"><label class="form-label">Last Name *</label><input class="form-control" id="sf-last"
+              placeholder="Hassan" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email *</label><input class="form-control" id="sf-email"
+            type="email" placeholder="staff@example.com" /></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="sf-phone"
+            placeholder="+201001234567" /></div>
+        <div class="form-group"><label class="form-label">Password *</label><input class="form-control" id="sf-pass"
+            type="password" placeholder="Temp password" /></div>
+        <div class="alert alert-info" style="margin-top:12px">
+           Staff will have <strong>no role</strong> until you assign one from the staff table.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('staff-modal')">Cancel</button>
+        <button class="btn btn-primary" id="sf-save">Create Staff Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Modal -->
+  <div class="modal-overlay" id="code-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Generate Staff Code</div><button class="modal-close"
+          onclick="closeModal('code-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-16">Generate a one-time staff registration code. Share it with the new staff member  they'll use
+          it on the registration page.</p>
+        <div id="generated-code-wrap" style="display:none">
+          <div class="generated-code-box" id="generated-code"></div>
+          <p style="font-size:.8rem;color:var(--gray-500);margin-top:10px"> This code can only be used once and
+            expires when activated.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('code-modal')">Close</button>
+        <button class="btn btn-primary" id="gen-code-btn">Generate Code</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-root"></div>
+  <script src="../public/Js/shared.js"></script>
+  <script src="../public/Js/admin-staff.js"></script>
+</body>
+
+</html>
