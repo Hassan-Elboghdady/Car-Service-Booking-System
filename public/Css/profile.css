@@ -1,0 +1,16 @@
+/* profile.css */
+.profile-layout { display: grid; grid-template-columns: 280px 1fr; gap: 36px; align-items: start; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.profile-stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 20px; }
+.p-stat { text-align: center; padding: 12px 8px; background: var(--gray-50); border-radius: var(--radius-sm); }
+.ps-val { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+.ps-label { font-size: .7rem; color: var(--gray-500); margin-top: 2px; }
+.loyalty-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-md); padding: 24px; color: #fff; }
+.lc-label { font-size: .75rem; opacity: .7; margin-bottom: 4px; }
+.lc-tier  { font-size: 1.6rem; font-weight: 900; }
+.lc-points { font-size: .85rem; opacity: .8; margin-top: 8px; }
+.pt-panel { }
+.star-picker { display: flex; gap: 8px; margin-top: 8px; }
+.star { font-size: 1.8rem; color: var(--gray-300); cursor: pointer; transition: var(--transition); }
+.star.active, .star:hover { color: #fbbf24; }
+@media(max-width:768px) { .profile-layout { grid-template-columns: 1fr; } }

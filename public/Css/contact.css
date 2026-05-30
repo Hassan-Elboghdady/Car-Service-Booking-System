@@ -1,0 +1,29 @@
+/* contact.css */
+.contact-layout { display: grid; grid-template-columns: 380px 1fr; gap: 36px; align-items: start; }
+.contact-info-panel { display: flex; flex-direction: column; gap: 20px; }
+.info-card { display: flex; gap: 16px; padding: 20px; background: var(--gray-50); border-radius: var(--radius-md); border: 1px solid var(--gray-200); transition: var(--transition); }
+.info-card:hover { background: var(--primary-bg); border-color: rgba(230,0,35,.15); }
+.info-icon { font-size: 1.6rem; flex-shrink: 0; }
+.info-card h4 { font-size: .9rem; margin-bottom: 6px; }
+.info-card p  { font-size: .83rem; line-height: 1.7; }
+.info-card a  { color: var(--primary); }
+
+.social-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 99px; background: var(--gray-100); font-size: .8rem; font-weight: 600; color: var(--gray-700); transition: var(--transition); }
+.social-btn:hover { background: var(--primary); color: #fff; }
+
+.map-placeholder { background: var(--gray-100); border-radius: var(--radius-md); padding: 28px; text-align: center; }
+.map-pin { font-size: 2.5rem; margin-bottom: 8px; }
+
+/* FAQ */
+.faq-list { display: flex; flex-direction: column; gap: 0; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--gray-200); }
+.faq-item { border-bottom: 1px solid var(--gray-200); }
+.faq-item:last-child { border: none; }
+.faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; background: #fff; font-size: .9rem; font-weight: 600; cursor: pointer; border: none; text-align: left; transition: var(--transition); }
+.faq-q:hover { background: var(--gray-50); }
+.faq-q .arrow { font-size: .75rem; transition: transform .22s ease; }
+.faq-item.open .faq-q { color: var(--primary); background: var(--primary-bg); }
+.faq-item.open .faq-q .arrow { transform: rotate(180deg); }
+.faq-a { display: none; padding: 0 22px 18px; font-size: .86rem; color: var(--gray-600); line-height: 1.7; background: var(--gray-50); }
+.faq-item.open .faq-a { display: block; }
+
+@media(max-width:768px) { .contact-layout { grid-template-columns: 1fr; } }

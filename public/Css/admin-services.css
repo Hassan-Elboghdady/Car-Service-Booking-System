@@ -1,0 +1,7 @@
+/* admin-services.css */
+.svc-admin-card { background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius-md); padding:20px; display:flex; align-items:center; gap:16px; margin-bottom:12px; transition:var(--transition); }
+.svc-admin-card:hover { box-shadow:var(--shadow-sm); }
+.svc-admin-icon { font-size:2rem; width:52px; height:52px; display:flex; align-items:center; justify-content:center; background:var(--gray-50); border-radius:var(--radius-sm); flex-shrink:0; }
+.svc-admin-info { flex:1; }
+.svc-admin-info h4 { margin-bottom:4px; }
+.svc-admin-actions { display:flex; gap:8px; }

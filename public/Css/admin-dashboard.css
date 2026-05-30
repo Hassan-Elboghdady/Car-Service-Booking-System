@@ -1,0 +1,3 @@
+/* admin-dashboard.css */
+.dash-row { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+@media(max-width:900px){ .dash-row { grid-template-columns: 1fr; } }

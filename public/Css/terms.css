@@ -1,0 +1,14 @@
+/* terms.css */
+.terms-layout { display: grid; grid-template-columns: 240px 1fr; gap: 36px; align-items: start; }
+.terms-toc { position: sticky; top: 90px; }
+.toc-link { color: var(--gray-600); transition: var(--transition); font-size: .84rem; }
+.toc-link:hover { color: var(--primary); }
+.terms-section { margin-bottom: 44px; }
+.terms-section h2 { font-size: 1.35rem; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--gray-100); color: var(--gray-900); }
+.terms-section p { margin-bottom: 12px; }
+.terms-section ul { padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.terms-section ul li { font-size: .9rem; color: var(--gray-600); line-height: 1.7; }
+.terms-section ul li::marker { color: var(--primary); }
+.terms-contact-box { background: var(--primary-bg); border: 1px solid rgba(230,0,35,.15); border-radius: var(--radius-sm); padding: 20px; margin-top: 14px; }
+.terms-cta { display: flex; gap: 14px; margin-top: 48px; padding-top: 32px; border-top: 2px solid var(--gray-200); flex-wrap: wrap; }
+@media(max-width:768px) { .terms-layout { grid-template-columns: 1fr; } .terms-toc { position: static; } }

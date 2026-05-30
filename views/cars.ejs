@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Cars  AutoServe</title>
+  <meta name="description" content="Browse all car brands AutoServe can service, and manage your personal vehicles."/>
+  <link rel="stylesheet" href="../public/Css/shared.css"/>
+  <link rel="stylesheet" href="../public/Css/cars.css"/>
+</head>
+<body>
+<div id="navbar-wrap"></div>
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.ejs">Home</a><span class="breadcrumb-sep"></span><span>Cars</span></div>
+    <h1>Cars</h1>
+    <p>Browse vehicles we service, or manage your personal fleet.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <!-- TABS -->
+    <div class="tabs mb-32" id="cars-tabs">
+      <button class="tab-btn active" data-tab="catalogue"> Cars We Serve</button>
+      <button class="tab-btn" data-tab="my"> My Vehicles</button>
+    </div>
+
+    <!-- TAB: CATALOGUE -->
+    <div id="tab-catalogue" class="tab-content active">
+      <!-- Brand+Search filter -->
+      <div class="cars-filter-row">
+        <input class="form-control" id="car-search" placeholder="Search brand, model" style="max-width:300px"/>
+        <select class="form-control" id="brand-filter" style="max-width:200px">
+          <option value="">All Brands</option>
+        </select>
+        <select class="form-control" id="year-filter" style="max-width:160px">
+          <option value="">All Years</option>
+        </select>
+      </div>
+      <div class="cars-count" id="cars-count"></div>
+      <div class="grid-4" id="catalogue-grid"></div>
+    </div>
+
+    <!-- TAB: MY VEHICLES -->
+    <div id="tab-my" class="tab-content">
+      <div id="my-cars-auth-wrap">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADD CAR MODAL -->
+<div class="modal-overlay" id="add-car-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Your Vehicle</div>
+      <button class="modal-close" onclick="closeModal('add-car-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="add-car-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Brand *</label>
+        <select class="form-control" id="ac-brand">
+          <option value="">Select brand</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model *</label>
+        <select class="form-control" id="ac-model" disabled>
+          <option value="">Select model</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Year *</label>
+        <select class="form-control" id="ac-year" disabled>
+          <option value="">Select year</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">License Plate *</label>
+          <input class="form-control" id="ac-plate" placeholder="أ ب ج 1234"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color *</label>
+          <input class="form-control" id="ac-color" placeholder="e.g. Silver"/>
+        </div>
+      </div>
+      <div id="car-not-found" class="alert alert-warning" style="display:none">
+         That car brand is not in our service database. Please <a href="contact.ejs">contact us</a> to arrange service.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-car-modal')">Cancel</button>
+      <button class="btn btn-primary" id="add-car-btn">Add Vehicle</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAR DETAIL MODAL -->
+<div class="modal-overlay" id="cat-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="cat-modal-title">Vehicle Details</div>
+      <button class="modal-close" onclick="closeModal('cat-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="cat-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('cat-detail-modal')">Close</button>
+      <a class="btn btn-primary" id="cat-book-btn" href="booking.ejs">Book Service →</a>
+    </div>
+  </div>
+</div>
+
+<div id="footer-wrap"></div>
+<script src="../public/Js/shared.js"></script>
+<script src="../public/Js/cars.js"></script>
+</body>
+</html>
+
