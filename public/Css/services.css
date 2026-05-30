@@ -1,0 +1,84 @@
+/* services.css */
+
+/* ── Filter bar ── */
+.svc-filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+.svc-filter-btn { padding: 9px 20px; border: 2px solid var(--gray-200); border-radius: 99px; background: #fff; font-size: .85rem; font-weight: 600; color: var(--gray-600); cursor: pointer; transition: var(--transition); white-space: nowrap; }
+.svc-filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+.svc-filter-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ── Service cards ── */
+.svc-card { border-radius: var(--radius-md); border: 1px solid var(--gray-200); background: #fff; overflow: hidden; transition: var(--transition); }
+.svc-card:hover { box-shadow: var(--shadow-md); transform: translateY(-5px); }
+.svc-card-img { height: 140px; background: linear-gradient(135deg,var(--primary-bg),var(--gray-100)); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; position: relative; }
+.svc-cat-badge { position: absolute; top: 10px; right: 10px; }
+.svc-pop-badge { position: absolute; top: 10px; left: 10px; }
+.svc-card-body { padding: 20px; }
+.svc-card-body h3 { font-size: .98rem; margin-bottom: 6px; }
+.svc-card-body p  { font-size: .8rem; margin-bottom: 12px; color: var(--gray-500); }
+.svc-card-meta { display: flex; justify-content: space-between; align-items: center; }
+.svc-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.svc-duration { font-size: .75rem; color: var(--gray-400); }
+
+/* ── Mileage package grid ── */
+.mileage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; }
+
+.mileage-pkg-card {
+  border-radius: var(--radius-md);
+  border: 2px solid var(--gray-200);
+  background: #fff;
+  overflow: hidden;
+  transition: var(--transition);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.mileage-pkg-card:hover { box-shadow: var(--shadow-md); transform: translateY(-6px); }
+.mileage-popular { border-color: var(--primary); box-shadow: 0 4px 20px rgba(230,0,35,.12); }
+
+.mileage-pop-badge {
+  position: absolute; top: 14px; right: 14px;
+  background: var(--primary); color: #fff;
+  font-size: .7rem; font-weight: 700;
+  padding: 4px 12px; border-radius: 99px;
+  z-index: 1;
+}
+
+.mpkg-header {
+  padding: 28px 28px 20px;
+  background: linear-gradient(135deg, var(--primary-bg), var(--gray-50));
+  text-align: center;
+  border-bottom: 1px solid var(--gray-200);
+}
+.mileage-popular .mpkg-header { background: linear-gradient(135deg, #fff0f2, #ffe4e9); }
+
+.mpkg-emoji { font-size: 2.8rem; margin-bottom: 10px; }
+.mpkg-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 4px; }
+.mpkg-tagline { font-size: .82rem; color: var(--gray-500); margin-bottom: 8px; }
+.mpkg-duration { font-size: .78rem; font-weight: 600; color: var(--primary); background: var(--primary-bg); display: inline-block; padding: 3px 12px; border-radius: 99px; }
+
+.mpkg-body { padding: 24px 24px 28px; flex: 1; display: flex; flex-direction: column; }
+.mpkg-desc { font-size: .83rem; color: var(--gray-500); margin-bottom: 20px; line-height: 1.6; }
+
+/* Pricing tiers */
+.mpkg-price-tiers { display: flex; gap: 0; border: 1px solid var(--gray-200); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 20px; }
+.mpkg-tier { flex: 1; padding: 12px 8px; text-align: center; border-right: 1px solid var(--gray-200); }
+.mpkg-tier:last-child { border-right: none; }
+.mpkg-tier.economy { background: #f0fdf4; }
+.mpkg-tier.mid { background: #fff; }
+.mpkg-tier.premium { background: #fff7ed; }
+.tier-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-500); margin-bottom: 4px; }
+.tier-price { font-size: .95rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+.tier-models { font-size: .6rem; color: var(--gray-500); line-height: 1.4; }
+
+/* Includes list */
+.mpkg-includes { margin-bottom: auto; }
+.mpkg-includes-title { font-size: .78rem; font-weight: 700; margin-bottom: 8px; color: var(--gray-700); }
+.mpkg-include-item { font-size: .78rem; color: var(--gray-600); padding: 5px 0; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 6px; }
+.mpkg-include-item:last-child { border: none; }
+
+@media(max-width: 768px) {
+  .mileage-grid { grid-template-columns: 1fr; }
+  .mpkg-price-tiers { flex-direction: column; }
+  .mpkg-tier { border-right: none; border-bottom: 1px solid var(--gray-200); }
+  .mpkg-tier:last-child { border-bottom: none; }
+}

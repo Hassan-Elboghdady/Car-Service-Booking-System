@@ -1,0 +1,11 @@
+/* my-bookings.css */
+.booking-card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 22px; margin-bottom: 16px; transition: var(--transition); border-left: 4px solid var(--gray-300); }
+.booking-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.booking-card.status-pending { border-left-color: var(--warning); }
+.booking-card.status-in_progress { border-left-color: var(--info); }
+.booking-card.status-completed  { border-left-color: var(--success); }
+.booking-card.status-cancelled  { border-left-color: var(--gray-400); opacity: .7; }
+.bk-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.bk-service { font-size: 1rem; font-weight: 700; }
+.bk-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: .82rem; color: var(--gray-500); }
+.bk-actions { display: flex; gap: 10px; flex-wrap: wrap; }

@@ -1,0 +1,12 @@
+/* revenue-reports.css */
+.chart-bar-row { margin-bottom: 16px; }
+.chart-bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px; }
+.chart-bar-bg { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; }
+.chart-bar-fill { height: 100%; background: var(--primary); border-radius: 5px; }
+
+@media print {
+  .sidebar, .sidebar-overlay, .main-header, .btn { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .content-area { padding: 0 !important; }
+  .card { box-shadow: none !important; border: 1px solid #eee !important; }
+}
