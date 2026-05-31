@@ -5,6 +5,16 @@
    toast, modal, validation — imported by every page
    ============================================================ */
 
+const DEFAULT_FAVICON = '/public/LogoBrand/AutoServeLogo.jpg';
+const existingIcon = document.querySelector('link[rel~="icon"]');
+if (!existingIcon) {
+  const icon = document.createElement('link');
+  icon.rel = 'icon';
+  icon.type = 'image/jpeg';
+  icon.href = DEFAULT_FAVICON;
+  document.head.appendChild(icon);
+}
+
 // ─── STORAGE KEYS ────────────────────────────────────────────
 const KEYS = {
   USERS: 'as_users', SESSION: 'as_session', CARS: 'as_cars',
@@ -643,7 +653,7 @@ function buildNavbar(active = '') {
   <nav class="navbar">
     <div class="container">
       <a href="index.ejs" class="nav-brand" style="display:flex;align-items:center;">
-        <img src="/public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe Logo" style="height: 40px; border-radius: 6px;">
+        <img src="/public/LogoBrand/AutoServeLogo.jpg" alt="AutoServe Logo" style="height: 40px; border-radius: 6px;">
         <div class="name" style="margin-left:10px;font-weight:800;font-size:1.4rem;color:var(--text)">Auto<span style="color:var(--primary)">Serve</span></div>
       </a>
       <div class="nav-links">${links}</div>
@@ -693,7 +703,7 @@ function buildFooter() {
       <div class="footer-grid">
         <div>
           <a href="index.ejs" style="display:flex;align-items:center;margin-bottom:15px;text-decoration:none;">
-            <img src="/public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe Logo" style="height: 45px; border-radius: 6px;">
+            <img src="/public/LogoBrand/AutoServeLogo.jpg" alt="AutoServe Logo" style="height: 45px; border-radius: 6px;">
             <div class="name" style="margin-left:10px;font-weight:800;font-size:1.6rem;color:#fff">Auto<span style="color:var(--primary)">Serve</span></div>
           </a>
           <p class="footer-desc">Egypt's premier car service booking platform. Professional maintenance, repairs & detailing.</p>
