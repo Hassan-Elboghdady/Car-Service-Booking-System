@@ -1,4 +1,6 @@
 // admin-inventory.js
+let editingId = null;
+
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
@@ -8,6 +10,55 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('inv-search').addEventListener('input', function() { renderList(this.value.toLowerCase()); });
   document.getElementById('inv-save').addEventListener('click', addItem);
 });
+
+function resetInvForm() {
+  ['inv-name','inv-unit','inv-cost','inv-qty','inv-low','inv-supplier','inv-minorder'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const cat = document.getElementById('inv-cat');
+  if (cat) cat.value = 'oils';
+}
+
+function setModalMode(mode) {
+  const title = document.getElementById('inv-modal-title');
+  const btn = document.getElementById('inv-save');
+  if (!title || !btn) return;
+  if (mode === 'edit') {
+    title.textContent = 'Edit Inventory Item';
+    btn.textContent = 'Save Changes';
+  } else {
+    title.textContent = 'Add Inventory Item';
+    btn.textContent = 'Add Item';
+  }
+}
+
+window.openAddItemModal = () => {
+  editingId = null;
+  resetInvForm();
+  setModalMode('add');
+  openModal('inv-modal');
+};
+
+window.openEditItem = async (id) => {
+  const items = await getItems();
+  const item = items.find(i => i._id === id);
+  if (!item) {
+    showToast('Item not found', 'error');
+    return;
+  }
+  editingId = id;
+  setModalMode('edit');
+  document.getElementById('inv-name').value = item.name || '';
+  document.getElementById('inv-cat').value = item.cat || 'other';
+  document.getElementById('inv-unit').value = item.unit || '';
+  document.getElementById('inv-cost').value = item.cost ?? '';
+  document.getElementById('inv-qty').value = item.qty ?? 0;
+  document.getElementById('inv-low').value = item.lowAt ?? 5;
+  document.getElementById('inv-supplier').value = item.supplier || '';
+  document.getElementById('inv-minorder').value = item.minOrder ?? 1;
+  openModal('inv-modal');
+};
 
 async function seedInventory() {
   const existing = await inventoryAPI.getAll();
@@ -83,28 +134,12 @@ async function renderAll() {
 async function renderList(q='') {
   const catLabel = { oils:'Oils', filters:'Filters', brakes:'Brakes', electrical:'Electrical', fluids:'Fluids', cleaning:'Cleaning', belts:'Belts', parts:'Parts', tools:'Tools', other:'Other' };
   const catColor = { oils:'badge-yellow', filters:'badge-blue', brakes:'badge-red', electrical:'badge-purple', fluids:'badge-blue', cleaning:'badge-green', belts:'badge-gray', parts:'badge-gray', tools:'badge-gray', other:'badge-gray' };
-  // Category-specific SVG icons and background colors
-  const catSvg = {
-    oils: { bg:'#fef3c7', fg:'#d97706', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>' },
-    filters: { bg:'#dbeafe', fg:'#2563eb', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>' },
-    brakes: { bg:'#fee2e2', fg:'#dc2626', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg>' },
-    electrical: { bg:'#f3e8ff', fg:'#7c3aed', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>' },
-    fluids: { bg:'#cffafe', fg:'#0891b2', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>' },
-    cleaning: { bg:'#d1fae5', fg:'#059669', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16l-1 4 4-1 11-11-3-3L5 16z"></path><path d="M14.5 5.5l3 3"></path><path d="M12 22h9"></path></svg>' },
-    belts: { bg:'#f3f4f6', fg:'#4b5563', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>' },
-    parts: { bg:'#f3f4f6', fg:'#4b5563', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' },
-    tools: { bg:'#f3f4f6', fg:'#4b5563', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>' },
-    other: { bg:'#f3f4f6', fg:'#6b7280', svg:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>' }
-  };
+  const categoryOrder = ['oils','filters','brakes','electrical','fluids','cleaning','belts','parts','tools','other'];
   const items = (await getItems()).filter(i => !q || i.name.toLowerCase().includes(q) || (i.supplier||'').toLowerCase().includes(q));
-  document.getElementById('inv-list').innerHTML = items.length ? items.map(i => {
+  const row = (i) => {
     const isLow = i.qty <= i.lowAt;
-    const catIcon = catSvg[i.cat] || catSvg.other;
     return `
       <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--gray-100)">
-        <div style="width:40px;height:40px;border-radius:10px;background:${catIcon.bg};color:${catIcon.fg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          ${catIcon.svg}
-        </div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             ${i.name}
@@ -122,9 +157,21 @@ async function renderList(q='') {
           <span style="font-weight:700;min-width:28px;text-align:center">${i.qty}</span>
           <button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:1rem" onclick="adj('${i._id}',1)">+</button>
         </div>
+        <button class="btn btn-ghost btn-sm" style="padding:6px 8px" onclick="openEditItem('${i._id}')" title="Edit">${SVG_ICONS.edit}</button>
         <button class="btn btn-danger btn-sm" onclick="removeItem('${i._id}')">${SVG_ICONS.trash}</button>
       </div>`;
-  }).join('') : '<p style="color:var(--gray-400);font-size:.85rem;padding:20px 0">No items found.</p>';
+  };
+
+  const grouped = categoryOrder
+    .map(cat => ({ cat, items: items.filter(i => (i.cat || 'other') === cat) }))
+    .filter(group => group.items.length > 0);
+
+  document.getElementById('inv-list').innerHTML = grouped.length
+    ? grouped.map(group => `
+        <div style="padding:16px 0 6px;font-weight:700;color:var(--gray-700)">${catLabel[group.cat] || group.cat || 'Other'}</div>
+        ${group.items.map(row).join('')}
+      `).join('')
+    : '<p style="color:var(--gray-400);font-size:.85rem;padding:20px 0">No items found.</p>';
 }
 
 
@@ -148,8 +195,8 @@ window.removeItem = async (id) => {
   await renderAll(); showToast('Item removed','success');
 };
 async function addItem() {
+  const isEdit = Boolean(editingId);
   const name     = document.getElementById('inv-name').value.trim();
-  const icon     = document.getElementById('inv-icon')?.value?.trim() || '';
   const cat      = document.getElementById('inv-cat').value || 'other';
   const unit     = document.getElementById('inv-unit').value.trim() || 'pcs';
   const cost     = parseFloat(document.getElementById('inv-cost').value) || 0;
@@ -157,23 +204,28 @@ async function addItem() {
   const lowAt    = parseInt(document.getElementById('inv-low').value) || 5;
   const supplier = document.getElementById('inv-supplier').value.trim();
   const minOrder = parseInt(document.getElementById('inv-minorder').value) || 1;
-  const notes    = document.getElementById('inv-notes').value.trim();
   if (!name) { showToast('Item name is required', 'error'); return; }
-  const items = getItems();
+  const items = await getItems();
   
-  if (items.some(i => i.name.toLowerCase() === name.toLowerCase())) {
+  if (items.some(i => i.name.toLowerCase() === name.toLowerCase() && i._id !== editingId)) {
     showToast(`Inventory item "${name}" already exists!`, 'error');
     return;
   }
 
   try {
-    await inventoryAPI.add({ name, icon, cat, unit, cost, qty, lowAt, supplier, minOrder, notes });
+    if (isEdit) {
+      await inventoryAPI.update(editingId, { name, cat, unit, cost, qty, lowAt, supplier, minOrder });
+      showToast(`"${name}" updated`, 'success');
+    } else {
+      await inventoryAPI.add({ name, cat, unit, cost, qty, lowAt, supplier, minOrder });
+      showToast(`"${name}" added to inventory!`, 'success');
+    }
     closeModal('inv-modal');
-    // reset form
-    ['inv-name','inv-icon','inv-unit','inv-cost','inv-qty','inv-low','inv-supplier','inv-minorder','inv-notes'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-    document.getElementById('inv-cat').value = 'oils';
-    await renderAll(); showToast(`"${name}" added to inventory!`, 'success');
+    resetInvForm();
+    editingId = null;
+    setModalMode('add');
+    await renderAll();
   } catch(e) {
-    showToast(`Error adding: ${e.message}`, 'error');
+    showToast(`Error saving: ${e.message}`, 'error');
   }
 }
