@@ -15,7 +15,22 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Revenue by service
   const svcRev = {};
-  allB.forEach(b=>{ const n=b.service?.name||'Unknown'; svcRev[n]=(svcRev[n]||0)+(b.total||0); });
+  const MILEAGE_NAMES = {
+    'pkg-10k':'10,000 km Service','pkg-20k':'20,000 km Service','pkg-30k':'30,000 km Service',
+    'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Major Service',
+    'pkg-70k':'70,000 km Service','pkg-80k':'80,000 km Service','pkg-90k':'90,000 km Service',
+    'pkg-100k':'100,000 km Overhaul',
+  };
+  allB.forEach(b => {
+    if (b.status !== 'completed') return;
+    let name = b.service?.name;
+    if (!name || name === 'Unknown') {
+      const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
+      const mileageId = ids.find(id => MILEAGE_NAMES[id]);
+      name = mileageId ? MILEAGE_NAMES[mileageId] : (name || 'Other');
+    }
+    svcRev[name] = (svcRev[name] || 0) + (b.total || 0);
+  });
   const maxRev = Math.max(...Object.values(svcRev),1);
   document.getElementById('r-svc-chart').innerHTML = Object.entries(svcRev).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`
     <div style="margin-bottom:10px">

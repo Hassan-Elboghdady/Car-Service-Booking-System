@@ -118,6 +118,28 @@
       </div>
     </div>
 
+    <!-- My Messages (for logged-in customers) -->
+    <div id="my-messages-section" style="display:none;margin-top:48px">
+      <div class="section-header">
+        <div class="tag">Inbox</div>
+        <h2>My Messages</h2>
+        <p>Your conversations with the AutoServe team.</p>
+      </div>
+      <div id="my-messages-list" style="display:flex;flex-direction:column;gap:12px;margin-top:16px"></div>
+    </div>
+
+    <!-- Thread Reply Modal -->
+    <div class="modal-overlay" id="cust-thread-modal" style="display:none" onclick="if(event.target===this)closeModal('cust-thread-modal')">
+      <div class="modal" style="max-width:520px;width:95%;max-height:90vh;display:flex;flex-direction:column;">
+        <div class="modal-header">
+          <h3 class="modal-title">💬 Message Thread</h3>
+          <button class="modal-close" onclick="closeModal('cust-thread-modal')">✕</button>
+        </div>
+        <div class="modal-body" id="cust-thread-body" style="flex:1;overflow-y:auto;padding:20px"></div>
+        <div id="cust-thread-footer" style="padding:0 20px 20px"></div>
+      </div>
+    </div>
+
     <!-- FAQ -->
     <div class="section-header mt-48">
       <div class="tag">FAQ</div>

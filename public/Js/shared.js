@@ -408,6 +408,7 @@ const bookingsAPI = {
   async forUser(uid) { try { const r = await api.get('/bookings/mine'); return (r.data || []).map(formatBackendBooking); } catch(e) { return []; } },
   async forStaff(sid) { try { const r = await api.get('/bookings/all'); return (r.data || []).filter(b => b.assignedStaff && (b.assignedStaff._id === sid || b.assignedStaff.id === sid)).map(formatBackendBooking); } catch(e) { return []; } },
   async create(data) { try { const r = await api.post('/bookings', data); return formatBackendBooking(r.data); } catch(e) { return null; } },
+  async editBooking(id, data) { try { const r = await api.put(`/bookings/${id}/edit`, data); return formatBackendBooking(r.data); } catch(e) { throw e; } },
   async updateStatus(id, status) { try { const r = await api.put(`/bookings/${id}/status`, { status }); return formatBackendBooking(r.data); } catch(e) { return null; } },
   async withDetails(id) { try { const r = await api.get(`/bookings/${id}`); return formatBackendBooking(r.data); } catch(e) { return null; } },
   async allWithDetails() { try { const r = await api.get('/bookings/all'); return (r.data || []).map(formatBackendBooking); } catch(e) { return []; } },
@@ -804,6 +805,152 @@ window.addEventListener('DOMContentLoaded', () => {
   buildFooter();
   const page = location.pathname.split('/').pop() || 'index.ejs';
   buildNavbar(page);
+  initChatbot();
 });
+
+function initChatbot() {
+  const path = location.pathname.toLowerCase();
+  // Only inject if not on admin or staff pages
+  if (path.includes('admin') || path.includes('staff')) return;
+
+  const chatHTML = `
+    <div id="chatbot-widget" style="position:fixed;bottom:20px;right:20px;z-index:9999;">
+      <!-- Chat Toggle Button -->
+      <button id="chatbot-toggle" style="width:60px;height:60px;border-radius:50%;background:var(--primary);color:white;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      </button>
+      
+      <!-- Chat Window -->
+      <div id="chatbot-window" style="display:none;position:absolute;bottom:80px;right:0;width:320px;height:420px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);flex-direction:column;overflow:hidden;border:1px solid var(--gray-200);">
+        <div style="background:var(--primary);color:white;padding:16px;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:10px;height:10px;background:#4ade80;border-radius:50%;"></div>
+            AutoServe Assistant
+          </div>
+          <button id="chatbot-close" style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;">✕</button>
+        </div>
+        <div id="chatbot-messages" style="flex:1;padding:16px;overflow-y:auto;background:var(--gray-50);display:flex;flex-direction:column;gap:12px;font-size:.85rem;">
+          <div style="align-self:flex-start;background:white;padding:10px 14px;border-radius:12px;border:1px solid var(--gray-200);max-width:85%;">
+            Hi there! 👋 How can I help you with your car service today?
+          </div>
+        </div>
+        <div style="padding:12px;background:white;border-top:1px solid var(--gray-200);display:flex;gap:8px;">
+          <input type="text" id="chatbot-input" placeholder="Type a message..." style="flex:1;padding:8px 12px;border:1px solid var(--gray-300);border-radius:20px;outline:none;font-size:.85rem;" />
+          <button id="chatbot-send" style="background:var(--primary);color:white;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', chatHTML);
+
+  const toggleBtn = document.getElementById('chatbot-toggle');
+  const closeBtn = document.getElementById('chatbot-close');
+  const chatWindow = document.getElementById('chatbot-window');
+  const chatInput = document.getElementById('chatbot-input');
+  const sendBtn = document.getElementById('chatbot-send');
+  const messagesArea = document.getElementById('chatbot-messages');
+
+  const toggleChat = () => {
+    const isHidden = chatWindow.style.display === 'none';
+    chatWindow.style.display = isHidden ? 'flex' : 'none';
+    toggleBtn.style.transform = isHidden ? 'scale(0)' : 'scale(1)';
+    if (isHidden) chatInput.focus();
+  };
+
+  toggleBtn.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', () => {
+    chatWindow.style.display = 'none';
+    toggleBtn.style.transform = 'scale(1)';
+  });
+
+  const sendMessage = async () => {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    
+    // User message
+    messagesArea.insertAdjacentHTML('beforeend', `<div style="align-self:flex-end;background:var(--primary);color:white;padding:10px 14px;border-radius:12px;max-width:85%;">${text}</div>`);
+    chatInput.value = '';
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+
+    // Loading indicator
+    const loadingId = 'loading-' + Date.now();
+    messagesArea.insertAdjacentHTML('beforeend', `<div id="${loadingId}" style="align-self:flex-start;background:white;padding:10px 14px;border-radius:12px;border:1px solid var(--gray-200);max-width:85%;color:var(--gray-500);">Typing...</div>`);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await response.json();
+      
+      document.getElementById(loadingId)?.remove();
+      
+      // Format simple markdown links and bold text if any (Gemini sometimes returns them)
+      let replyHTML = data.reply || "Sorry, I couldn't process that.";
+      replyHTML = replyHTML.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>'); // bold
+      replyHTML = replyHTML.replace(/\\n/g, '<br>'); // newlines
+
+      messagesArea.insertAdjacentHTML('beforeend', `<div style="align-self:flex-start;background:white;padding:10px 14px;border-radius:12px;border:1px solid var(--gray-200);max-width:85%;">${replyHTML}</div>`);
+    } catch (error) {
+      document.getElementById(loadingId)?.remove();
+      messagesArea.insertAdjacentHTML('beforeend', `<div style="align-self:flex-start;background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:12px;border:1px solid #fecaca;max-width:85%;">Error connecting to the AI server.</div>`);
+    }
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  };
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+}
+
+// --- MILEAGE PACKAGE DEFINITIONS (base 10k?100k + admin custom) ----------
+const MILEAGE_SERVICES_BASE = [
+  { id:'pkg-10k',  name:'10,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'2h',   popular:true,  desc:'Oil change, air filter check, tyre rotation & visual inspection. Standard every-10k service.' },
+  { id:'pkg-20k',  name:'20,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'3h',   popular:false, desc:'10k + cabin filter, brake inspection, coolant top-up & battery health test.' },
+  { id:'pkg-30k',  name:'30,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'4.5h', popular:false, desc:'20k + spark plugs, transmission fluid, drive belt & hose inspection, full OBD scan.' },
+  { id:'pkg-40k',  name:'40,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'5h',   popular:false, desc:'30k + fuel filter, throttle body clean, AC cabin filter & tyre balancing.' },
+  { id:'pkg-50k',  name:'50,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'5.5h', popular:false, desc:'40k + brake fluid flush, coolant flush, wheel alignment & PCV valve inspection.' },
+  { id:'pkg-60k',  name:'60,000 km Major Service',   cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'7h',   popular:false, desc:'50k + timing belt, gearbox fluid, full brake system, AC recharge & undercarriage check.' },
+  { id:'pkg-70k',  name:'70,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'6h',   popular:false, desc:'60k + spark plugs (2nd), fuel injector clean, power steering flush & air intake clean.' },
+  { id:'pkg-80k',  name:'80,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'6.5h', popular:false, desc:'70k + transmission fluid change, suspension inspection, fuel pressure test & exhaust check.' },
+  { id:'pkg-90k',  name:'90,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'7h',   popular:false, desc:'80k + coolant flush, brake master cylinder check, differential fluid (4WD) & serpentine belt.' },
+  { id:'pkg-100k', name:'100,000 km Major Overhaul', cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'9h+',  popular:false, desc:'The complete 100k overhaul: timing belt + water pump, engine top-end, clutch & full diagnostic report.' },
+];
+
+const MILEAGE_SERVICES = MILEAGE_SERVICES_BASE;
+
+function getMileageServices() {
+  const custom = (store.get('as_mileage_pkgs') || []).map(p => ({
+    id: p.id, name: p.name, cat: 'mileage', emoji: '🛣️', icon: '✅',
+    duration: p.dur || '', popular: false, desc: p.desc || ''
+  }));
+  const all = [...MILEAGE_SERVICES_BASE];
+  custom.forEach(c => { if (!all.find(b => b.id === c.id)) all.push(c); });
+  return all.sort((a, b) => {
+    const kmA = parseInt((a.id || '').replace(/\D/g, '')) || 0;
+    const kmB = parseInt((b.id || '').replace(/\D/g, '')) || 0;
+    return kmA - kmB;
+  });
+}
+
+function getAllServices() {
+  return [...getServices(), ...getMileageServices()];
+}
+
+function getMileagePriceForCar(pkgId, carIdToUse = null, carObj = null) {
+  // Can be called directly by booking page, or other pages if carObj provided
+  const targetCar = carObj || (typeof booking !== 'undefined' && booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : null);
+  if (!targetCar) return null;
+  const customTiers = store.get('as_car_tiers') || {};
+  const tier = customTiers[targetCar.model] || CAR_TIER[targetCar.model] || 1;
+  const customPrices = store.get('as_mileage_prices') || {};
+  const priceMap = customPrices[pkgId] || (typeof MILEAGE_PRICES !== 'undefined' ? MILEAGE_PRICES[pkgId] : {}) || {};
+  return priceMap[tier] || null;
+}
 
 

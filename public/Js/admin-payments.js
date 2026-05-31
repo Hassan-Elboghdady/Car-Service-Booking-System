@@ -18,16 +18,27 @@ async function renderAll() {
     {l:'Pending',         v:'EGP '+allB.filter(b=>b.status==='pending').reduce((s,b)=>s+(b.total||0),0), i:SVG_ICONS.clock, c:'red'},
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
 
+  const PMILEAGE = {
+    'pkg-10k':'10,000 km','pkg-20k':'20,000 km','pkg-30k':'30,000 km','pkg-40k':'40,000 km',
+    'pkg-50k':'50,000 km','pkg-60k':'60,000 km','pkg-70k':'70,000 km','pkg-80k':'80,000 km',
+    'pkg-90k':'90,000 km','pkg-100k':'100,000 km',
+  };
   const methods = ['Cash','Card','Bank Transfer','InstaPay'];
-  document.getElementById('pay-tbody').innerHTML = completed.map((b,i)=>`
+  document.getElementById('pay-tbody').innerHTML = completed.map((b,i)=>{
+    const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
+    const mId = ids.find(id => PMILEAGE[id]);
+    const svcName = b.service?.name || (mId ? PMILEAGE[mId]+' Service' : ids[0] || '');
+    const amt = (b.total != null && b.total !== '') ? b.total : 0;
+    return `
     <tr>
       <td><code style="font-size:.72rem">${b.id.slice(-8)}</code></td>
       <td>${b.user?.firstName||''} ${b.user?.lastName||''}</td>
-      <td>${b.service?.name||''}</td>
+      <td>${svcName}</td>
       <td>${formatDate(b.date)}</td>
-      <td style="font-weight:800;color:var(--primary)">EGP ${b.total||''}</td>
-      <td>${methods[i%methods.length]}</td>
-    </tr>`).join('') || '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No transactions yet.</p></div></td></tr>';
+      <td style="font-weight:800;color:var(--primary)">EGP ${amt.toLocaleString()}</td>
+      <td>${b.paymentMethod || 'Cash'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No transactions yet.</p></div></td></tr>';
 
   const coupons = getAll(KEYS.COUPONS)||[];
   // Add default coupons if empty

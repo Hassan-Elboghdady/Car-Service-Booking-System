@@ -75,6 +75,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
   const svcRev = {};
   allBookings.forEach(b => {
+    if (b.status !== 'completed') return; // Only count completed
     // Try resolved service name first; fall back to mileage map; then 'Other'
     let name = b.service?.name;
     if (!name || name === 'Unknown') {
