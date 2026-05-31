@@ -107,24 +107,4 @@ window.addEventListener('DOMContentLoaded', async () => {
       tGrid.appendChild(div);
     });
   }
-
-  // --- WEATHER WIDGET ---
-  const weatherWidget = document.getElementById('weather-widget');
-  if (weatherWidget) {
-    api.get('/weather')
-      .then(res => {
-        const w = res.data;
-        weatherWidget.innerHTML = `
-          <img src="${w.iconUrl}" alt="${w.description}" style="width:30px;height:30px;">
-          <div style="display:flex;flex-direction:column;line-height:1.2;">
-            <span style="font-weight:600;font-size:0.95rem;">${w.temp}°C</span>
-            <span style="font-size:0.75rem;opacity:0.8;">${w.city}</span>
-          </div>
-        `;
-      })
-      .catch(err => {
-        weatherWidget.style.display = 'none'; // hide if error
-        console.error('Weather widget error:', err);
-      });
-  }
 });

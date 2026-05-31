@@ -45,6 +45,11 @@ const bookingSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    paymentMethod: {
+      type: String,
+      enum: ['Cash', 'Card (Visa/MC)', 'Bank Transfer', 'InstaPay'],
+      default: 'Cash',
+    },
   },
   {
     timestamps: true,

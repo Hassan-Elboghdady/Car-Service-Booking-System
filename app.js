@@ -5,11 +5,11 @@ const cookieParser = require('cookie-parser');
 const userRoutes = require('./routes/userRoutes');
 const carRoutes = require('./routes/carRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
-const weatherRoutes = require('./routes/weatherRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const issueRoutes = require('./routes/issueRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -44,11 +44,11 @@ app.get('/', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/weather', weatherRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Keep existing links working: /booking.ejs -> render booking.ejs.
 app.get('/:page.ejs', (req, res, next) => {

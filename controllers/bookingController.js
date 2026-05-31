@@ -11,7 +11,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: errors.array()[0].msg, errors: errors.array() });
     }
 
-    const { carId, serviceId, date, time, notes, total } = req.body;
+    const { carId, serviceId, date, time, notes, total, paymentMethod } = req.body;
 
     // Verify the car belongs to this user.
     const car = await Car.findOne({ _id: carId, owner: req.user._id });
@@ -27,6 +27,7 @@ const createBooking = async (req, res, next) => {
       time,
       notes: notes || '',
       total: total || 0,
+      paymentMethod: paymentMethod || 'Cash',
       status: 'pending',
       assignedStaff: null,
     });
@@ -169,4 +170,69 @@ const assignStaff = async (req, res, next) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, updateBookingStatus, deleteBooking, assignStaff };
+// PUT /api/bookings/:id/edit — customer edits their own pending booking (owner only, >9h before).
+const updateBookingByCustomer = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found.' });
+
+    // Only the owner can edit
+    if (booking.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    // Only pending bookings can be edited
+    if (booking.status !== 'pending') {
+      return res.status(400).json({ message: 'Only pending bookings can be edited.' });
+    }
+
+    // Must be more than 9 hours before the booking
+    const bookingDateTime = new Date(`${booking.date}T${convertTo24h(booking.time)}`);
+    const hoursUntil = (bookingDateTime - Date.now()) / (1000 * 60 * 60);
+    if (hoursUntil <= 9) {
+      return res.status(400).json({ message: 'Cannot edit a booking within 9 hours of the appointment.' });
+    }
+
+    const { date, time, serviceId, notes, total, carId, paymentMethod } = req.body;
+
+    // If changing date, verify no duplicate booking on that date
+    if (date && date !== booking.date) {
+      const dup = await Booking.findOne({
+        userId: req.user._id,
+        date,
+        status: { $in: ['pending', 'in_progress'] },
+        _id: { $ne: booking._id }
+      });
+      if (dup) return res.status(400).json({ message: 'You already have a booking on that date.' });
+    }
+
+    if (date)      booking.date      = date;
+    if (time)      booking.time      = time;
+    if (serviceId) booking.serviceId = serviceId;
+    if (notes !== undefined) booking.notes = notes;
+    if (total !== undefined) booking.total = total;
+    if (paymentMethod) booking.paymentMethod = paymentMethod;
+    if (carId) {
+      const car = await Car.findOne({ _id: carId, owner: req.user._id });
+      if (!car) return res.status(400).json({ message: 'Car not found or not owned by you.' });
+      booking.carId = carId;
+    }
+
+    await booking.save();
+    res.status(200).json({ message: 'Booking updated.', data: booking });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Helper: convert "08:00 AM" -> "08:00"
+function convertTo24h(timeStr) {
+  if (!timeStr) return '00:00';
+  const [time, modifier] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':');
+  if (modifier === 'PM' && hours !== '12') hours = String(parseInt(hours) + 12);
+  if (modifier === 'AM' && hours === '12') hours = '00';
+  return `${hours.padStart(2,'0')}:${minutes}`;
+}
+
+module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, updateBookingStatus, deleteBooking, assignStaff, updateBookingByCustomer };

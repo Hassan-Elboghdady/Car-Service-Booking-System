@@ -8,61 +8,10 @@ let booking = {
   date: null,
   time: null,
   notes: null,
-  discount: 0,
   total: 0,
 };
 let userCars = [];
 let activeFilter = 'all';
-
-// --- MILEAGE PACKAGE DEFINITIONS (base 10k?100k + admin custom) ----------
-const MILEAGE_SERVICES_BASE = [
-  { id:'pkg-10k',  name:'10,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'2h',   popular:true,  desc:'Oil change, air filter check, tyre rotation & visual inspection. Standard every-10k service.' },
-  { id:'pkg-20k',  name:'20,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'3h',   popular:false, desc:'10k + cabin filter, brake inspection, coolant top-up & battery health test.' },
-  { id:'pkg-30k',  name:'30,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'4.5h', popular:false, desc:'20k + spark plugs, transmission fluid, drive belt & hose inspection, full OBD scan.' },
-  { id:'pkg-40k',  name:'40,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'5h',   popular:false, desc:'30k + fuel filter, throttle body clean, AC cabin filter & tyre balancing.' },
-  { id:'pkg-50k',  name:'50,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'5.5h', popular:false, desc:'40k + brake fluid flush, coolant flush, wheel alignment & PCV valve inspection.' },
-  { id:'pkg-60k',  name:'60,000 km Major Service',   cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'7h',   popular:false, desc:'50k + timing belt, gearbox fluid, full brake system, AC recharge & undercarriage check.' },
-  { id:'pkg-70k',  name:'70,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'6h',   popular:false, desc:'60k + spark plugs (2nd), fuel injector clean, power steering flush & air intake clean.' },
-  { id:'pkg-80k',  name:'80,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'6.5h', popular:false, desc:'70k + transmission fluid change, suspension inspection, fuel pressure test & exhaust check.' },
-  { id:'pkg-90k',  name:'90,000 km Service',         cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'7h',   popular:false, desc:'80k + coolant flush, brake master cylinder check, differential fluid (4WD) & serpentine belt.' },
-  { id:'pkg-100k', name:'100,000 km Major Overhaul', cat:'mileage', emoji:'🛣️', icon:'🛣️', duration:'9h+',  popular:false, desc:'The complete 100k overhaul: timing belt + water pump, engine top-end, clutch & full diagnostic report.' },
-];
-
-// Keep MILEAGE_SERVICES pointing to base for backward compat
-const MILEAGE_SERVICES = MILEAGE_SERVICES_BASE;
-
-// Returns base + any admin-added custom packages, sorted by km
-function getMileageServices() {
-  const custom = (store.get('as_mileage_pkgs') || []).map(p => ({
-    id: p.id, name: p.name, cat: 'mileage', emoji: '🛣️', icon: '✅',
-    duration: p.dur || '', popular: false, desc: p.desc || ''
-  }));
-  const all = [...MILEAGE_SERVICES_BASE];
-  custom.forEach(c => { if (!all.find(b => b.id === c.id)) all.push(c); });
-  return all.sort((a, b) => {
-    const kmA = parseInt((a.id || '').replace(/\D/g, '')) || 0;
-    const kmB = parseInt((b.id || '').replace(/\D/g, '')) || 0;
-    return kmA - kmB;
-  });
-}
-
-function getAllServices() {
-  return [...getServices(), ...getMileageServices()];
-}
-
-// Get price for a mileage package  uses admin-edited prices & tiers if set
-function getMileagePriceForCar(pkgId) {
-  if (!booking.carId) return null;
-  const car = getById(KEYS.CARS, booking.carId);
-  if (!car) return null;
-  // Admin-saved tiers override defaults
-  const customTiers = store.get('as_car_tiers') || {};
-  const tier = customTiers[car.model] || CAR_TIER[car.model] || 1;
-  // Admin-saved prices override built-in MILEAGE_PRICES
-  const customPrices = store.get('as_mileage_prices') || {};
-  const priceMap = customPrices[pkgId] || (MILEAGE_PRICES || {})[pkgId] || {};
-  return priceMap[tier] || null;
-}
 
 // --- INIT -----------------------------------------------------
 window.addEventListener('DOMContentLoaded', async () => {
@@ -99,14 +48,15 @@ function renderStep1() {
   }
   el.innerHTML = userCars.map(c => {
     const brandLogo = getBrandLogoHtml(c.brand, '44px');
+    const carId = c._id || c.id;
     return `
-    <div class="car-select-card ${c.id===booking.carId?'selected':''}" onclick="selectCar('${c.id}')">
+    <div class="car-select-card ${carId===booking.carId?'selected':''}" onclick="selectCar('${carId}')">
       <div class="car-select-emoji">${brandLogo}</div>
       <div class="car-select-info">
         <h4>${c.brand} ${c.model} (${c.year})</h4>
-        <p>🚗 ${c.plate}  🚗 ${c.color}</p>
+        <p>${c.plate} | ${c.color}</p>
       </div>
-      <div class="car-select-check">${c.id===booking.carId?'✓':''}</div>
+      <div class="car-select-check">${carId===booking.carId?'✓':''}</div>
     </div>`;
   }).join('');
 }
@@ -244,18 +194,27 @@ function setupNav() {
   document.getElementById('prev-btn').addEventListener('click', prevStep);
 }
 
-function nextStep() {
+async function nextStep() {
   if (currentStep === 1) {
     if (!booking.carId) { showToast('Please select your vehicle.', 'warning'); return; }
   } else if (currentStep === 2) {
     if (!booking.serviceIds.length) { showToast('Please select at least one service.', 'warning'); return; }
-    // Check if a mileage package is selected but car not selected
     const allSvcs = getAllServices();
     const hasMileage = booking.serviceIds.some(id => allSvcs.find(s=>s.id===id)?.cat==='mileage');
     if (hasMileage && !booking.carId) { showToast('Please go back and select a car first to get mileage pricing.','warning'); return; }
   } else if (currentStep === 3) {
     if (!booking.date) { showToast('Please select a date.', 'warning'); return; }
     if (!booking.time) { showToast('Please select a time.', 'warning'); return; }
+    // Check for duplicate booking on the same date
+    const existingBookings = await bookingsAPI.forUser(auth.current()?.id || '');
+    const duplicate = existingBookings.find(b =>
+      b.date === booking.date && (b.status === 'pending' || b.status === 'in_progress')
+    );
+    if (duplicate) {
+      showToast('You already have a booking on this date! Redirecting to My Bookings to edit it.', 'warning');
+      setTimeout(() => location.href = 'my-bookings.ejs', 2000);
+      return;
+    }
     renderConfirm();
   } else if (currentStep === 4) {
     confirmBooking(); return;
@@ -281,7 +240,7 @@ function goToStep(n) {
 
 // --- STEP 4: CONFIRM ------------------------------------------
 function renderConfirm() {
-  const car = getById(KEYS.CARS, booking.carId) || {};
+  const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : {};
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
 
@@ -318,7 +277,9 @@ function renderConfirm() {
 async function confirmBooking() {
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
-  const car = booking.carId ? getById(KEYS.CARS, booking.carId) : null;
+  const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : null;
+
+  const paymentMethod = document.getElementById('bk-payment').value;
 
   const firstB = await bookingsAPI.create({
     carId: booking.carId,
@@ -329,6 +290,7 @@ async function confirmBooking() {
     notes: booking.notes || '',
     total: booking.total,
     discount: booking.discount,
+    paymentMethod,
   });
 
   if (!firstB) { showToast('Error creating booking. Please try again.', 'error'); return; }
@@ -361,16 +323,17 @@ async function confirmBooking() {
         </tfoot>
       </table>
       <div style="margin-top:18px;font-size:.78rem;color:#888">
-        🚗 ${formatDate(booking.date)} at ${booking.time} &nbsp;|&nbsp;
-        🚗 ${car ? `${car.brand} ${car.model} (${car.year})` : ''} &nbsp;|&nbsp;
-        🚗 Booking #${firstB.id.slice(-6).toUpperCase()}
+        📅 ${formatDate(booking.date)} at ${booking.time} &nbsp;|&nbsp;
+        🚙 ${car ? `${car.brand} ${car.model} (${car.year})` : ''} &nbsp;|&nbsp;
+        🔢 Booking #${firstB.id.slice(-6).toUpperCase()} &nbsp;|&nbsp;
+        💳 ${paymentMethod}
       </div>
       <div style="margin-top:12px;font-size:.75rem;color:#aaa;text-align:center">Thank you for choosing AutoServe  30-day service warranty included.</div>
     </div>`;
 
   document.getElementById('booking-wizard').innerHTML = `
     <div class="booking-success">
-      <div class="success-icon">🚗</div>
+      <div class="success-icon">✅</div>
       <h2>Booking Confirmed!</h2>
       <p>You booked <strong>${selectedSvcs.length} service${selectedSvcs.length>1?'s':''}</strong> for <strong>${formatDate(booking.date)}</strong> at <strong>${booking.time}</strong>.</p>
       <p style="margin-top:8px;color:var(--success)">You earned <strong>10 loyalty points</strong> for this booking! 🎉</p>
@@ -397,7 +360,7 @@ async function confirmBooking() {
 
 // --- SIDEBAR SUMMARY ------------------------------------------
 function updateSidebar() {
-  const car = booking.carId ? getById(KEYS.CARS, booking.carId) : null;
+  const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : null;
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
 
@@ -449,7 +412,7 @@ function buildAddCarModal() {
     if (!b||!m||!y||!p||!c) { showToast('Please fill all fields', 'warning'); return; }
     const car = await carsAPI.add({ brand:b, model:m, year:parseInt(y), plate:p, color:c, emoji:CARS_DB[b]?.emoji||'🚗' });
     userCars = await carsAPI.forUser(auth.current()?.id || '');
-    booking.carId = car.id;
+    booking.carId = car._id || car.id;
     closeModal('add-car-from-booking');
     renderStep1(); renderStep2(); updateSidebar();
     showToast(`${b} ${m} (${y}) added!`, 'success');
