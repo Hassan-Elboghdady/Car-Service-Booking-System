@@ -49,6 +49,13 @@
 .car-section-note { font-size: .78rem; color: var(--gray-500); margin-bottom: 14px; }
 .car-section-note a { color: var(--primary); }
 
+/* License plate split inputs */
+.plate-split { display:flex; gap:8px; align-items:center; }
+.plate-input { padding:10px 12px; border-radius:10px; border:1px solid var(--gray-200); font-size:1rem; }
+.plate-numbers { width:110px; text-align:left; }
+.plate-letters { width:140px; text-align:right; direction:rtl; }
+
+
 /* Terms */
 .terms-check-group { margin-bottom: 20px; }
 .terms-check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: .83rem; color: var(--gray-600); }

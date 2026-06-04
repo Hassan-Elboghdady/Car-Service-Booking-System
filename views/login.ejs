@@ -156,12 +156,36 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="rc-plate">License Plate *</label>
-                <input class="form-control" id="rc-plate" placeholder="أ ب ج 1234" />
+                <label class="form-label" for="rc-plate-numbers">License Plate *</label>
+                <div class="plate-split">
+                  <input class="form-control plate-input plate-numbers" id="rc-plate-numbers" placeholder="1234" inputmode="numeric" maxlength="4" />
+                  <input class="form-control plate-input plate-letters" id="rc-plate-letters" placeholder="أ ب ج" dir="rtl" maxlength="7" />
+                  <input type="hidden" id="rc-plate" name="plate" />
+                </div>
+                <div class="form-hint" style="font-size:.78rem;color:var(--gray-500)">Numbers (max 4) on the left — Arabic letters (max 3) on the right.</div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="rc-color">Color *</label>
-                <input class="form-control" id="rc-color" placeholder="e.g. Silver" />
+                <select class="form-control" id="rc-color">
+                  <option value="">Select color…</option>
+                  <option value="Black">Black</option>
+                  <option value="White">White</option>
+                  <option value="Silver">Silver</option>
+                  <option value="Gray">Gray</option>
+                  <option value="Red">Red</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Green">Green</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Orange">Orange</option>
+                  <option value="Brown">Brown</option>
+                  <option value="Beige">Beige</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Purple">Purple</option>
+                  <option value="Other">Other</option>
+                </select>
+                <div class="form-group" id="rc-color-custom-wrap" style="display:none; margin-top:12px;">
+                  <input class="form-control" id="rc-color-custom" placeholder="Enter custom color" />
+                </div>
               </div>
             </div>
           </div>

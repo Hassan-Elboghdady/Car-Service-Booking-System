@@ -11,9 +11,11 @@ router.post(
   '/register',
   [
     body('firstName').trim().notEmpty().withMessage('First name is required.')
-      .isLength({ min: 2 }).withMessage('First name must be at least 2 characters.'),
+      .isLength({ min: 2 }).withMessage('First name must be at least 2 characters.')
+      .matches(/^[A-Za-z]+$/).withMessage('First name may only contain letters.'),
     body('lastName').trim().notEmpty().withMessage('Last name is required.')
-      .isLength({ min: 2 }).withMessage('Last name must be at least 2 characters.'),
+      .isLength({ min: 2 }).withMessage('Last name must be at least 2 characters.')
+      .matches(/^[A-Za-z]+$/).withMessage('Last name may only contain letters.'),
     body('email').trim().isEmail().withMessage('Please enter a valid email address.'),
     body('phone').trim().notEmpty().withMessage('Phone number is required.'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters.'),
@@ -41,8 +43,8 @@ router.put(
   '/profile',
   protect,
   [
-    body('firstName').optional().trim().isLength({ min: 2 }).withMessage('First name must be at least 2 characters.'),
-    body('lastName').optional().trim().isLength({ min: 2 }).withMessage('Last name must be at least 2 characters.'),
+    body('firstName').optional().trim().isLength({ min: 2 }).withMessage('First name must be at least 2 characters.').matches(/^[A-Za-z]+$/).withMessage('First name may only contain letters.'),
+    body('lastName').optional().trim().isLength({ min: 2 }).withMessage('Last name must be at least 2 characters.').matches(/^[A-Za-z]+$/).withMessage('Last name may only contain letters.'),
     body('phone').optional().trim().notEmpty().withMessage('Phone cannot be empty.'),
     body('newPassword').optional().isLength({ min: 8 }).withMessage('New password must be at least 8 characters.'),
   ],
