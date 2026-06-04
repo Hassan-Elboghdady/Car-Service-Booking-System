@@ -60,6 +60,50 @@ function showPanel() {
 const brandSel = document.getElementById('rc-brand');
 const modelSel = document.getElementById('rc-model');
 const yearSel = document.getElementById('rc-year');
+const colorSel = document.getElementById('rc-color');
+const colorCustomWrap = document.getElementById('rc-color-custom-wrap');
+const colorCustomInput = document.getElementById('rc-color-custom');
+
+function isValidPlate(plate) {
+  const cleaned = String(plate || '').replace(/\s+/g, '');
+  // Allow Arabic letters and digits. Max letters: 3, max digits: 4, total max length 7.
+  if (!/^[\p{Script=Arabic}0-9]{1,7}$/u.test(cleaned)) return false;
+  const letters = (cleaned.match(/\p{Script=Arabic}/gu) || []).length;
+  const digits = (cleaned.match(/[0-9]/g) || []).length;
+  return letters <= 3 && digits <= 4;
+}
+
+// Plate split helpers (numbers left, arabic letters right)
+const plateNumbersInput = document.getElementById('rc-plate-numbers');
+const plateLettersInput = document.getElementById('rc-plate-letters');
+const plateHiddenInput = document.getElementById('rc-plate');
+
+function extractArabicLetters(s) {
+  return (String(s).match(/\p{Script=Arabic}/gu) || []).slice(0, 3);
+}
+
+function formatPlateLetters() {
+  if (!plateLettersInput) return;
+  const letters = extractArabicLetters(plateLettersInput.value);
+  plateLettersInput.dataset.raw = letters.join('');
+  plateLettersInput.value = letters.join(' ');
+}
+
+function formatPlateNumbers() {
+  if (!plateNumbersInput) return;
+  const digits = (plateNumbersInput.value || '').replace(/\D/g, '').slice(0, 4);
+  plateNumbersInput.value = digits;
+}
+
+// attach formatting listeners
+if (plateLettersInput) {
+  plateLettersInput.addEventListener('input', formatPlateLetters);
+  plateLettersInput.addEventListener('paste', () => setTimeout(formatPlateLetters, 0));
+}
+if (plateNumbersInput) {
+  plateNumbersInput.addEventListener('input', formatPlateNumbers);
+  plateNumbersInput.addEventListener('paste', () => setTimeout(formatPlateNumbers, 0));
+}
 
 Object.keys(CARS_DB).forEach(brand => {
   const opt = document.createElement('option');
@@ -87,6 +131,13 @@ modelSel.addEventListener('change', () => {
   years.slice().reverse().forEach(y => {
     const o = document.createElement('option'); o.value = y; o.textContent = y; yearSel.appendChild(o);
   });
+});
+
+colorSel?.addEventListener('change', () => {
+  if (!colorCustomWrap || !colorCustomInput) return;
+  const showCustom = colorSel.value === 'Other';
+  colorCustomWrap.style.display = showCustom ? 'block' : 'none';
+  if (!showCustom) colorCustomInput.value = '';
 });
 
 // --- PASSWORD STRENGTH ----------------------------------------
@@ -120,7 +171,7 @@ window.toggleEye = (inputId, btnId) => {
   if (!inp) return;
   const isText = inp.type === 'text';
   inp.type = isText ? 'password' : 'text';
-  if (btn) btn.textContent = isText ? '🚗' : '🚗';
+  if (btn) btn.textContent = isText ? '👁' : '👁';
 };
 
 // --- SCROLL TO FIELD HELPER -----------------------------------
@@ -196,7 +247,7 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
   const alertEl = document.getElementById('reg-cust-alert');
   alertEl.innerHTML = '';
   // clear previous inline errors
-  ['rc-first','rc-last','rc-email','rc-phone','rc-password','rc-confirm','rc-brand','rc-model','rc-year','rc-plate','rc-color'].forEach(id => {
+  ['rc-first','rc-last','rc-email','rc-phone','rc-password','rc-confirm','rc-brand','rc-model','rc-year','rc-plate-numbers','rc-plate-letters','rc-color'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     el.classList.remove('is-invalid');
     const e = el.parentElement.querySelector('.form-error'); if(e) e.remove();
@@ -211,12 +262,20 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
   const brand = document.getElementById('rc-brand').value;
   const model = document.getElementById('rc-model').value;
   const year = document.getElementById('rc-year').value;
-  const plate = document.getElementById('rc-plate').value.trim();
-  const color = document.getElementById('rc-color').value.trim();
+  // build combined plate from split fields
+  const plateNumbers = document.getElementById('rc-plate-numbers')?.value.trim() || '';
+  const plateLettersRaw = document.getElementById('rc-plate-letters')?.dataset?.raw || '';
+  const plate = (plateLettersRaw + plateNumbers).trim();
+  const color = colorSel?.value.trim();
+  const customColor = colorCustomInput?.value.trim();
   const terms = document.getElementById('rc-terms').checked;
 
   if (!first) { showFieldErr(alertEl,'rc-first','Please enter your first name.'); return; }
   if (!last)  { showFieldErr(alertEl,'rc-last','Please enter your last name.');  return; }
+  // Only allow letters for names (ASCII letters). Update regex to allow hyphens/spaces if desired.
+  const nameRe = /^[A-Za-z]+$/;
+  if (!nameRe.test(first)) { showFieldErr(alertEl,'rc-first','First name may only contain letters.'); return; }
+  if (!nameRe.test(last))  { showFieldErr(alertEl,'rc-last','Last name may only contain letters.');  return; }
   if (!isEmail(email)) { showFieldErr(alertEl,'rc-email','Please enter a valid email address.'); return; }
   if (!isEgyptPhone(phone)) { showFieldErr(alertEl,'rc-phone','Valid Egyptian mobile required (11 digits, starting 010/011/012/015).'); return; }
   if (pwd.length < 8) { showFieldErr(alertEl,'rc-password','Password must be at least 8 characters.'); return; }
@@ -224,8 +283,13 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
   if (!brand) { showFieldErr(alertEl,'rc-brand','Please select your car brand.'); return; }
   if (!model) { showFieldErr(alertEl,'rc-model','Please select your car model.'); return; }
   if (!year)  { showFieldErr(alertEl,'rc-year','Please select the car year.');  return; }
-  if (!plate) { showFieldErr(alertEl,'rc-plate','Please enter your license plate.'); return; }
-  if (!color) { showFieldErr(alertEl,'rc-color','Please enter your car color.'); return; }
+  if (!plateNumbers && !plateLettersRaw) { showFieldErr(alertEl,'rc-plate-numbers','Please enter your license plate.'); return; }
+  if (!isValidPlate(plate)) { showFieldErr(alertEl,'rc-plate-numbers','License plate must use up to 3 Arabic letters and up to 4 digits.'); return; }
+  if (!color) { showFieldErr(alertEl,'rc-color','Please select your car color.'); return; }
+  if (color === 'Other' && !customColor) {
+    showFieldErr(alertEl,'rc-color-custom','Please enter your custom color.');
+    return;
+  }
   if (!terms) {
     alertEl.innerHTML = '<div class="alert alert-danger">You must agree to the Terms & Conditions.</div>';
     document.getElementById('rc-terms')?.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -238,6 +302,7 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
   regBtn.disabled = true;
 
   try {
+    const storedColor = color === 'Other' ? customColor : color;
     // 1. Register User
     const userRes = await api.post('/users/register', {
       firstName: first, lastName: last, email, phone, password: pwd, role: 'customer'
@@ -248,11 +313,25 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
 
     // 2. Add Car
     const carRes = await api.post('/cars', {
-      brand, model, year: parseInt(year), plate, color, emoji: CARS_DB[brand]?.emoji || '🚗'
+      brand,
+      model,
+      year: parseInt(year),
+      plate: plate.replace(/\s+/g, ''),
+      color: storedColor,
+      emoji: CARS_DB[brand]?.emoji || '🚗'
     });
 
     // Also simulate in local storage to keep old pages working
-    upsert(KEYS.CARS, { id: carRes.data._id, owner: userRes.data._id, brand, model, year: parseInt(year), plate, color, emoji: carRes.data.emoji });
+    upsert(KEYS.CARS, {
+      id: carRes.data._id,
+      owner: userRes.data._id,
+      brand,
+      model,
+      year: parseInt(year),
+      plate: plate.replace(/\s+/g, ''),
+      color: storedColor,
+      emoji: carRes.data.emoji,
+    });
 
     showToast(`Welcome to AutoServe, ${userRes.data.firstName}! 🚗`, 'success');
     setTimeout(() => location.href = 'index.ejs', 700);
@@ -285,6 +364,10 @@ document.getElementById('reg-staff-btn')?.addEventListener('click', async () => 
 
   if (!first) { showFieldErr(alertEl,'rs-first','Please enter your first name.'); return; }
   if (!last)  { showFieldErr(alertEl,'rs-last','Please enter your last name.');  return; }
+  // Only allow letters for names (ASCII letters)
+  const sNameRe = /^[A-Za-z]+$/;
+  if (!sNameRe.test(first)) { showFieldErr(alertEl,'rs-first','First name may only contain letters.'); return; }
+  if (!sNameRe.test(last))  { showFieldErr(alertEl,'rs-last','Last name may only contain letters.');  return; }
   if (!isEmail(email)) { showFieldErr(alertEl,'rs-email','Please enter a valid email address.'); return; }
   if (!isEgyptPhone(phone)) { showFieldErr(alertEl,'rs-phone','Valid Egyptian mobile required (11 digits, starting 010/011/012/015).'); return; }
   if (pwd.length < 8) { showFieldErr(alertEl,'rs-password','Password must be at least 8 characters.'); return; }
