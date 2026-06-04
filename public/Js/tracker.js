@@ -80,7 +80,7 @@ function loadTracker(id, bookings) {
   document.getElementById('tracker-info').innerHTML = `
     <div class="tracker-info-row"><span class="ti-label">Vehicle</span><span>${b.car?.brand||''} ${b.car?.model||''}</span></div>
     <div class="tracker-info-row"><span class="ti-label">Plate</span><span>${b.car?.plate||''}</span></div>
-    <div class="tracker-info-row"><span class="ti-label">Service</span><span>${b.service?.emoji||''} ${b.service?.name||''}</span></div>
+    <div class="tracker-info-row"><span class="ti-label">Service</span><span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.2rem')} ${b.service?.name||''}</span></div>
     <div class="tracker-info-row"><span class="ti-label">Booked Date</span><span>${formatDate(b.date)}</span></div>
     <div class="tracker-info-row"><span class="ti-label">Time Slot</span><span>${b.time||''}</span></div>
     <div class="tracker-info-row"><span class="ti-label">Total</span><span style="font-weight:800;color:var(--primary)">EGP ${b.total||b.service?.price||''}</span></div>`;

@@ -91,7 +91,7 @@ async function renderHistory(carId) {
     <tr>
       <td><code style="font-size:.7rem">${b.id.slice(-8).toUpperCase()}</code></td>
       <td>
-        <div style="font-weight:600">${b.service?.emoji || '🚗'} ${b.service?.name || 'Service'}</div>
+        <div style="font-weight:600;display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.2rem')} ${b.service?.name || 'Service'}</div>
         <div style="font-size:.75rem;color:var(--gray-500)">By ${b.staff?.firstName || 'AutoServe'} ${b.staff?.lastName || ''}</div>
       </td>
       <td>${formatDate(b.date)}</td>

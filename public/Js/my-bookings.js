@@ -81,7 +81,7 @@ async function renderBookings() {
     // Service title: all names joined, emoji only if single service
     const svcTitle = multiSvc
       ? svcs.map(s => s.name).join(', ')
-      : `${svc.emoji || svc.icon || ''} ${svc.name || ''}`.trim();
+      : `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(svc,'1.2rem')} ${svc.name || ''}</span>`;
 
     const alreadyReviewed = myReviews.some(r => r.bookingId === b.id);
     const report = allIssues.find(i => i.bookingId === b.id && i.userId === user.id);
@@ -374,7 +374,7 @@ window.viewDetail = (id) => {
   const svc  = svcs[0] || b.service || {};
 
   const svcRows = svcs.length
-    ? svcs.map(s => `<div style="font-weight:600">${s.emoji || ''} ${s.name}</div>`).join('')
+    ? svcs.map(s => `<div style="font-weight:600;display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(s,'1rem')} ${s.name}</div>`).join('')
     : `<div style="font-weight:600">${svc.name || '—'}</div>`;
 
   document.getElementById('detail-modal-body').innerHTML = `

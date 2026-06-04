@@ -25,4 +25,57 @@ const getContacts = async (req, res, next) => {
   }
 };
 
-module.exports = { submitContact, getContacts };
+// GET /api/contact/user/:userId - Get messages for a specific user
+const getContactsByUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const messages = await ContactMessage.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json(messages);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/contact/:id/reply - Save an admin reply to a contact message
+const replyToContact = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reply } = req.body;
+    const message = await ContactMessage.findByIdAndUpdate(
+      id,
+      { adminReply: reply, status: 'replied' },
+      { new: true }
+    );
+
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Contact message not found' });
+    }
+
+    res.status(200).json({ success: true, data: message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PATCH /api/contact/:id/status - Update the status of a contact message
+const updateStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const message = await ContactMessage.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Contact message not found' });
+    }
+
+    res.status(200).json({ success: true, data: message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { submitContact, getContacts, getContactsByUser, replyToContact, updateStatus };

@@ -17,7 +17,7 @@ const SVG_REVENUE = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="
 const SVG_USERS = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
 
 function staffSvcLabel(b) {
-  if (b.service?.name) return `${b.service.emoji||''} ${b.service.name}`;
+  if (b.service?.name) return `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.1rem')} ${b.service.name}</span>`;
   const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
   const mId = ids.find(id => STAFF_MILEAGE_NAMES[id]);
   if (mId) return `🛣️ ${STAFF_MILEAGE_NAMES[mId]}`;
