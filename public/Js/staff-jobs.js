@@ -8,7 +8,7 @@ const JOB_MILEAGE = {
   'pkg-100k':'100,000 km Overhaul',
 };
 function jobSvcLabel(b) {
-  if (b.service?.name) return `${b.service.emoji||''} ${b.service.name}`;
+  if (b.service?.name) return `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.1rem')} ${b.service.name}</span>`;
   const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
   const mId = ids.find(id => JOB_MILEAGE[id]);
   if (mId) return `🛣️ ${JOB_MILEAGE[mId]}`;

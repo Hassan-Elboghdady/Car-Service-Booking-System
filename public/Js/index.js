@@ -52,8 +52,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       const div = document.createElement('div');
       div.className = 'svc-feat-card animate-fade-in';
       div.innerHTML = `
-        <div style="height:120px;margin:-25px -25px 16px -25px;display:flex;align-items:center;justify-content:center;background:${catGrad[svc.cat]||'linear-gradient(135deg,#f5f5f5,#e8e8e8)'};border-radius:var(--radius-md) var(--radius-md) 0 0;font-size:3.5rem;filter:drop-shadow(0 3px 8px rgba(0,0,0,.12))">
-          ${svc.emoji || '🔧'}
+        <div style="height:120px;margin:-25px -25px 16px -25px;display:flex;align-items:center;justify-content:center;background:${catGrad[svc.cat]||'linear-gradient(135deg,#f5f5f5,#e8e8e8)'};border-radius:var(--radius-md) var(--radius-md) 0 0;filter:drop-shadow(0 3px 8px rgba(0,0,0,.12))">
+          ${renderServiceIconHtml(svc,'3.5rem')}
         </div>
         <h3 style="margin-top:0">${svc.name}</h3>
         <p style="font-size:.82rem">${svc.desc?.slice(0, 70) || ''}</p>

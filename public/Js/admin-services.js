@@ -8,10 +8,50 @@ let liveMileagePrices = {};
 // Live tier copy (editable)
 let liveTiers = {};
 
-window.addEventListener('DOMContentLoaded', () => {
+async function loadServicesFromDb() {
+  try {
+    const services = await servicesAPI.getAll();
+    if (!services || !services.length) return;
+
+    const currentServices = getAll(KEYS.SERVICES_CUSTOM).length ? getAll(KEYS.SERVICES_CUSTOM) : SERVICES_DEFAULT;
+    const customServices = services.filter(s => s.cat !== 'mileage');
+    if (customServices.length) {
+      const customById = new Map(customServices.map(s => [s.id, s]));
+      const mergedServices = currentServices.map(s => customById.has(s.id) ? customById.get(s.id) : s);
+      const newServices = customServices.filter(s => !currentServices.some(existing => existing.id === s.id));
+      store.set(KEYS.SERVICES_CUSTOM, [...mergedServices, ...newServices]);
+    }
+
+    const mileageServices = services.filter(s => s.cat === 'mileage');
+    if (mileageServices.length) {
+      const pkgs = mileageServices.map(s => ({
+        id: s.id,
+        name: s.name,
+        dur: s.duration || '',
+        desc: s.desc || '',
+        includes: Array.isArray(s.includes) ? s.includes : [],
+      }));
+      const prices = {};
+      mileageServices.forEach((s) => {
+        prices[s.id] = {
+          1: s.priceByTier?.['1'] || 0,
+          2: s.priceByTier?.['2'] || 0,
+          3: s.priceByTier?.['3'] || 0,
+        };
+      });
+      store.set('as_mileage_pkgs', pkgs);
+      store.set('as_mileage_prices', prices);
+    }
+  } catch (error) {
+    console.warn('Could not load admin services from database.', error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
   initSidebar();
+  await loadServicesFromDb();
 
   // Deep-copy defaults so admin can edit them
   liveMileagePrices = JSON.parse(JSON.stringify(
@@ -105,7 +145,7 @@ function renderMileageTable() {
       <td>
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" style="padding:4px 8px;gap:4px" onclick="editMileagePkg('${pkg.id}')">${SVG_ICONS.edit} Edit</button>
-          ${!isCustom ? `<button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:.72rem;gap:4px" onclick="resetMileagePkg('${pkg.id}')">${SVG_ICONS.reset} Reset</button>` : ''}
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:.72rem;gap:4px" onclick="resetMileagePkg('${pkg.id}')">${SVG_ICONS.reset} Reset</button>
           <button class="btn btn-danger btn-sm" style="padding:4px 8px" onclick="deleteMileagePkg('${pkg.id}','${isCustom}')">${SVG_ICONS.trash}</button>
         </div>
       </td>
@@ -150,6 +190,22 @@ window.addMileagePackage = () => {
   const id = `pkg-${km/1000}k`;
   const existing = getMileagePkgs().find(p => p.id === id);
   if (existing) { showToast(`A ${km/1000}k package already exists`, 'error'); return; }
+
+  try {
+    await servicesAPI.create({
+      id,
+      name,
+      cat: 'mileage',
+      duration: dur,
+      desc,
+      includes,
+      priceByTier: { 1: eco, 2: mid, 3: prem },
+    });
+  } catch (error) {
+    const message = error?.data?.message || error.message || 'Could not save mileage package to the database.';
+    showToast(message, 'error');
+    return;
+  }
 
   const custom = store.get('as_mileage_pkgs') || [];
   custom.push({ id, name, dur, desc, includes });
@@ -235,7 +291,14 @@ window.updateMileagePkg = (id) => {
 };
 
 window.resetMileagePkg = (id) => {
+  const customList = store.get('as_mileage_pkgs') || [];
+  const isCustom = customList.some(p => p.id === id);
   if (!confirm('Reset this package\'s prices to defaults?')) return;
+  if (isCustom) {
+    renderMileageTable();
+    showToast('Custom package prices restored to saved values', 'success');
+    return;
+  }
   delete liveMileagePrices[id];
   store.set('as_mileage_prices', liveMileagePrices);
   renderMileageTable();
@@ -323,7 +386,7 @@ function renderServices() {
   const catColor = { maintenance:'badge-blue', cleaning:'badge-green', repair:'badge-yellow' };
   document.getElementById('services-admin-grid').innerHTML = svcs.map(s=>`
     <div class="svc-admin-card">
-      <div class="svc-admin-icon">${s.emoji||s.icon||'🚗'}</div>
+      <div class="svc-admin-icon">${renderServiceIconHtml(s,'1.4rem')}</div>
       <div class="svc-admin-info">
         <h4>${s.name} ${s.popular?'<span class="badge badge-yellow">Popular</span>':''}</h4>
         <div class="flex-gap" style="font-size:.78rem;color:var(--gray-500);flex-wrap:wrap;gap:8px;margin-top:4px">
@@ -365,14 +428,16 @@ window.deleteService = (id) => {
   showToast(`"${svc.name}" deleted.`,'success');
 };
 
-function saveService() {
-  const id    = document.getElementById('svc-edit-id').value || genId('s');
-  const name  = document.getElementById('svc-name').value.trim();
-  const emoji = document.getElementById('svc-icon').value.trim() || '🚗';
-  const cat   = document.getElementById('svc-cat').value;
-  const dur   = document.getElementById('svc-dur').value.trim() || '1h';
-  const desc  = document.getElementById('svc-desc').value.trim();
-  const pop   = document.getElementById('svc-popular').checked;
+async function saveService() {
+  const id        = document.getElementById('svc-edit-id').value || genId('s');
+  const name      = document.getElementById('svc-name').value.trim();
+  const iconValue = document.getElementById('svc-icon').value.trim();
+  const icon      = normalizeServiceIcon(iconValue);
+  const emoji     = icon ? (LEGACY_SERVICE_EMOJI[iconValue] ? iconValue : '') : iconValue;
+  const cat       = document.getElementById('svc-cat').value;
+  const dur       = document.getElementById('svc-dur').value.trim() || '1h';
+  const desc      = document.getElementById('svc-desc').value.trim();
+  const pop       = document.getElementById('svc-popular').checked;
   if (!name) { showToast('Service name is required','error'); return; }
 
   const isEditing = !!document.getElementById('svc-edit-id').value;
@@ -392,10 +457,28 @@ function saveService() {
     const pkgId = `pkg-${km/1000}k`;
     const includesStr = document.getElementById('svc-includes')?.value || '';
     const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
-    // save to mileage custom pkgs
     const custom = store.get('as_mileage_pkgs') || [];
-    if (!custom.find(p=>p.id===pkgId)) { custom.push({ id:pkgId, name, dur, desc, includes }); store.set('as_mileage_pkgs', custom); }
-    liveMileagePrices[pkgId] = { 1:eco, 2:mid, 3:prem };
+    if (custom.find(p=>p.id===pkgId)) { showToast(`A ${km/1000}k package already exists`, 'error'); return; }
+
+    try {
+      await servicesAPI.create({
+        id: pkgId,
+        name,
+        cat: 'mileage',
+        duration: dur,
+        desc,
+        includes,
+        priceByTier: { 1: eco, 2: mid, 3: prem },
+      });
+    } catch (error) {
+      const message = error?.data?.message || error.message || 'Could not save mileage package to the database.';
+      showToast(message, 'error');
+      return;
+    }
+
+    custom.push({ id: pkgId, name, dur, desc, includes });
+    store.set('as_mileage_pkgs', custom);
+    liveMileagePrices[pkgId] = { 1: eco, 2: mid, 3: prem };
     store.set('as_mileage_prices', liveMileagePrices);
     showToast(`Mileage package "${name}" saved! ✅`, 'success');
     closeModal('svc-modal'); editingId=null;
@@ -415,7 +498,30 @@ function saveService() {
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
 
   const existing = svcs.find(s=>s.id===id);
-  const newSvc = { id, name, emoji, cat, duration:dur, price, desc, popular:pop, includes };
+  const newSvc = { id, name, icon, emoji, cat, duration:dur, price, desc, popular:pop, includes };
+
+  if (!isEditing) {
+    try {
+      await servicesAPI.create({
+        id,
+        name,
+        icon,
+        emoji,
+        cat,
+        duration: dur,
+        price,
+        priceByTier: {},
+        desc,
+        popular: pop,
+        includes,
+      });
+    } catch (error) {
+      const message = error?.data?.message || error.message || 'Could not save service to the database.';
+      showToast(message, 'error');
+      return;
+    }
+  }
+
   if (existing) Object.assign(existing, newSvc);
   else svcs.push(newSvc);
   store.set(KEYS.SERVICES_CUSTOM, svcs);

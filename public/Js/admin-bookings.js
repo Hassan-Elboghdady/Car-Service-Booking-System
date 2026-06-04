@@ -137,7 +137,7 @@ window.viewDetail = (id) => {
     <div class="grid-2" style="gap:20px">
       <div>
         <h4 style="margin-bottom:12px">Service Details</h4>
-        <p>${b.service?.emoji||''} <strong>${b.service?.name||''}</strong></p>
+        <p style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.2rem')} <strong>${b.service?.name||''}</strong></p>
         <p>Date: ${formatDate(b.date)} at ${b.time||''}</p>
         <p>Total: <strong style="color:var(--primary)">EGP ${b.total||''}</strong></p>
       </div>
