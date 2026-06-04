@@ -1,6 +1,29 @@
 // admin-vehicles.js
-window.addEventListener('DOMContentLoaded', () => {
+async function loadBrandsFromDb() {
+  try {
+    const brands = await brandsAPI.getAll();
+    if (!brands || !brands.length) return;
+
+    const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
+    brands.forEach((brand) => {
+      db[brand.name] = {
+        models: brand.models || {},
+        logo: brand.logo || '',
+        modelPictures: brand.modelPictures || {},
+        emoji: brand.emoji || '🚗',
+      };
+    });
+
+    localStorage.setItem('as_cars_db', JSON.stringify(db));
+    Object.assign(CARS_DB, db);
+  } catch (error) {
+    console.warn('Could not load brands from database.', error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
   seedData(); if (!requireRole('admin')) return; initSidebar();
+  await loadBrandsFromDb();
   
   // Re-load vehicles and bookings to reflect updates
   let cars = getAll(KEYS.CARS);
@@ -258,34 +281,47 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (hasDuplicateModel) return;
 
-    const proceedSaveBrand = (logoDataUrl) => {
-      Promise.all(filePromises).then(() => {
-        const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
-        db[name] = {
-          models: modelsObj,
+    const proceedSaveBrand = async (logoDataUrl) => {
+      await Promise.all(filePromises);
+      try {
+        await brandsAPI.create({
+          name,
           logo: logoDataUrl,
+          emoji: '🚗',
+          models: modelsObj,
           modelPictures: modelPicturesObj,
-          emoji: '🚗'
-        };
-        localStorage.setItem('as_cars_db', JSON.stringify(db));
-        Object.assign(CARS_DB, db);
+        });
+      } catch (error) {
+        const message = error?.data?.message || error.message || 'Could not save brand to the database.';
+        alertEl.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        return;
+      }
 
-        closeModal('brand-modal');
-        showToast(`Brand "${name}" saved successfully!`, 'success');
+      const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
+      db[name] = {
+        models: modelsObj,
+        logo: logoDataUrl,
+        modelPictures: modelPicturesObj,
+        emoji: '🚗'
+      };
+      localStorage.setItem('as_cars_db', JSON.stringify(db));
+      Object.assign(CARS_DB, db);
 
-        // Reset
-        const nameInput = document.getElementById('ab-name');
-        nameInput.value = '';
-        nameInput.readOnly = false;
-        document.getElementById('ab-logo-url').value = '';
-        document.getElementById('ab-logo-file').value = '';
-        document.getElementById('ab-models-list').innerHTML = '';
-        alertEl.innerHTML = '';
+      closeModal('brand-modal');
+      showToast(`Brand "${name}" saved successfully!`, 'success');
 
-        initAddCarDropdowns();
-        updateStats();
-        window.renderDatabaseManager();
-      });
+      // Reset
+      const nameInput = document.getElementById('ab-name');
+      nameInput.value = '';
+      nameInput.readOnly = false;
+      document.getElementById('ab-logo-url').value = '';
+      document.getElementById('ab-logo-file').value = '';
+      document.getElementById('ab-models-list').innerHTML = '';
+      alertEl.innerHTML = '';
+
+      initAddCarDropdowns();
+      updateStats();
+      window.renderDatabaseManager();
     };
 
     if (method === 'upload' && fileLogo) {

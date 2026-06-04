@@ -25,7 +25,7 @@ const getContacts = async (req, res, next) => {
   }
 };
 
-// GET /api/contact/user/:userId - Get contact messages for a specific user
+// GET /api/contact/user/:userId - Get messages for a specific user
 const getContactsByUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -36,26 +36,42 @@ const getContactsByUser = async (req, res, next) => {
   }
 };
 
-// POST /api/contact/:id/reply - Admin reply to a contact message
+// POST /api/contact/:id/reply - Save an admin reply to a contact message
 const replyToContact = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { reply } = req.body;
-    const updated = await ContactMessage.findByIdAndUpdate(id, { adminReply: reply, status: 'replied' }, { new: true });
-    if (!updated) return res.status(404).json({ success: false, message: 'Message not found' });
+    const updated = await ContactMessage.findByIdAndUpdate(
+      id,
+      { adminReply: reply, status: 'replied' },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Contact message not found' });
+    }
+
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
     next(error);
   }
 };
 
-// PATCH /api/contact/:id/status - Update message status (e.g., read/unread)
+// PATCH /api/contact/:id/status - Update the status of a contact message
 const updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const updated = await ContactMessage.findByIdAndUpdate(id, { status }, { new: true });
-    if (!updated) return res.status(404).json({ success: false, message: 'Message not found' });
+    const updated = await ContactMessage.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Contact message not found' });
+    }
+
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
     next(error);

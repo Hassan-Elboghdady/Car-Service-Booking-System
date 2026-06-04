@@ -8,7 +8,7 @@ const SCHED_MILEAGE = {
   'pkg-100k':'100k Overhaul',
 };
 function schedSvc(b) {
-  if (b.service?.name) return `${b.service.emoji||''} ${b.service.name.slice(0,16)}`;
+  if (b.service?.name) return `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1rem')} ${b.service.name.slice(0,16)}</span>`;
   const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
   const mId = ids.find(id => SCHED_MILEAGE[id]);
   if (mId) return `🛣️ ${SCHED_MILEAGE[mId]}`;

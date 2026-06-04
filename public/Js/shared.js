@@ -60,9 +60,9 @@ const api = {
 const SVG_ICONS = {
   clipboard: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`,
   check: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-  checkCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
-  car: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a2 2 0 0 0-1.6-.8H9.3a2 2 0 0 0-1.6.8L5 11l-5.16.86a1 1 0 0 0-.84.99V16h3m10 0a2 2 0 1 0 4 0a2 2 0 0 0-4 0zM3 16a2 2 0 1 0 4 0a2 2 0 0 0-4 0z"></path></svg>`,
-  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+  checkCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="20 8 12 17 8 13"></polyline></svg>`,
+  car: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l1.5-4.5A2 2 0 0 1 7.5 6h9a2 2 0 0 1 1.9 1.3L20 12"></path><path d="M4 12h16v5a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1H10v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5z"></path><path d="M7 18v-2"></path><path d="M17 18v-2"></path></svg>`,
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>`,
   crossCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
   cross: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
   revenue: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
@@ -72,10 +72,170 @@ const SVG_ICONS = {
   trendingUp: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
   trash: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
   edit: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-  reset: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`
+  reset: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`,
+  oilChange: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="8" height="10" rx="2"></rect><path d="M9 8V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"></path><path d="M13 8h4l2 2v2"></path><path d="M17 14a1.5 1.5 0 0 1-3 0c0-.83.67-2 1.5-2s1.5 1.17 1.5 2z"></path></svg>`,
+  tyreRotation: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><path d="M17 5l4 4"></path><path d="M7 19l-4-4"></path></svg>`,
+  batteryReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="14" height="10" rx="2"></rect><path d="M18 10h2"></path><path d="M18 14h2"></path><path d="M8 11h4"></path><path d="M8 13h4"></path></svg>`,
+  batteryCheck: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="14" height="10" rx="2"></rect><path d="M18 10h2"></path><polyline points="8 13 11 16 16 11"></polyline></svg>`,
+  wheelAlignment: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"></circle><path d="M12 5v14"></path><path d="M5 12h14"></path><path d="M16 8l4-4"></path><path d="M8 16l-4 4"></path></svg>`,
+  coolantFlush: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v5a5 5 0 0 1-10 0V7z"></path><path d="M12 7V4"></path><path d="M10 13.5c0-1.25.75-2.5 2-2.5s2 1.25 2 2.5c0 1.2-.8 2.5-2 2.5s-2-1.25-2-2.5z"></path></svg>`,
+  sparkPlugsReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8v4h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1.5l-2.5 6h-3l-2.5-6H8a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2V2z"></path><path d="M12 11v4"></path><path d="M11 19h2"></path></svg>`,
+  airFilterReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="14" height="12" rx="2"></rect><path d="M8 9h8"></path><path d="M8 12h8"></path><path d="M8 15h8"></path><path d="M3 10l2 2"></path><path d="M3 14l2-2"></path><path d="M21 10l-2 2"></path><path d="M21 14l-2-2"></path></svg>`,
+  cabinAirFilter: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="14" height="12" rx="2"></rect><path d="M5 10h14"></path><path d="M5 13h14"></path><path d="M5 16h14"></path><path d="M3 8l2 2"></path><path d="M3 16l2-2"></path><path d="M21 8l-2 2"></path><path d="M21 16l-2-2"></path></svg>`,
+  fuelFilterReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h9v10H6z"></path><path d="M10 7V5h4v2"></path><path d="M15 11h4"></path><path d="M15 13h4"></path><path d="M9 14l-1 3"></path><path d="M15 14l1 3"></path></svg>`,
+  powerSteeringFluid: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h4"></path><path d="M14 12h4"></path><circle cx="12" cy="12" r="6"></circle><path d="M16 8l4-4"></path><path d="M12 14v4"></path></svg>`,
+  brakeFluidFlush: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h10v9H5z"></path><path d="M8 8V5h4v3"></path><path d="M12 13c1.2 0 2-.9 2-2s-1-2-2-2-2 .9-2 2 .8 2 2 2z"></path><path d="M16 11h4"></path></svg>`,
+  timingBeltReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="3"></circle><circle cx="16" cy="12" r="3"></circle><path d="M11 12h2"></path><path d="M6 9l2-2"></path><path d="M6 15l2 2"></path><path d="M18 9l-2-2"></path><path d="M18 15l-2 2"></path></svg>`,
+  driveBeltInspection: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="6" rx="3"></rect><path d="M8 9v6"></path><path d="M16 9v6"></path><circle cx="18" cy="18" r="3"></circle><line x1="19.5" y1="19.5" x2="22" y2="22"></line></svg>`,
+  pcvValveReplacement: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l4 4-4 4-4-4 4-4z"></path><path d="M12 8v12"></path><path d="M8 18h8"></path></svg>`,
+  brakeService: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"></circle><path d="M12 6v12"></path><path d="M6 12h4"></path><path d="M14 10h4"></path></svg>`,
+  engineDiagnostics: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h8a1 1 0 0 1 1 1v5H4z"></path><path d="M5 11V8h5"></path><path d="M6 14h4"></path><path d="M8 8h2"></path><circle cx="18" cy="17" r="3"></circle><line x1="20" y1="19" x2="22" y2="21"></line><polyline points="16.5 17 18 18.5 21 15.5"></polyline></svg>`,
+  acRepairRecharge: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 7v-3"></path><path d="M12 17v3"></path><path d="M7 12H4"></path><path d="M20 12h-3"></path><path d="M8 8l-2-2"></path><path d="M16 8l2-2"></path></svg>`,
+  acService: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4"></path><path d="M12 17v4"></path><path d="M3 12h4"></path><path d="M17 12h4"></path><path d="M7.5 7.5l3 3"></path><path d="M16.5 7.5l-3 3"></path></svg>`,
+  engineRepair: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18v-6l6-4 6 4v6"></path><path d="M9 15l3-3 3 3"></path><path d="M12 5v3"></path></svg>`,
+  suspensionService: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16"></path><path d="M18 4v16"></path><path d="M6 8h12"></path><path d="M6 16h12"></path><path d="M12 4v16"></path></svg>`,
+  transmissionService: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="14" height="12" rx="2"></rect><path d="M9 10h6"></path><path d="M9 14h6"></path><path d="M12 6v4"></path></svg>`,
+  windshieldRepair: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14l-2 14H7z"></path><path d="M8 12l3-3"></path><path d="M13 16l3-3"></path></svg>`,
+  radiatorService: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="12" height="14" rx="2"></rect><path d="M6 9h12"></path><path d="M6 13h12"></path><path d="M6 17h12"></path><path d="M4 11v2"></path><path d="M20 11v2"></path></svg>`,
+  exhaustSystemRepair: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h7a2 2 0 0 0 2-2v-2"></path><rect x="11" y="9" width="7" height="6" rx="2"></rect><path d="M18 9l4-2"></path><path d="M18 15l4 2"></path><path d="M19 6l2 1"></path><path d="M19 18l2 1"></path></svg>`,
+  fuelInjectorCleaning: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h8v6H6z"></path><path d="M14 9h4"></path><path d="M14 11h4"></path><path d="M14 13h4"></path><path d="M18 16v3"></path><path d="M15 18l3-3"></path></svg>`,
+  starterMotorRepair: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h9a1 1 0 0 1 1 1v6H4z"></path><path d="M4 10V8h7"></path><path d="M13 14h3"></path><circle cx="19" cy="14" r="3"></circle><polyline points="18 12 16 15 18 15 16 18"></polyline></svg>`,
+  alternatorRepair: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 7v10"></path><path d="M7 12h10"></path><path d="M16 8l4-4"></path><path d="M8 16l-4 4"></path></svg>`,
+  headGasketInspection: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12v10H6z"></path><path d="M9 7v10"></path><path d="M15 7v10"></path><circle cx="12" cy="12" r="2"></circle></svg>`,
+  basicCarWash: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15h16l2-4H2z"></path><path d="M7 15v3"></path><path d="M11 15v3"></path><path d="M15 15v3"></path><path d="M10 10l1-3h2l1 3"></path><path d="M8 6l1-2"></path><path d="M16 6l1-2"></path></svg>`,
+  carWash: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15h16l2-4H2z"></path><path d="M8 15v3"></path><path d="M12 15v3"></path><path d="M16 15v3"></path><path d="M6 9l2-3"></path><path d="M12 8l1-3"></path><path d="M18 9l-2-3"></path></svg>`,
+  fullDetailing: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l2.5-5.5h10L20 13v4H4v-4z"></path><path d="M6 13h12"></path><path d="M8 7h8"></path><path d="M7 7l1-2"></path><path d="M17 7l1-2"></path><path d="M17 4l1 2"></path><path d="M18 4l-2 1"></path></svg>`,
+  interiorSteamClean: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M7 12v5"></path><path d="M17 12v5"></path><path d="M8 7c0-1 1-2 1-2s1 1 1 2-1 2-1 2-1-1-1-2z"></path><path d="M14 7c0-1 1-2 1-2s1 1 1 2-1 2-1 2-1-1-1-2z"></path></svg>`,
+  paintProtectionFilm: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v6a7 7 0 0 1-14 0V7l7-4z"></path><path d="M12 7v5"></path><path d="M9 10h6"></path></svg>`,
+  headlightRestoration: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h6l4 4H7z"></path><path d="M18 6l2 2"></path><path d="M18 10l2 2"></path><path d="M18 14l2 2"></path></svg>`,
+  windowTinting: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M12 5v14"></path><path d="M9 9h6"></path><path d="M9 13h6"></path></svg>`,
+  engineBayCleaning: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14v8H5z"></path><path d="M8 8v-3"></path><path d="M16 8v-3"></path><path d="M8 12h8"></path><path d="M9 15l1-2 1 2 1-2 1 2"></path></svg>`
 };
 
-// ─── CAR DATABASE — ONLY 5 BRANDS SERVICED ──────────────
+const SERVICE_ICON_KEYS = Object.keys(SVG_ICONS);
+const SERVICE_ICON_ALIASES = {
+  'oil-change': 'oilChange',
+  'tyre-rotation': 'tyreRotation',
+  'tire-rotation': 'tyreRotation',
+  'wheel-alignment': 'wheelAlignment',
+  'air-filter': 'airFilterReplacement',
+  'cabin-air-filter': 'cabinAirFilter',
+  'fuel-filter': 'fuelFilterReplacement',
+  'spark-plugs': 'sparkPlugsReplacement',
+  'pcv-valve': 'pcvValveReplacement',
+  'battery-check': 'batteryCheck',
+  'ac-service': 'acService',
+  'car-wash': 'carWash'
+};
+const SERVICE_ICON_NAME_MAP = {
+  'oil change': 'oilChange',
+  'tyre rotation': 'tyreRotation',
+  'tire rotation': 'tyreRotation',
+  'battery replacement': 'batteryReplacement',
+  'battery check': 'batteryCheck',
+  'wheel alignment': 'wheelAlignment',
+  'coolant flush': 'coolantFlush',
+  'spark plugs replacement': 'sparkPlugsReplacement',
+  'air filter replacement': 'airFilterReplacement',
+  'cabin air filter': 'cabinAirFilter',
+  'fuel filter replacement': 'fuelFilterReplacement',
+  'power steering fluid': 'powerSteeringFluid',
+  'brake fluid flush': 'brakeFluidFlush',
+  'timing belt replacement': 'timingBeltReplacement',
+  'drive belt inspection': 'driveBeltInspection',
+  'pcv valve replacement': 'pcvValveReplacement',
+  'brake service': 'brakeService',
+  'engine diagnostics': 'engineDiagnostics',
+  'ac repair & recharge': 'acRepairRecharge',
+  'ac service': 'acService',
+  'engine repair': 'engineRepair',
+  'suspension service': 'suspensionService',
+  'transmission service': 'transmissionService',
+  'windshield repair': 'windshieldRepair',
+  'radiator service': 'radiatorService',
+  'exhaust system repair': 'exhaustSystemRepair',
+  'fuel injector cleaning': 'fuelInjectorCleaning',
+  'starter motor repair': 'starterMotorRepair',
+  'alternator repair': 'alternatorRepair',
+  'head gasket inspection': 'headGasketInspection',
+  'basic car wash': 'basicCarWash',
+  'car wash': 'carWash',
+  'full detailing': 'fullDetailing',
+  'interior steam clean': 'interiorSteamClean',
+  'paint protection film': 'paintProtectionFilm',
+  'headlight restoration': 'headlightRestoration',
+  'window tinting': 'windowTinting',
+  'engine bay cleaning': 'engineBayCleaning'
+};
+const LEGACY_SERVICE_EMOJI = {
+  '🛢️': 'oilChange',
+  '🛢': 'oilChange',
+  '🔄': 'tyreRotation',
+  '🛞': 'tyreRotation',
+  '🔋': 'batteryReplacement',
+  '⚖️': 'wheelAlignment',
+  '⚖': 'wheelAlignment',
+  '💧': 'coolantFlush',
+  '⚡': 'sparkPlugsReplacement',
+  '🌬️': 'airFilterReplacement',
+  '🍃': 'cabinAirFilter',
+  '⛽': 'fuelFilterReplacement',
+  '🛑': 'brakeService',
+  '⚙️': 'engineDiagnostics',
+  '❄️': 'acService',
+  '🫧': 'carWash',
+  '✨': 'fullDetailing',
+  '🧼': 'carWash',
+  '🔧': 'engineRepair'
+};
+
+function getServiceIconKey(service) {
+  if (!service) return 'car';
+  if (typeof service === 'string') return normalizeServiceIcon(service) || 'car';
+  if (service.icon) {
+    const normalized = normalizeServiceIcon(service.icon);
+    if (normalized) return normalized;
+  }
+  if (service.emoji) {
+    const emojiKey = LEGACY_SERVICE_EMOJI[service.emoji.trim()];
+    if (emojiKey) return emojiKey;
+  }
+  const title = ((service.name || service.title) || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (SERVICE_ICON_NAME_MAP[title]) return SERVICE_ICON_NAME_MAP[title];
+  if (SERVICE_ICON_ALIASES[title]) return SERVICE_ICON_ALIASES[title];
+  if (title.includes('oil')) return 'oilChange';
+  if (title.includes('tyre') || title.includes('tire') || title.includes('rotation')) return 'tyreRotation';
+  if (title.includes('battery')) return 'batteryReplacement';
+  if (title.includes('alignment')) return 'wheelAlignment';
+  if (title.includes('coolant') || title.includes('fluid')) return 'coolantFlush';
+  if (title.includes('spark')) return 'sparkPlugsReplacement';
+  if (title.includes('air filter') || title.includes('filter') || title.includes('cabin')) return 'airFilterReplacement';
+  if (title.includes('brake')) return 'brakeService';
+  if (title.includes('diagnos') || title.includes('engine') || title.includes('scan') || title.includes('obd')) return 'engineDiagnostics';
+  if (title.includes('wash') || title.includes('detail') || title.includes('clean') || title.includes('shampoo') || title.includes('steam')) return 'carWash';
+  return 'car';
+}
+
+function getServiceIconSvg(service) {
+  return SVG_ICONS[getServiceIconKey(service)] || SVG_ICONS.car;
+}
+
+function renderServiceIconHtml(service, size = '3.5rem') {
+  return `<span class="service-icon" style="width:${size};min-width:${size};height:${size};display:inline-flex;align-items:center;justify-content:center;color:var(--primary);">${getServiceIconSvg(service)}</span>`;
+}
+
+function normalizeServiceIcon(value) {
+  if (!value) return '';
+  const trimmed = value.trim();
+  if (SVG_ICONS[trimmed]) return trimmed;
+  const lower = trimmed.toLowerCase();
+  if (SVG_ICONS[lower]) return lower;
+  if (SERVICE_ICON_ALIASES[lower]) return SERVICE_ICON_ALIASES[lower];
+  if (SERVICE_ICON_KEYS.includes(trimmed)) return trimmed;
+  if (SERVICE_ICON_KEYS.includes(lower)) return lower;
+  return '';
+}
+
 const DEFAULT_CARS_DB = {
   Toyota: {
     models: {
@@ -321,6 +481,14 @@ function seedData() {
       { id: 'sc2', code: 'STAFF-2026-BETA', createdBy: 'u_admin', usedBy: 'u_staff1', active: false, createdAt: '2026-02-01' },
     ]);
   }
+  if (!store.get(KEYS.USERS)) {
+    store.set(KEYS.USERS, [
+      { id: 'u_admin', firstName: 'Admin', lastName: 'User', email: 'admin@autoserve.com', role: 'admin', password: 'admin123' },
+      { id: 'u_staff1', firstName: 'Sami', lastName: 'Hassan', email: 'staff1@autoserve.com', role: 'staff', password: 'staff123' },
+      { id: 'u_cust1', firstName: 'Ahmed', lastName: 'Mohamed', email: 'ahmed.mohamed@example.com', role: 'customer', password: 'pass1234' },
+      { id: 'u_cust2', firstName: 'Sara', lastName: 'Ali', email: 'sara.ali@example.com', role: 'customer', password: 'pass1234' },
+    ]);
+  }
   if (!store.get(KEYS.CARS)) {
     store.set(KEYS.CARS, [
       { id: 'c1', owner: 'u_cust1', brand: 'Toyota', model: 'Camry', year: 2021, plate: 'أ ب ج 1234', color: 'Silver', emoji: '🚗' },
@@ -449,6 +617,26 @@ const carsAPI = {
   async forUser(uid) { try { const r = await api.get('/cars'); return r.data || []; } catch(e) { return []; } },
   async add(data) { const r = await api.post('/cars', data); return r.data; },
   async remove(id) { await api.del('/cars/' + id); },
+};
+
+// ─── BRAND API ─────────────────────────────────────────────────
+const brandsAPI = {
+  async getAll() { try { const r = await api.get('/brands'); return r.data || []; } catch(e) { return []; } },
+  async create(data) { const r = await api.post('/brands', data); return r.data; },
+};
+
+// ─── SERVICES API ──────────────────────────────────────────────
+const servicesAPI = {
+  async getAll(cat) {
+    try {
+      const path = cat ? `/services?cat=${encodeURIComponent(cat)}` : '/services';
+      const r = await api.get(path);
+      return r.data || [];
+    } catch (e) {
+      return [];
+    }
+  },
+  async create(data) { const r = await api.post('/services', data); return r.data; },
 };
 
 // ─── REVIEWS API ──────────────────────────────────────────────

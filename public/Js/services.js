@@ -88,6 +88,45 @@ const MILEAGE_PKGS = [
 // --- CATALOGUE RENDER -----------------------------------------
 let currentCat = 'all';
 
+async function loadCustomServicesFromDb() {
+  try {
+    const services = await servicesAPI.getAll();
+    if (!services || !services.length) return;
+
+    const currentServices = getAll(KEYS.SERVICES_CUSTOM).length ? getAll(KEYS.SERVICES_CUSTOM) : SERVICES_DEFAULT;
+    const customServices = services.filter(s => s.cat !== 'mileage');
+    if (customServices.length) {
+      const customById = new Map(customServices.map(s => [s.id, s]));
+      const mergedServices = currentServices.map(s => customById.has(s.id) ? customById.get(s.id) : s);
+      const newServices = customServices.filter(s => !currentServices.some(existing => existing.id === s.id));
+      store.set(KEYS.SERVICES_CUSTOM, [...mergedServices, ...newServices]);
+    }
+
+    const mileageServices = services.filter(s => s.cat === 'mileage');
+    if (mileageServices.length) {
+      const pkgs = mileageServices.map(s => ({
+        id: s.id,
+        name: s.name,
+        dur: s.duration || '',
+        desc: s.desc || '',
+        includes: Array.isArray(s.includes) ? s.includes : [],
+      }));
+      const prices = {};
+      mileageServices.forEach((s) => {
+        prices[s.id] = {
+          1: s.priceByTier?.['1'] || 0,
+          2: s.priceByTier?.['2'] || 0,
+          3: s.priceByTier?.['3'] || 0,
+        };
+      });
+      store.set('as_mileage_pkgs', pkgs);
+      store.set('as_mileage_prices', prices);
+    }
+  } catch (error) {
+    console.warn('Could not load services from database.', error);
+  }
+}
+
 function renderServices(cat) {
   const grid = document.getElementById('services-grid');
   if (!grid) return;
@@ -102,7 +141,7 @@ function renderServices(cat) {
 
   filtered.forEach(svc => {
     const catLabel = { maintenance: 'Maintenance', cleaning: 'Cleaning', repair: 'Repair' }[svc.cat] || svc.cat;
-    const catIcon  = { maintenance: '🔧', cleaning: '🧼', repair: '⚙️' }[svc.cat] || '🔧';
+    const catIcon  = { maintenance: SVG_ICONS.checkCircle, cleaning: SVG_ICONS.checkCircle, repair: SVG_ICONS.checkCircle }[svc.cat] || SVG_ICONS.checkCircle;
     const catGrad  = {
       maintenance: 'linear-gradient(135deg,#fff5f5,#ffe4e8)',
       repair:      'linear-gradient(135deg,#fff1f1,#fde8e8)',
@@ -112,8 +151,8 @@ function renderServices(cat) {
     const div = document.createElement('div');
     div.className = 'svc-card animate-fade-in';
     div.innerHTML = `
-      <div style="height:140px;display:flex;align-items:center;justify-content:center;background:${catGrad};position:relative;font-size:4rem;border-radius:var(--radius-md) var(--radius-md) 0 0;">
-        <span style="filter:drop-shadow(0 4px 12px rgba(0,0,0,.15))">${svc.emoji || '🔧'}</span>
+        <div style="height:140px;display:flex;align-items:center;justify-content:center;background:${catGrad};position:relative;border-radius:var(--radius-md) var(--radius-md) 0 0;">
+        ${renderServiceIconHtml(svc,'4rem')}
         <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);color:#fff;font-size:.68rem;font-weight:700;padding:4px 11px;border-radius:99px;letter-spacing:.4px;">${catIcon} ${catLabel}</span>
         ${svc.popular ? '<span class="badge badge-red" style="position:absolute;top:10px;right:10px;">Popular</span>' : ''}
       </div>
@@ -123,10 +162,10 @@ function renderServices(cat) {
         <p>${svc.desc || ''}</p>
         <div class="svc-card-meta">
           <div class="svc-price">EGP ${svc.price.toLocaleString()}</div>
-          <div class="svc-duration">? ${svc.duration}</div>
+          <div class="svc-duration" style="display:inline-flex;align-items:center;gap:6px;">${SVG_ICONS.clock} ${svc.duration}</div>
         </div>
         <a href="booking.ejs?service=${svc.id}" class="btn btn-primary btn-sm btn-block" style="margin-top:14px"
-           onclick="gateBooking(event,'booking.ejs?service=${svc.id}')">Book Now ?</a>
+           onclick="gateBooking(event,'booking.ejs?service=${svc.id}')">Book Now →</a>
       </div>`;
     grid.appendChild(div);
   });
@@ -191,7 +230,7 @@ function renderMileagePkgs() {
       ${pkg.popular ? '<div class="mileage-pop-badge">Most Popular ⭐</div>' : ''}
 
       <div class="mpkg-header">
-        <div style="font-size:3.5rem;margin-bottom:10px;filter:drop-shadow(0 4px 14px rgba(230,0,35,.2))">${pkg.emoji}</div>
+        ${renderServiceIconHtml(pkg,'3.5rem')}
         <div class="mpkg-name">${pkg.name}</div>
         <div class="mpkg-tagline">${pkg.tagline}</div>
         <div class="mpkg-duration">⏱️ ${pkg.duration}</div>
@@ -264,5 +303,7 @@ document.getElementById('custom-submit')?.addEventListener('click', () => {
 });
 
 // --- INIT -----------------------------------------------------
-renderServices('all');
-renderMileagePkgs();
+loadCustomServicesFromDb().finally(() => {
+  renderServices('all');
+  renderMileagePkgs();
+});

@@ -96,11 +96,11 @@ function renderStep2(filter) {
 
     return `
       <div class="svc-select-card ${sel?'selected':''} ${isMileage?'mileage-card':''}" onclick="toggleService('${s.id}')">
-        <div class="svc-select-icon">${s.emoji||s.icon}</div>
+        <div class="svc-select-icon">${renderServiceIconHtml(s,'2rem')}</div>
         <div class="svc-select-info">
           <h4>${s.name} ${s.popular?'<span class="badge badge-red" style="font-size:.65rem">Popular</span>':''} ${isMileage&&sel?'<span class="badge badge-green" style="font-size:.65rem">✓ Selected</span>':''}</h4>
-          <p>${s.desc?.slice(0,70)||''}  🕒 ${s.duration}</p>
-          ${isMileage?'<p style="font-size:.7rem;color:var(--info,#3b82f6)">🚗 Only one mileage package can be selected</p>':''}
+          <p>${s.desc?.slice(0,70)||''}  ${SVG_ICONS.clock} ${s.duration}</p>
+          ${isMileage?'<p style="font-size:.7rem;color:var(--info,#3b82f6)">Only one mileage package may be selected</p>':''}
         </div>
         <div style="text-align:right;flex-shrink:0">
           ${priceHtml}
@@ -251,7 +251,7 @@ function renderConfirm() {
       price = getMileagePriceForCar(s.id) || 0;
     }
     subtotal += price;
-    return `<div class="sum-row" style="padding-left:12px"><span>${s.emoji||'🚗'} ${s.name}</span><span>EGP ${price.toLocaleString()}</span></div>`;
+    return `<div class="sum-row" style="padding-left:12px"><span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(s,'1.2rem')} ${s.name}</span><span>EGP ${price.toLocaleString()}</span></div>`;
   }).join('');
 
   const discount = booking.discount ? Math.round(subtotal * booking.discount / 100) : 0;
