@@ -13,6 +13,8 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const brandRoutes = require('./routes/brandRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const staffCodeRoutes = require('./routes/staffCodeRoutes');
+const couponRoutes = require('./routes/couponRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -68,6 +70,8 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/staff-codes', staffCodeRoutes);
+app.use('/api/coupons', couponRoutes);
 
 // Keep existing links working: /booking.ejs -> render booking.ejs.
 app.get('/:page.ejs', (req, res, next) => {

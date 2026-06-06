@@ -475,34 +475,6 @@ const genId = (p = 'id') => `${p}_${Date.now()}_${Math.random().toString(36).sli
 // ─── SEED DATA ────────────────────────────────────────────────
 function seedData() {
 
-  if (!store.get(KEYS.STAFF_CODES)) {
-    store.set(KEYS.STAFF_CODES, [
-      { id: 'sc1', code: 'STAFF-2026-ALPHA', createdBy: 'u_admin', usedBy: null, active: true, createdAt: '2026-01-15' },
-      { id: 'sc2', code: 'STAFF-2026-BETA', createdBy: 'u_admin', usedBy: 'u_staff1', active: false, createdAt: '2026-02-01' },
-    ]);
-  }
-  if (!store.get(KEYS.USERS)) {
-    store.set(KEYS.USERS, [
-      { id: 'u_admin', firstName: 'Admin', lastName: 'User', email: 'admin@autoserve.com', role: 'admin', password: 'admin123' },
-      { id: 'u_staff1', firstName: 'Sami', lastName: 'Hassan', email: 'staff1@autoserve.com', role: 'staff', password: 'staff123' },
-      { id: 'u_cust1', firstName: 'Ahmed', lastName: 'Mohamed', email: 'ahmed.mohamed@example.com', role: 'customer', password: 'pass1234' },
-      { id: 'u_cust2', firstName: 'Sara', lastName: 'Ali', email: 'sara.ali@example.com', role: 'customer', password: 'pass1234' },
-    ]);
-  }
-  if (!store.get(KEYS.CARS)) {
-    store.set(KEYS.CARS, [
-      { id: 'c1', owner: 'u_cust1', brand: 'Toyota', model: 'Camry', year: 2021, plate: 'أ ب ج 1234', color: 'Silver', emoji: '🚗' },
-      { id: 'c2', owner: 'u_cust1', brand: 'Honda', model: 'Civic', year: 2019, plate: 'د ه و 5678', color: 'Black', emoji: '🚗' },
-      { id: 'c3', owner: 'u_cust2', brand: 'MG', model: 'MG ZS', year: 2023, plate: 'ز ح ط 9090', color: 'Red', emoji: '🚙' },
-    ]);
-  }
-  if (!store.get(KEYS.BOOKINGS)) {
-    store.set(KEYS.BOOKINGS, [
-      { id: 'b1', userId: 'u_cust1', carId: 'c1', serviceId: 's01', date: '2026-04-10', time: '10:00', status: 'completed', notes: '', total: 299, assignedStaff: '', createdAt: '2026-04-05' },
-      { id: 'b2', userId: 'u_cust1', carId: 'c2', serviceId: 's02', date: '2026-04-15', time: '14:00', status: 'pending', notes: 'Full wash please', total: 99, assignedStaff: '', createdAt: '2026-04-09' },
-      { id: 'b3', userId: 'u_cust2', carId: 'c3', serviceId: 's03', date: '2026-04-12', time: '09:00', status: 'in_progress', notes: '', total: 799, assignedStaff: '', createdAt: '2026-04-08' },
-    ]);
-  }
   if (!store.get(KEYS.INVENTORY)) {
     store.set(KEYS.INVENTORY, [
       { id: 'i1', name: 'Engine Oil 5W-30', icon: '🛢️', qty: 48, unit: 'quarts', lowAt: 10 },
@@ -513,18 +485,6 @@ function seedData() {
       { id: 'i6', name: 'Car Shampoo', icon: '🫧', qty: 25, unit: 'bottles', lowAt: 6 },
       { id: 'i7', name: 'Battery 12V', icon: '🔋', qty: 6, unit: 'pcs', lowAt: 2 },
       { id: 'i8', name: 'PPF Roll', icon: '🛡️', qty: 4, unit: 'm²', lowAt: 2 },
-    ]);
-  }
-  if (!store.get(KEYS.REVIEWS)) {
-    store.set(KEYS.REVIEWS, [
-      { id: 'r1', userId: 'u_cust1', bookingId: 'b1', rating: 5, text: 'Excellent service! Very professional staff.', status: 'approved', createdAt: '2026-04-11' },
-      { id: 'r2', userId: 'u_cust2', bookingId: 'b3', rating: 4, text: 'Great detailing job. Will come back.', status: 'approved', createdAt: '2026-04-13' },
-    ]);
-  }
-  if (!store.get(KEYS.NOTIFICATIONS)) {
-    store.set(KEYS.NOTIFICATIONS, [
-      { id: 'n1', userId: 'all', type: 'promo', title: 'Spring Sale!', message: 'Get 20% off all detailing services this month.', read: false, createdAt: '2026-04-01' },
-      { id: 'n2', userId: 'u_cust1', type: 'booking', title: 'Booking Confirmed', message: 'Your oil change is confirmed for Apr 10.', read: true, createdAt: '2026-04-05' },
     ]);
   }
   if (!store.get(KEYS.SERVICES_CUSTOM)) {
@@ -659,20 +619,58 @@ const inventoryAPI = {
 
 // ─── STAFF CODES ──────────────────────────────────────────────
 const staffCodesAPI = {
-  isValid(code) {
-    const codes = getAll(KEYS.STAFF_CODES);
-    return codes.find(c => c.code === code && c.active && !c.usedBy);
+  async isValid(code) {
+    try {
+      const r = await api.get(`/staff-codes/validate/${code}`);
+      return r.valid;
+    } catch (e) {
+      return false;
+    }
   },
-  markUsed(code, userId) {
-    const codes = getAll(KEYS.STAFF_CODES);
-    const c = codes.find(x => x.code === code);
-    if (c) { c.usedBy = userId; c.active = false; saveAll(KEYS.STAFF_CODES, codes); }
+  async generate() {
+    try {
+      const r = await api.post('/staff-codes');
+      return r.data.code;
+    } catch (e) {
+      throw e;
+    }
   },
-  generate() {
-    const code = 'STAFF-' + Date.now().toString(36).toUpperCase();
-    const entry = { id: genId('sc'), code, createdBy: auth.current()?.id, usedBy: null, active: true, createdAt: todayStr() };
-    upsert(KEYS.STAFF_CODES, entry); return code;
+  async getAll() {
+    try {
+      const r = await api.get('/staff-codes');
+      return r.data || [];
+    } catch (e) {
+      return [];
+    }
+  }
+};
+
+// ─── COUPONS API ──────────────────────────────────────────────
+const couponsAPI = {
+  async getAll() {
+    try {
+      const r = await api.get('/coupons');
+      return r.data || [];
+    } catch (e) {
+      return [];
+    }
   },
+  async create(data) {
+    try {
+      const r = await api.post('/coupons', data);
+      return r.data;
+    } catch (e) {
+      throw e;
+    }
+  },
+  async remove(id) {
+    try {
+      await api.del(`/coupons/${id}`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 };
 
 // ─── VALIDATION ───────────────────────────────────────────────
