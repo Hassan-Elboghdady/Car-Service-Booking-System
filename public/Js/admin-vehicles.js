@@ -89,11 +89,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-  window.deleteCustomerVehicle = (carId) => {
+  window.deleteCustomerVehicle = async (carId) => {
     const car = getById(KEYS.CARS, carId);
     if (!car) return;
     const owner = getById(KEYS.USERS, car.owner) || {};
     if (!confirm(`Are you sure you want to remove the registered vehicle "${car.brand} ${car.model} (${car.year})" owned by ${owner.firstName || 'Customer'}?`)) return;
+
+    try {
+      await carsAPI.remove(carId);
+    } catch (error) {
+      if (error.status !== 404) {
+        showToast('Failed to remove vehicle from the server. Please try again.', 'error');
+        return;
+      }
+    }
 
     let allCars = getAll(KEYS.CARS) || [];
     allCars = allCars.filter(x => x.id !== carId);
@@ -284,13 +293,22 @@ window.addEventListener('DOMContentLoaded', async () => {
     const proceedSaveBrand = async (logoDataUrl) => {
       await Promise.all(filePromises);
       try {
-        await brandsAPI.create({
-          name,
-          logo: logoDataUrl,
-          emoji: '🚗',
-          models: modelsObj,
-          modelPictures: modelPicturesObj,
-        });
+        if (isEditMode) {
+          await brandsAPI.update(name, {
+            logo: logoDataUrl,
+            emoji: '🚗',
+            models: modelsObj,
+            modelPictures: modelPicturesObj,
+          });
+        } else {
+          await brandsAPI.create({
+            name,
+            logo: logoDataUrl,
+            emoji: '🚗',
+            models: modelsObj,
+            modelPictures: modelPicturesObj,
+          });
+        }
       } catch (error) {
         const message = error?.data?.message || error.message || 'Could not save brand to the database.';
         alertEl.innerHTML = `<div class="alert alert-danger">${message}</div>`;
@@ -362,7 +380,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const years = parseSupportedYears(yearsStr);
 
-    const saveModelData = (pictureDataUrl) => {
+    const saveModelData = async (pictureDataUrl) => {
       const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
       if (!db[brand]) {
         db[brand] = { models: {}, logo: '', modelPictures: {}, emoji: '🚗' };
@@ -372,6 +390,19 @@ window.addEventListener('DOMContentLoaded', async () => {
 
       db[brand].models[model] = years;
       db[brand].modelPictures[model] = pictureDataUrl || '';
+
+      try {
+        await brandsAPI.update(brand, {
+          logo: db[brand].logo || '',
+          emoji: db[brand].emoji || '🚗',
+          models: db[brand].models,
+          modelPictures: db[brand].modelPictures,
+        });
+      } catch (error) {
+        const message = error?.data?.message || error.message || 'Could not save model to the database.';
+        alertEl.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        return;
+      }
 
       localStorage.setItem('as_cars_db', JSON.stringify(db));
       Object.assign(CARS_DB, db);
@@ -574,8 +605,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   };
 
-  window.deleteBrand = (brandName) => {
+  window.deleteBrand = async (brandName) => {
     if (!confirm(`Are you sure you want to delete the entire brand "${brandName}" and all of its models?`)) return;
+    try {
+      await brandsAPI.remove(brandName);
+    } catch (error) {
+      if (error.status !== 404) {
+        showToast('Failed to remove brand from the server. Please try again.', 'error');
+        return;
+      }
+    }
+
     const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
     delete db[brandName];
     localStorage.setItem('as_cars_db', JSON.stringify(db));
@@ -587,7 +627,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateStats();
   };
 
-  window.deleteModel = (brandName, modelName) => {
+  window.deleteModel = async (brandName, modelName) => {
     if (!confirm(`Are you sure you want to delete the model "${modelName}" from "${brandName}"?`)) return;
     const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
     if (db[brandName] && db[brandName].models) {
@@ -596,6 +636,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (db[brandName] && db[brandName].modelPictures) {
       delete db[brandName].modelPictures[modelName];
     }
+
+    try {
+      await brandsAPI.update(brandName, {
+        logo: db[brandName]?.logo || '',
+        emoji: db[brandName]?.emoji || '🚗',
+        models: db[brandName]?.models || {},
+        modelPictures: db[brandName]?.modelPictures || {},
+      });
+    } catch (error) {
+      showToast('Failed to update brand model list on the server. Please try again.', 'error');
+      return;
+    }
+
     localStorage.setItem('as_cars_db', JSON.stringify(db));
     Object.assign(CARS_DB, db);
     
@@ -658,7 +711,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const years = parseSupportedYears(yearsStr);
 
-    const saveEditedModel = (pictureDataUrl) => {
+    const saveEditedModel = async (pictureDataUrl) => {
       const db = JSON.parse(localStorage.getItem('as_cars_db')) || DEFAULT_CARS_DB;
       if (!db[brand]) return;
       if (!db[brand].models) db[brand].models = {};
@@ -674,6 +727,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         db[brand].modelPictures[modelNew] = pictureDataUrl;
       } else {
         db[brand].modelPictures[modelNew] = picUrl || db[brand].modelPictures[modelOrig] || '';
+      }
+
+      try {
+        await brandsAPI.update(brand, {
+          logo: db[brand].logo || '',
+          emoji: db[brand].emoji || '🚗',
+          models: db[brand].models,
+          modelPictures: db[brand].modelPictures,
+        });
+      } catch (error) {
+        const message = error?.data?.message || error.message || 'Could not update brand model on the database.';
+        alertEl.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        return;
       }
 
       localStorage.setItem('as_cars_db', JSON.stringify(db));

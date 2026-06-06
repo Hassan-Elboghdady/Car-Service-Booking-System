@@ -62,4 +62,60 @@ const createService = async (req, res, next) => {
   }
 };
 
-module.exports = { getServices, createService };
+const updateService = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const {
+      name,
+      icon,
+      emoji,
+      cat,
+      duration,
+      price,
+      priceByTier,
+      desc,
+      popular,
+      includes,
+    } = req.body;
+
+    if (!id || !name || !cat) {
+      return res.status(400).json({ message: 'Service id, name, and category are required.' });
+    }
+
+    const service = await Service.findOneAndUpdate(
+      { id },
+      {
+        name,
+        icon: icon || '',
+        emoji: emoji || '',
+        cat,
+        duration: duration || '',
+        price: price || 0,
+        priceByTier: priceByTier || {},
+        desc: desc || '',
+        popular: !!popular,
+        includes: Array.isArray(includes) ? includes : [],
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
+    );
+
+    res.json({ data: service });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteService = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const service = await Service.findOneAndDelete({ id });
+    if (!service) {
+      return res.status(404).json({ message: `Service with id "${id}" not found.` });
+    }
+    res.json({ data: service });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getServices, createService, updateService, deleteService };

@@ -9,7 +9,8 @@
 /* ── Service cards ── */
 .svc-card { border-radius: var(--radius-md); border: 1px solid var(--gray-200); background: #fff; overflow: hidden; transition: var(--transition); }
 .svc-card:hover { box-shadow: var(--shadow-md); transform: translateY(-5px); }
-.svc-card-img { height: 140px; background: linear-gradient(135deg,var(--primary-bg),var(--gray-100)); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; position: relative; }
+.svc-card-img { height: 140px; background: linear-gradient(135deg,var(--primary-bg),var(--gray-100)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.svc-card-img img { width: 100%; height: 100%; object-fit: cover; }
 .svc-cat-badge { position: absolute; top: 10px; right: 10px; }
 .svc-pop-badge { position: absolute; top: 10px; left: 10px; }
 .svc-card-body { padding: 20px; }

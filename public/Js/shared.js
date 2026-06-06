@@ -189,6 +189,116 @@ const LEGACY_SERVICE_EMOJI = {
   '🔧': 'engineRepair'
 };
 
+const SERVICE_IMAGE_BASE_PATH = '/services';
+const SERVICE_IMAGE_FILENAMES = {
+  'ac repair and recharge': 'ac repair and recharge.jpg',
+  'air filter replacement': 'Air filter replacement.jpg',
+  'alternator repair': 'aternator rebair.jpg',
+  'basic car wash': 'Basic Car Wash.jpg',
+  'battery replacement': 'Battery Replacement.jpg',
+  'brake fluid flush': 'Brake Fluid Flush.jpeg',
+  'brake service': 'brake service.jpg',
+  'cabin air filter': 'Cabin Air Filter.jpeg',
+  'car radiator': 'car radiator.jpg',
+  'fuel injector cleaning': 'fuel injection.jpg',
+  'radiator service': 'car radiator.jpg',
+  'coolant flush': 'Coolant Flush.jpg',
+  'drive belt inspection': 'Drive Belt Inspection.jpeg',
+  'engine bay cleaning': 'Engine Bay Cleaning.jpg',
+  'engine diagnostics': 'engine dignostics.jpg',
+  'engine repair': 'engine repair.jpg',
+  'exhaust system repair': 'exhaust system repair.jpg',
+  'fuel filter replacement': 'Fuel Filter Replacement.jpeg',
+  'fuel injection': 'fuel injection.jpg',
+  'full detailing': 'Full Detaling.jpg',
+  'head gasket inspection': 'head gasket inspection.jpg',
+  'headlight restoration': 'Headlight Restoration.jpg',
+  'interior steam clean': 'Interior Steam Clean.jpg',
+  'oil change': 'Oil Change.jpg',
+  'paint protection film': 'Paint Protection Film.jpg',
+  'pcv valve replacement': 'PCV Valve Replacement.jpeg',
+  'power steering fluid': 'Power Steering Fluid.jpeg',
+  'spark plug replacement': 'Spark plug replacement.jpg',
+  'starter motor repair': 'starter motor repair.jpg',
+  'suspension service': 'suspension service.jpg',
+  'timing belt replacement': 'Timing Belt Replacement.jpeg',
+  'transmission service': 'transmission service.jpg',
+  'tyre rotation': 'Tyre rotation.jpg',
+  'wheel alignment': 'Wheel alignment.jpg',
+  'window tinting': 'Window Tinting.jpg',
+  'windshield repair': 'windshield repair.jpeg',
+};
+
+function normalizeServiceImageName(name) {
+  return name
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getServiceImageFilename(service) {
+  let name = '';
+  if (!service) return 'default-service.jpeg';
+  if (typeof service === 'string') name = service;
+  else name = service.name || service.title || '';
+
+  const normalized = normalizeServiceImageName(name);
+  if (!normalized) return 'default-service.jpeg';
+
+  if (SERVICE_IMAGE_FILENAMES[normalized]) {
+    return SERVICE_IMAGE_FILENAMES[normalized];
+  }
+
+  if (normalized.includes('alternator')) return 'aternator rebair.jpg';
+  if (normalized.includes('engine') && normalized.includes('diagnos')) return 'engine dignostics.jpg';
+  if (normalized.includes('detail')) return 'Full Detaling.jpg';
+  if (normalized.includes('brake') && normalized.includes('fluid')) return 'Brake Fluid Flush.jpeg';
+  if (normalized.includes('fuel injection')) return 'fuel injection.jpg';
+  if (normalized.includes('window tint')) return 'Window Tinting.jpg';
+  if (normalized.includes('wheel alignment')) return 'Wheel alignment.jpg';
+  if (normalized.includes('tyre') || normalized.includes('tire')) return 'Tyre rotation.jpg';
+  if (normalized.includes('wash')) return 'Basic Car Wash.jpg';
+  if (normalized.includes('air filter') && !normalized.includes('cabin')) return 'Air filter replacement.jpg';
+  if (normalized.includes('cabin')) return 'Cabin Air Filter.jpeg';
+  if (normalized.includes('pcv')) return 'PCV Valve Replacement.jpeg';
+  if (normalized.includes('power steering')) return 'Power Steering Fluid.jpeg';
+  if (normalized.includes('coolant')) return 'Coolant Flush.jpg';
+  if (normalized.includes('spark')) return 'Spark plug replacement.jpg';
+  if (normalized.includes('battery')) return 'Battery Replacement.jpg';
+  if (normalized.includes('paint')) return 'Paint Protection Film.jpg';
+  if (normalized.includes('headlight')) return 'Headlight Restoration.jpg';
+  if (normalized.includes('interior steam')) return 'Interior Steam Clean.jpg';
+  if (normalized.includes('transmission')) return 'transmission service.jpg';
+  if (normalized.includes('suspension')) return 'suspension service.jpg';
+  if (normalized.includes('windshield')) return 'windshield repair.jpeg';
+
+  return 'default-service.jpeg';
+}
+
+function getServiceImageUrl(service) {
+  const filename = getServiceImageFilename(service);
+  const imageUrl = `${SERVICE_IMAGE_BASE_PATH}/${filename}`;
+
+  if (typeof console !== 'undefined' && console.debug) {
+    const debugName = typeof service === 'string' ? service : service?.name || service?.title || 'unknown';
+    console.debug(`[Service Image] ${debugName} -> ${imageUrl}`);
+  }
+
+  return imageUrl;
+}
+
+function renderServiceIconHtml(service, size = '3.5rem') {
+  const imageUrl = getServiceImageUrl(service);
+  const altText = typeof service === 'string' ? service : (service?.name || service?.title || 'Service');
+  return `<span class="service-icon" style="width:${size};min-width:${size};height:${size};display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px;background:#f7f8fb;border:1px solid rgba(0,0,0,.05);" data-service-image-path="${imageUrl}">
+      <img src="${imageUrl}" alt="${altText}" data-service-image-path="${imageUrl}" onerror="this.onerror=null;this.src='${SERVICE_IMAGE_BASE_PATH}/default-service.jpeg'" style="width:100%;height:100%;object-fit:cover;display:block;" />
+    </span>`;
+}
+
 function getServiceIconKey(service) {
   if (!service) return 'car';
   if (typeof service === 'string') return normalizeServiceIcon(service) || 'car';
@@ -218,10 +328,6 @@ function getServiceIconKey(service) {
 
 function getServiceIconSvg(service) {
   return SVG_ICONS[getServiceIconKey(service)] || SVG_ICONS.car;
-}
-
-function renderServiceIconHtml(service, size = '3.5rem') {
-  return `<span class="service-icon" style="width:${size};min-width:${size};height:${size};display:inline-flex;align-items:center;justify-content:center;color:var(--primary);">${getServiceIconSvg(service)}</span>`;
 }
 
 function normalizeServiceIcon(value) {
@@ -562,14 +668,17 @@ function formatBackendBooking(b) {
 
 // ─── SERVICES ACCESS ──────────────────────────────────────────
 function getServices() {
+  const hiddenIds = store.get('as_hidden_services') || [];
   const svcs = getAll(KEYS.SERVICES_CUSTOM).length ? getAll(KEYS.SERVICES_CUSTOM) : SERVICES_DEFAULT;
-  return svcs.map(s => {
-    if (!s.img) {
-      const def = SERVICES_DEFAULT.find(d => d.id === s.id);
-      if (def && def.img) s.img = def.img;
-    }
-    return s;
-  });
+  return svcs
+    .filter(s => !hiddenIds.includes(s.id))
+    .map(s => {
+      if (!s.img) {
+        const def = SERVICES_DEFAULT.find(d => d.id === s.id);
+        if (def && def.img) s.img = def.img;
+      }
+      return s;
+    });
 }
 
 // ─── CARS API ─────────────────────────────────────────────────
@@ -583,6 +692,8 @@ const carsAPI = {
 const brandsAPI = {
   async getAll() { try { const r = await api.get('/brands'); return r.data || []; } catch(e) { return []; } },
   async create(data) { const r = await api.post('/brands', data); return r.data; },
+  async update(name, data) { const r = await api.put(`/brands/${encodeURIComponent(name)}`, data); return r.data; },
+  async remove(name) { await api.del(`/brands/${encodeURIComponent(name)}`); },
 };
 
 // ─── SERVICES API ──────────────────────────────────────────────
@@ -597,6 +708,8 @@ const servicesAPI = {
     }
   },
   async create(data) { const r = await api.post('/services', data); return r.data; },
+  async update(id, data) { const r = await api.put(`/services/${encodeURIComponent(id)}`, data); return r.data; },
+  async remove(id) { await api.del(`/services/${encodeURIComponent(id)}`); },
 };
 
 // ─── REVIEWS API ──────────────────────────────────────────────

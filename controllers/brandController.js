@@ -41,4 +41,39 @@ const createBrand = async (req, res, next) => {
   }
 };
 
-module.exports = { getBrands, createBrand };
+const updateBrand = async (req, res, next) => {
+  try {
+    const name = req.params.name;
+    const { logo, emoji, models, modelPictures } = req.body;
+
+    const brand = await Brand.findOneAndUpdate(
+      { name },
+      {
+        logo: logo || '',
+        emoji: emoji || '🚗',
+        models: models || {},
+        modelPictures: modelPictures || {},
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
+    );
+
+    res.json({ data: brand });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteBrand = async (req, res, next) => {
+  try {
+    const name = req.params.name;
+    const brand = await Brand.findOneAndDelete({ name });
+    if (!brand) {
+      return res.status(404).json({ message: `Brand "${name}" not found.` });
+    }
+    res.json({ data: brand });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getBrands, createBrand, updateBrand, deleteBrand };

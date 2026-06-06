@@ -147,15 +147,14 @@ function renderServices(cat) {
       repair:      'linear-gradient(135deg,#fff1f1,#fde8e8)',
       cleaning:    'linear-gradient(135deg,#f0fff4,#e0f7fa)',
     }[svc.cat] || 'linear-gradient(135deg,#f5f5f5,#e8e8e8)';
-    const emojiColor = 'inherit';
     const div = document.createElement('div');
     div.className = 'svc-card animate-fade-in';
     div.innerHTML = `
-        <div style="height:140px;display:flex;align-items:center;justify-content:center;background:${catGrad};position:relative;border-radius:var(--radius-md) var(--radius-md) 0 0;">
-        ${renderServiceIconHtml(svc,'4rem')}
-        <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);color:#fff;font-size:.68rem;font-weight:700;padding:4px 11px;border-radius:99px;letter-spacing:.4px;">${catIcon} ${catLabel}</span>
-        ${svc.popular ? '<span class="badge badge-red" style="position:absolute;top:10px;right:10px;">Popular</span>' : ''}
-      </div>
+        <div class="svc-card-img" style="background:${catGrad};">
+          <img src="${getServiceImageUrl(svc)}" alt="${svc.name}" onerror="this.onerror=null;this.src='/services/default-service.jpeg'" />
+          <span style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);color:#fff;font-size:.68rem;font-weight:700;padding:4px 11px;border-radius:99px;letter-spacing:.4px;">${catIcon} ${catLabel}</span>
+          ${svc.popular ? '<span class="badge badge-red" style="position:absolute;top:10px;right:10px;">Popular</span>' : ''}
+        </div>
 
       <div class="svc-card-body">
         <h3>${svc.name}</h3>
