@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes — verify JWT token from header or cookie.
+// Protect routes — verify JWT token from header, cookie, or session.
 const protect = async (req, res, next) => {
   try {
     let token = null;
@@ -17,12 +17,19 @@ const protect = async (req, res, next) => {
       token = req.cookies.as_token;
     }
 
-    if (!token) {
-      return res.status(401).json({ message: 'Not authenticated. Please login.' });
+    let decoded = null;
+    if (token) {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    } else if (req.session && req.session.userId) {
+      decoded = {
+        id: req.session.userId,
+        role: req.session.userRole,
+      };
     }
 
-    // 3. Verify token.
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    if (!decoded) {
+      return res.status(401).json({ message: 'Not authenticated. Please login.' });
+    }
 
     // 4. Find user in database.
     const user = await User.findById(decoded.id).select('-password');

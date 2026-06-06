@@ -204,7 +204,7 @@ window.sendCustReply = async (id) => {
   const senderName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Customer';
   try {
     const res = await api.post(`/contact/${id}/reply`, {
-      text, senderRole: 'customer', senderName, senderId: user?.id
+      reply: text, senderRole: 'customer', senderName, senderId: user?.id
     });
     const idx = myMessages.findIndex(m => m._id === id);
     if (idx !== -1) myMessages[idx] = res.data.data;
