@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const carRoutes = require('./routes/carRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -33,6 +34,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // Parse cookies (used for JWT cookie-based auth).
 app.use(cookieParser());
+
+// Session support for authentication and user state.
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'fallback_session_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+  })
+);
 
 // Make the Public folder available for CSS, JavaScript, and images.
 app.use('/public', express.static(path.join(__dirname, 'public')));

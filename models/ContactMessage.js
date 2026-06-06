@@ -9,7 +9,22 @@ const contactSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { type: String, default: 'unread' },
   adminReply: { type: String, default: '' },
-  createdAt: { type: Date, default: Date.now }
+  replies: {
+    type: [
+      new mongoose.Schema(
+        {
+          senderRole: { type: String, default: 'customer' },
+          senderName: { type: String, default: 'Guest' },
+          senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+          text: { type: String, required: true },
+          createdAt: { type: Date, default: Date.now },
+        },
+        { _id: false }
+      ),
+    ],
+    default: [],
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('ContactMessage', contactSchema);
