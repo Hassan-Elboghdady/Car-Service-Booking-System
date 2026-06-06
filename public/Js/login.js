@@ -379,7 +379,7 @@ document.getElementById('reg-staff-btn')?.addEventListener('click', async () => 
     return;
   }
 
-  const validCode = staffCodesAPI.isValid(code);
+  const validCode = await staffCodesAPI.isValid(code);
   if (!validCode) { showFieldErr(alertEl,'rs-code','⚠️ Invalid or expired staff code. Please contact your admin.'); return; }
 
   const regBtn = document.getElementById('reg-staff-btn');
@@ -394,8 +394,7 @@ document.getElementById('reg-staff-btn')?.addEventListener('click', async () => 
 
     store.set(KEYS.SESSION, userRes.data);
 
-    // Save the staff code as used locally to keep old pages working
-    staffCodesAPI.markUsed(code, userRes.data._id);
+    // Save user locally to keep old pages working
     upsert(KEYS.USERS, userRes.data);
 
     showToast(`Staff account created! Welcome, ${userRes.data.firstName}! Your admin will assign your role.`, 'success');

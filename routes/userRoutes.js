@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, logout, getProfile, updateProfile, uploadProfileImage } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
+const { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers } = require('../controllers/userController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../config/upload');
 
 const router = express.Router();
@@ -53,5 +53,8 @@ router.put(
 
 // POST /api/users/profile/image — protected, file upload
 router.post('/profile/image', protect, upload.single('profileImage'), uploadProfileImage);
+
+// GET /api/users/top-customers — admin only
+router.get('/top-customers', protect, authorize('admin'), getTopCustomers);
 
 module.exports = router;

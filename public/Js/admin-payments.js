@@ -40,16 +40,7 @@ async function renderAll() {
     </tr>`;
   }).join('') || '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No transactions yet.</p></div></td></tr>';
 
-  const coupons = getAll(KEYS.COUPONS)||[];
-  // Add default coupons if empty
-  if (!coupons.length) {
-    store.set(KEYS.COUPONS,[
-      {id:'cp1',code:'SAVE20',discount:20,minOrder:0,active:true,exp:'2026-12-31'},
-      {id:'cp2',code:'FIRST10',discount:10,minOrder:0,active:true,exp:'2026-12-31'},
-      {id:'cp3',code:'AUTO50',discount:50,minOrder:500,active:true,exp:'2026-06-30'},
-    ]);
-  }
-  const cpList = getAll(KEYS.COUPONS)||[];
+  const cpList = await couponsAPI.getAll();
   document.getElementById('coupons-list').innerHTML = cpList.map(c=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
       <div>
@@ -58,29 +49,34 @@ async function renderAll() {
       </div>
       <div class="flex-gap" style="gap:6px">
         <span class="badge ${c.active?'badge-green':'badge-gray'}">${c.active?'Active':'Inactive'}</span>
-        <button class="btn btn-danger btn-sm" onclick="removeCoupon('${c.id}')">${SVG_ICONS.trash}</button>
+        <button class="btn btn-danger btn-sm" onclick="removeCoupon('${c._id || c.id}')">${SVG_ICONS.trash}</button>
       </div>
     </div>`).join('') || '<p style="color:var(--gray-400);font-size:.85rem">No coupons yet.</p>';
 }
 
 window.removeCoupon = async (id) => {
-  const list = (getAll(KEYS.COUPONS)||[]).filter(c=>c.id!==id);
-  store.set(KEYS.COUPONS, list); await renderAll(); showToast('Coupon removed','success');
+  try {
+    await couponsAPI.remove(id);
+    await renderAll(); 
+    showToast('Coupon removed','success');
+  } catch(e) {
+    showToast('Failed to remove coupon', 'error');
+  }
 };
 
-function addCoupon() {
+async function addCoupon() {
   const code = document.getElementById('cp-code').value.trim().toUpperCase();
   const disc = parseInt(document.getElementById('cp-disc').value)||0;
   const min  = parseInt(document.getElementById('cp-min').value)||0;
   const exp  = document.getElementById('cp-exp').value;
   if (!code||!disc) { showToast('Code and discount required','error'); return; }
-  const list = getAll(KEYS.COUPONS)||[];
-  if (list.some(c => c.code === code)) {
-    showToast(`Coupon code "${code}" already exists!`, 'error');
-    return;
+  
+  try {
+    await couponsAPI.create({ code, discount: disc, minOrder: min, exp });
+    closeModal('coupon-modal');
+    await renderAll(); 
+    showToast(`Coupon "${code}" added!`,'success');
+  } catch(e) {
+    showToast(e.message || 'Failed to add coupon', 'error');
   }
-  list.push({id:genId('cp'),code,discount:disc,minOrder:min,exp,active:true});
-  store.set(KEYS.COUPONS, list);
-  closeModal('coupon-modal');
-  renderAll(); showToast(`Coupon "${code}" added!`,'success');
 }

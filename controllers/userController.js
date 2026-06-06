@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const Booking = require('../models/Booking');
+const StaffCode = require('../models/StaffCode');
 
 // Helper: generate JWT token.
 const generateToken = (id, role) => {
@@ -32,6 +34,15 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: 'Phone number already registered to another account.' });
     }
 
+    // Validate Staff Code if provided
+    let validStaffCode = null;
+    if (staffCode) {
+      validStaffCode = await StaffCode.findOne({ code: staffCode.toUpperCase(), active: true, usedBy: null });
+      if (!validStaffCode) {
+        return res.status(400).json({ message: 'Invalid or already used staff code.' });
+      }
+    }
+
     // Hash password.
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -47,6 +58,13 @@ const register = async (req, res, next) => {
       userType: userType || '',
       points: 0,
     });
+
+    // Mark staff code as used
+    if (validStaffCode) {
+      validStaffCode.active = false;
+      validStaffCode.usedBy = user._id;
+      await validStaffCode.save();
+    }
 
     const token = generateToken(user._id, user.role);
 
@@ -213,4 +231,41 @@ const uploadProfileImage = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, logout, getProfile, updateProfile, uploadProfileImage };
+// GET /api/users/top-customers — admin only
+const getTopCustomers = async (req, res, next) => {
+  try {
+    // Fetch all customers from DB
+    const customers = await User.find({ role: 'customer' }).select('-password').lean();
+
+    // Fetch all bookings
+    const bookings = await Booking.find().lean();
+
+    // Aggregate per customer — include all non-cancelled bookings in spent
+    const custData = customers.map(u => {
+      const userIdStr = u._id.toString();
+      const userBookings = bookings.filter(b => b.userId && b.userId.toString() === userIdStr);
+      const spent = userBookings
+        .filter(b => b.status !== 'cancelled')
+        .reduce((sum, b) => sum + (Number(b.total) || 0), 0);
+      return {
+        id: userIdStr,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+        points: u.points || 0,
+        bkCount: userBookings.length,
+        spent,
+      };
+    });
+
+    // Sort by spent desc, then bookings count, then points
+    const sorted = custData.sort((a, b) => b.spent - a.spent || b.bkCount - a.bkCount || b.points - a.points);
+    const top5 = sorted.slice(0, 5);
+
+    res.status(200).json({ message: 'Top customers fetched.', data: top5 });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers };

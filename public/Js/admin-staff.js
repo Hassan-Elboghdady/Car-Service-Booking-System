@@ -1,11 +1,11 @@
 // admin-staff.js
 const STAFF_ROLES = ['', 'mechanic', 'driver', 'manager', 'detailer', 'receptionist'];
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
   initSidebar();
-  renderStats(); renderStaff(); renderCodes();
+  renderStats(); renderStaff(); await renderCodes();
 
   document.getElementById('sf-save').addEventListener('click', addStaff);
   document.getElementById('gen-code-btn').addEventListener('click', genCode);
@@ -68,8 +68,8 @@ window.assignRole = (userId, role) => {
   showToast(role ? `Role "${role}" assigned to ${u.firstName}.` : `Role removed from ${u.firstName}.`, 'success');
 };
 
-function renderCodes() {
-  const codes = getAll(KEYS.STAFF_CODES);
+async function renderCodes() {
+  const codes = await staffCodesAPI.getAll();
   document.getElementById('codes-list').innerHTML = codes.length ? codes.map(c => `
     <div style="padding:10px 0;border-bottom:1px solid var(--gray-100)">
       <div style="font-family:monospace;font-size:.82rem;font-weight:700;color:${c.usedBy ? 'var(--gray-400)' : 'var(--primary)'}">${c.code}</div>
@@ -102,11 +102,15 @@ function addStaff() {
   showToast(`${first} ${last} added  please assign a role.`, 'success');
 }
 
-function genCode() {
-  const code = staffCodesAPI.generate();
-  document.getElementById('generated-code').textContent = code;
-  document.getElementById('generated-code-wrap').style.display = 'block';
-  document.getElementById('gen-code-btn').textContent = 'Generate Another';
-  renderCodes();
-  showToast('Staff code generated!', 'success');
+async function genCode() {
+  try {
+    const code = await staffCodesAPI.generate();
+    document.getElementById('generated-code').textContent = code;
+    document.getElementById('generated-code-wrap').style.display = 'block';
+    document.getElementById('gen-code-btn').textContent = 'Generate Another';
+    await renderCodes();
+    showToast('Staff code generated!', 'success');
+  } catch (err) {
+    showToast('Failed to generate staff code', 'error');
+  }
 }
