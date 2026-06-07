@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers } = require('../controllers/userController');
+const { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers, getAllStaff, deleteStaff, updateStaffRole } = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../config/upload');
 
@@ -56,5 +56,13 @@ router.post('/profile/image', protect, upload.single('profileImage'), uploadProf
 
 // GET /api/users/top-customers — admin only
 router.get('/top-customers', protect, authorize('admin'), getTopCustomers);
+// GET /api/users/staff — admin only
+router.get('/staff', protect, authorize('admin'), getAllStaff);
+
+// DELETE /api/users/staff/:id — admin only
+router.delete('/staff/:id', protect, authorize('admin'), deleteStaff);
+
+// PUT /api/users/staff/:id/role — admin only
+router.put('/staff/:id/role', protect, authorize('admin'), updateStaffRole);
 
 module.exports = router;

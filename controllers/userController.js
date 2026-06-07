@@ -268,4 +268,49 @@ const getTopCustomers = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers };
+// GET /api/users/staff — admin only
+const getAllStaff = async (req, res, next) => {
+  try {
+    const staff = await User.find({ role: { $in: ['staff', 'admin'] } }).select('-password').lean();
+    res.status(200).json({ message: 'Staff fetched.', data: staff });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE /api/users/staff/:id — admin only
+const deleteStaff = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Staff member not found.' });
+    }
+    if (user.role !== 'staff' && user.role !== 'admin') {
+      return res.status(400).json({ message: 'User is not a staff member.' });
+    }
+    await User.findByIdAndDelete(id);
+    res.status(200).json({ message: 'Staff member removed.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/users/staff/:id/role — admin only
+const updateStaffRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { staffRole } = req.body;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Staff member not found.' });
+    }
+    user.staffRole = staffRole;
+    await user.save();
+    res.status(200).json({ message: 'Staff role updated.', data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers, getAllStaff, deleteStaff, updateStaffRole };

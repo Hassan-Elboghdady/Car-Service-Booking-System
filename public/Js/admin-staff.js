@@ -5,20 +5,29 @@ window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
   initSidebar();
+  await fetchAllStaff();
   renderStats(); renderStaff(); await renderCodes();
 
   document.getElementById('sf-save').addEventListener('click', addStaff);
   document.getElementById('gen-code-btn').addEventListener('click', genCode);
 });
 
-function getAllStaff() { return getAll(KEYS.USERS).filter(u => u.role === 'staff' || u.userType === 'staff'); }
+let currentStaffList = [];
 
-function renderStats() {
-  const staff = getAllStaff();
-  const allB = getAll(KEYS.BOOKINGS);
-  const unassigned = staff.filter(u => !u.staffRole).length;
+async function fetchAllStaff() {
+  try {
+    const res = await api.get('/users/staff');
+    currentStaffList = res.data || [];
+  } catch (error) {
+    console.error('Failed to fetch staff', error);
+  }
+}
+
+async function renderStats() {
+  const allB = getAll(KEYS.BOOKINGS); // We leave bookings as localStorage for now if it's not yet wired
+  const unassigned = currentStaffList.filter(u => !u.staffRole).length;
   document.getElementById('staff-stats').innerHTML = [
-    { l: 'Total Staff', v: staff.length, i: SVG_ICONS.user, c: 'red' },
+    { l: 'Total Staff', v: currentStaffList.length, i: SVG_ICONS.user, c: 'red' },
     { l: 'No Role Yet', v: unassigned, i: SVG_ICONS.user, c: 'yellow' },
     { l: 'Jobs Today', v: allB.filter(b => b.date === todayStr()).length, i: SVG_ICONS.clipboard, c: 'blue' },
     { l: 'In Progress', v: allB.filter(b => b.status === 'in_progress').length, i: SVG_ICONS.clock, c: 'green' },
@@ -26,19 +35,19 @@ function renderStats() {
 }
 
 function renderStaff() {
-  const staff = getAllStaff();
+  const staff = currentStaffList;
   const allB = getAll(KEYS.BOOKINGS);
   const roleColors = { mechanic: 'badge-blue', manager: 'badge-red' };
 
   document.getElementById('staff-tbody').innerHTML = staff.length ? staff.map(u => {
-    const jobs = allB.filter(b => b.assignedStaff === u.id && b.status === 'completed').length;
+    const jobs = allB.filter(b => b.assignedStaff === u._id && b.status === 'completed').length;
     const roleBadge = u.staffRole
       ? `<span class="badge ${roleColors[u.staffRole] || 'badge-gray'}">${u.staffRole.charAt(0).toUpperCase()+u.staffRole.slice(1)}</span>`
       : `<span class="badge badge-yellow">🚗 No Role</span>`;
 
     const roleDropdown = `
       <select class="form-control" style="padding:4px 8px;font-size:.75rem;width:auto;margin-top:6px"
-        onchange="assignRole('${u.id}', this.value)">
+        onchange="assignRole('${u._id}', this.value)">
         <option value=""> Assign Role </option>
         <option value="mechanic" ${u.staffRole==='mechanic'?'selected':''}>Mechanic</option>
         <option value="manager" ${u.staffRole==='manager'?'selected':''}>Manager</option>
@@ -51,21 +60,22 @@ function renderStaff() {
       <td>${jobs}</td>
       <td>⭐ 4.8</td>
       <td>
-        <button class="btn btn-danger btn-sm" onclick="removeStaff('${u.id}')">Remove</button>
+        <button class="btn btn-danger btn-sm" onclick="removeStaff('${u._id}')">Remove</button>
       </td>
     </tr>`;
   }).join('') : '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No staff accounts yet.</p></div></td></tr>';
 }
 
 // --- ASSIGN ROLE (inline from table dropdown) -----------------
-window.assignRole = (userId, role) => {
-  const users = getAll(KEYS.USERS);
-  const u = users.find(x => x.id === userId);
-  if (!u) return;
-  u.staffRole = role;
-  saveAll(KEYS.USERS, users);
-  renderStats(); renderStaff();
-  showToast(role ? `Role "${role}" assigned to ${u.firstName}.` : `Role removed from ${u.firstName}.`, 'success');
+window.assignRole = async (userId, role) => {
+  try {
+    await api.put(`/users/staff/${userId}/role`, { staffRole: role });
+    await fetchAllStaff();
+    renderStats(); renderStaff();
+    showToast(`Role updated.`, 'success');
+  } catch (error) {
+    showToast('Failed to assign role.', 'error');
+  }
 };
 
 async function renderCodes() {
@@ -77,29 +87,38 @@ async function renderCodes() {
     </div>`).join('') : '<p style="color:var(--gray-400);font-size:.85rem">No codes generated yet.</p>';
 }
 
-window.removeStaff = (id) => {
-  const u = getById(KEYS.USERS, id); if (!u) return;
+window.removeStaff = async (id) => {
+  const u = currentStaffList.find(x => x._id === id);
+  if (!u) return;
   if (!confirm(`Remove ${u.firstName} ${u.lastName} from staff?`)) return;
-  removeById(KEYS.USERS, id);
-  renderStats(); renderStaff();
-  showToast(`${u.firstName} removed.`, 'success');
+  try {
+    await api.del(`/users/staff/${id}`);
+    await fetchAllStaff();
+    renderStats(); renderStaff();
+    showToast(`${u.firstName} removed.`, 'success');
+  } catch (error) {
+    showToast('Failed to remove staff member.', 'error');
+  }
 };
 
-function addStaff() {
+async function addStaff() {
   const first = document.getElementById('sf-first').value.trim();
   const last  = document.getElementById('sf-last').value.trim();
   const email = document.getElementById('sf-email').value.trim();
   const phone = document.getElementById('sf-phone').value.trim();
   const pass  = document.getElementById('sf-pass').value;
   if (!first || !last || !email || !pass) { showToast('Fill in all required fields', 'error'); return; }
-  // Staff created by admin start with NO role  admin assigns it via the table
-  const res = auth.register({ firstName: first, lastName: last, email, phone, role: 'staff', staffRole: '', userType: 'staff', password: pass });
-  if (res.error) { showToast(res.error, 'error'); return; }
-  closeModal('staff-modal');
-  // Clear form
-  ['sf-first','sf-last','sf-email','sf-phone','sf-pass'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  renderStats(); renderStaff();
-  showToast(`${first} ${last} added  please assign a role.`, 'success');
+  
+  try {
+    await api.post('/users/register', { firstName: first, lastName: last, email, phone, role: 'staff', staffRole: '', userType: 'staff', password: pass });
+    closeModal('staff-modal');
+    ['sf-first','sf-last','sf-email','sf-phone','sf-pass'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    await fetchAllStaff();
+    renderStats(); renderStaff();
+    showToast(`${first} ${last} added  please assign a role.`, 'success');
+  } catch (error) {
+    showToast(error.message || 'Failed to add staff', 'error');
+  }
 }
 
 async function genCode() {

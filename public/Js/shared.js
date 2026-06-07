@@ -280,6 +280,9 @@ function getServiceImageFilename(service) {
 }
 
 function getServiceImageUrl(service) {
+  if (service && service.image) {
+    return service.image;
+  }
   const filename = getServiceImageFilename(service);
   const imageUrl = `${SERVICE_IMAGE_BASE_PATH}/${filename}`;
 
@@ -294,7 +297,7 @@ function getServiceImageUrl(service) {
 function renderServiceIconHtml(service, size = '3.5rem') {
   const imageUrl = getServiceImageUrl(service);
   const altText = typeof service === 'string' ? service : (service?.name || service?.title || 'Service');
-  return `<span class="service-icon" style="width:${size};min-width:${size};height:${size};display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px;background:#f7f8fb;border:1px solid rgba(0,0,0,.05);" data-service-image-path="${imageUrl}">
+  return `<span class="service-icon" style="width:${size};min-width:${size};height:${size};display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;background:transparent;border:1px solid rgba(0,0,0,.08);" data-service-image-path="${imageUrl}">
       <img src="${imageUrl}" alt="${altText}" data-service-image-path="${imageUrl}" onerror="this.onerror=null;this.src='${SERVICE_IMAGE_BASE_PATH}/default-service.jpeg'" style="width:100%;height:100%;object-fit:cover;display:block;" />
     </span>`;
 }
@@ -1226,7 +1229,7 @@ const MILEAGE_SERVICES = MILEAGE_SERVICES_BASE;
 function getMileageServices() {
   const custom = (store.get('as_mileage_pkgs') || []).map(p => ({
     id: p.id, name: p.name, cat: 'mileage', emoji: '🛣️', icon: '✅',
-    duration: p.dur || '', popular: false, desc: p.desc || ''
+    duration: p.dur || '', popular: false, desc: p.desc || '', image: p.image || ''
   }));
   const all = [...MILEAGE_SERVICES_BASE];
   custom.forEach(c => { if (!all.find(b => b.id === c.id)) all.push(c); });
