@@ -53,6 +53,7 @@ app.use(
 
 // Make the Public folder available for CSS, JavaScript, and images.
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/services', express.static(path.join(__dirname, 'public', 'images', 'services')));
 
 // Return the main HTML page when the browser opens the home route.
 app.get('/', (req, res) => {

@@ -4,7 +4,8 @@ const Car = require('../models/Car');
 // GET /api/cars — get all cars for the logged-in user.
 const getCars = async (req, res, next) => {
   try {
-    const cars = await Car.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const query = req.user.role === 'admin' ? {} : { owner: req.user._id };
+    const cars = await Car.find(query).sort({ createdAt: -1 });
     res.status(200).json({
       message: 'Cars fetched successfully.',
       count: cars.length,
@@ -47,7 +48,11 @@ const addCar = async (req, res, next) => {
 // DELETE /api/cars/:id — delete a car owned by the logged-in user.
 const deleteCar = async (req, res, next) => {
   try {
-    const car = await Car.findOne({ _id: req.params.id, owner: req.user._id });
+    const query = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, owner: req.user._id };
+
+    const car = await Car.findOne(query);
 
     if (!car) {
       return res.status(404).json({ message: 'Car not found or not owned by you.' });

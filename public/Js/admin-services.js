@@ -82,7 +82,11 @@ window.setAdminCat = (btn, cat) => {
   else { renderMileageTable(); renderTierManager(); updateMileageBadge(); }
 };
 
-function getSvcs() { return getAll(KEYS.SERVICES_CUSTOM).length ? getAll(KEYS.SERVICES_CUSTOM) : SERVICES_DEFAULT; }
+function getSvcs() {
+  const hidden = store.get('as_hidden_services') || [];
+  const currentServices = getAll(KEYS.SERVICES_CUSTOM).length ? getAll(KEYS.SERVICES_CUSTOM) : SERVICES_DEFAULT;
+  return currentServices.filter(s => !hidden.includes(s.id));
+}
 
 // --- GET MILEAGE PACKAGES (builtin + custom, minus hidden) ------
 function getMileagePkgs() {
@@ -173,7 +177,7 @@ window.openAddMileageModal = () => {
   openModal('add-mileage-modal');
 };
 
-window.addMileagePackage = () => {
+window.addMileagePackage = async () => {
   const name = document.getElementById('mp-name').value.trim();
   const km   = parseInt(document.getElementById('mp-km').value) || 0;
   const dur  = document.getElementById('mp-dur').value.trim();
@@ -221,17 +225,26 @@ window.addMileagePackage = () => {
   showToast(`${name} added! ✅`, 'success');
 };
 
-window.deleteMileagePkg = (id, isCustomStr) => {
+window.deleteMileagePkg = async (id, isCustomStr) => {
   const isCustom = isCustomStr === 'true' || isCustomStr === true;
   if (!confirm('Delete this mileage package?')) return;
+
   if (isCustom) {
+    try {
+      await servicesAPI.remove(id);
+    } catch (error) {
+      if (error.status !== 404) {
+        showToast('Failed to delete the package on the server. Please try again.', 'error');
+        return;
+      }
+    }
     const custom = (store.get('as_mileage_pkgs') || []).filter(p => p.id !== id);
     store.set('as_mileage_pkgs', custom);
   } else {
-    // Hide built-in package by adding to hidden list
     const hidden = store.get('as_hidden_builtins') || [];
     if (!hidden.includes(id)) { hidden.push(id); store.set('as_hidden_builtins', hidden); }
   }
+
   delete liveMileagePrices[id];
   store.set('as_mileage_prices', liveMileagePrices);
   renderMileageTable();
@@ -260,7 +273,7 @@ window.editMileagePkg = (id) => {
   openModal('add-mileage-modal');
 };
 
-window.updateMileagePkg = (id) => {
+window.updateMileagePkg = async (id) => {
   const name = document.getElementById('mp-name').value.trim();
   const dur  = document.getElementById('mp-dur').value.trim();
   const eco  = parseInt(document.getElementById('mp-eco').value) || 0;
@@ -271,23 +284,42 @@ window.updateMileagePkg = (id) => {
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
   if (!name) { showToast('Package name is required', 'error'); return; }
 
-  // Update custom list if custom
   const custom = store.get('as_mileage_pkgs') || [];
   const idx = custom.findIndex(p => p.id === id);
-  if (idx !== -1) { custom[idx] = { ...custom[idx], name, dur, desc, includes }; store.set('as_mileage_pkgs', custom); }
+  if (idx !== -1) {
+    custom[idx] = { ...custom[idx], name, dur, desc, includes };
+    store.set('as_mileage_pkgs', custom);
+  } else {
+    custom.push({ id, name, dur, desc, includes });
+    store.set('as_mileage_pkgs', custom);
+  }
 
-  // Always update prices
+  try {
+    await servicesAPI.update(id, {
+      id,
+      name,
+      cat: 'mileage',
+      duration: dur,
+      desc,
+      includes,
+      priceByTier: { 1: eco, 2: mid, 3: prem },
+    });
+  } catch (error) {
+    const message = error?.data?.message || error.message || 'Could not update mileage package on the database.';
+    showToast(message, 'error');
+    return;
+  }
+
   liveMileagePrices[id] = { 1: eco, 2: mid, 3: prem };
   store.set('as_mileage_prices', liveMileagePrices);
 
   closeModal('add-mileage-modal');
-  // Restore save button
   const saveBtn = document.querySelector('#add-mileage-modal .modal-footer .btn-primary');
   if (saveBtn) { saveBtn.textContent = 'Add Package'; saveBtn.onclick = addMileagePackage; }
   ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   renderMileageTable();
   updateMileageBadge();
-  showToast(`"${name}" updated! ?`, 'success');
+  showToast(`"${name}" updated!`, 'success');
 };
 
 window.resetMileagePkg = (id) => {
@@ -408,7 +440,6 @@ window.editService = (id) => {
   document.getElementById('svc-edit-id').value    = id;
   document.getElementById('svc-modal-title').textContent = 'Edit Service';
   document.getElementById('svc-name').value  = svc.name;
-  document.getElementById('svc-icon').value  = svc.emoji||svc.icon||'';
   document.getElementById('svc-cat').value   = svc.cat;
   document.getElementById('svc-dur').value   = svc.duration;
   document.getElementById('svc-price').value = svc.price;
@@ -419,10 +450,27 @@ window.editService = (id) => {
   openModal('svc-modal');
 };
 
-window.deleteService = (id) => {
-  const svc = getSvcs().find(s=>s.id===id); if(!svc) return;
+window.deleteService = async (id) => {
+  const svc = getSvcs().find(s => s.id === id);
+  if (!svc) return;
   if (!confirm(`Delete "${svc.name}"? This cannot be undone.`)) return;
-  const list = getSvcs().filter(s=>s.id!==id);
+
+  try {
+    await servicesAPI.remove(id);
+  } catch (error) {
+    if (error.status === 404) {
+      const hidden = store.get('as_hidden_services') || [];
+      if (!hidden.includes(id)) {
+        hidden.push(id);
+        store.set('as_hidden_services', hidden);
+      }
+    } else {
+      showToast('Failed to delete service on the server. Please try again.', 'error');
+      return;
+    }
+  }
+
+  const list = (getAll(KEYS.SERVICES_CUSTOM) || []).filter(s => s.id !== id);
   store.set(KEYS.SERVICES_CUSTOM, list);
   renderStats(); renderServices();
   showToast(`"${svc.name}" deleted.`,'success');
@@ -431,9 +479,6 @@ window.deleteService = (id) => {
 async function saveService() {
   const id        = document.getElementById('svc-edit-id').value || genId('s');
   const name      = document.getElementById('svc-name').value.trim();
-  const iconValue = document.getElementById('svc-icon').value.trim();
-  const icon      = normalizeServiceIcon(iconValue);
-  const emoji     = icon ? (LEGACY_SERVICE_EMOJI[iconValue] ? iconValue : '') : iconValue;
   const cat       = document.getElementById('svc-cat').value;
   const dur       = document.getElementById('svc-dur').value.trim() || '1h';
   const desc      = document.getElementById('svc-desc').value.trim();
@@ -458,35 +503,61 @@ async function saveService() {
     const includesStr = document.getElementById('svc-includes')?.value || '';
     const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
     const custom = store.get('as_mileage_pkgs') || [];
-    if (custom.find(p=>p.id===pkgId)) { showToast(`A ${km/1000}k package already exists`, 'error'); return; }
+    const isExistingPackage = custom.some(p=>p.id===pkgId);
 
     try {
-      await servicesAPI.create({
-        id: pkgId,
-        name,
-        cat: 'mileage',
-        duration: dur,
-        desc,
-        includes,
-        priceByTier: { 1: eco, 2: mid, 3: prem },
-      });
+      if (isEditing) {
+        await servicesAPI.update(pkgId, {
+          id: pkgId,
+          name,
+          cat: 'mileage',
+          duration: dur,
+          desc,
+          includes,
+          priceByTier: { 1: eco, 2: mid, 3: prem },
+        });
+      } else {
+        if (custom.find(p=>p.id===pkgId)) {
+          showToast(`A ${km/1000}k package already exists`, 'error');
+          return;
+        }
+        await servicesAPI.create({
+          id: pkgId,
+          name,
+          cat: 'mileage',
+          duration: dur,
+          desc,
+          includes,
+          priceByTier: { 1: eco, 2: mid, 3: prem },
+        });
+      }
     } catch (error) {
       const message = error?.data?.message || error.message || 'Could not save mileage package to the database.';
       showToast(message, 'error');
       return;
     }
 
-    custom.push({ id: pkgId, name, dur, desc, includes });
+    if (isExistingPackage) {
+      const idx = custom.findIndex(p => p.id === pkgId);
+      if (idx !== -1) {
+        custom[idx] = { id: pkgId, name, dur, desc, includes };
+      } else {
+        custom.push({ id: pkgId, name, dur, desc, includes });
+      }
+    } else {
+      custom.push({ id: pkgId, name, dur, desc, includes });
+    }
+
     store.set('as_mileage_pkgs', custom);
     liveMileagePrices[pkgId] = { 1: eco, 2: mid, 3: prem };
     store.set('as_mileage_prices', liveMileagePrices);
-    showToast(`Mileage package "${name}" saved! ✅`, 'success');
-    closeModal('svc-modal'); editingId=null;
-    document.getElementById('svc-edit-id').value='';
-    document.getElementById('svc-modal-title').textContent='Add New Service';
-    ['svc-name','svc-icon','svc-dur','svc-price','svc-desc','svc-km','svc-price-eco','svc-price-mid','svc-price-prem','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    document.getElementById('svc-popular').checked=false;
-    document.getElementById('svc-cat').value='maintenance';
+    showToast(`Mileage package "${name}" ${isEditing ? 'updated' : 'saved'}! ✅`, 'success');
+    closeModal('svc-modal'); editingId = null;
+    document.getElementById('svc-edit-id').value = '';
+    document.getElementById('svc-modal-title').textContent = 'Add New Service';
+    ['svc-name','svc-dur','svc-price','svc-desc','svc-km','svc-price-eco','svc-price-mid','svc-price-prem','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('svc-popular').checked = false;
+    document.getElementById('svc-cat').value = 'maintenance';
     toggleMileageFields();
     renderMileageTable(); updateMileageBadge();
     return;
@@ -498,15 +569,31 @@ async function saveService() {
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
 
   const existing = svcs.find(s=>s.id===id);
-  const newSvc = { id, name, icon, emoji, cat, duration:dur, price, desc, popular:pop, includes };
+  const newSvc = { id, name, cat, duration:dur, price, desc, popular:pop, includes };
 
-  if (!isEditing) {
+  if (isEditing) {
+    try {
+      await servicesAPI.update(id, {
+        id,
+        name,
+        cat,
+        duration: dur,
+        price,
+        priceByTier: existing?.priceByTier || {},
+        desc,
+        popular: pop,
+        includes,
+      });
+    } catch (error) {
+      const message = error?.data?.message || error.message || 'Could not update service on the database.';
+      showToast(message, 'error');
+      return;
+    }
+  } else {
     try {
       await servicesAPI.create({
         id,
         name,
-        icon,
-        emoji,
         cat,
         duration: dur,
         price,
@@ -526,12 +613,12 @@ async function saveService() {
   else svcs.push(newSvc);
   store.set(KEYS.SERVICES_CUSTOM, svcs);
 
-  closeModal('svc-modal'); editingId=null;
-  document.getElementById('svc-edit-id').value='';
-  document.getElementById('svc-modal-title').textContent='Add New Service';
-  ['svc-name','svc-icon','svc-dur','svc-price','svc-desc','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('svc-popular').checked=false;
-  document.getElementById('svc-cat').value='maintenance';
+  closeModal('svc-modal'); editingId = null;
+  document.getElementById('svc-edit-id').value = '';
+  document.getElementById('svc-modal-title').textContent = 'Add New Service';
+  ['svc-name','svc-dur','svc-price','svc-desc','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('svc-popular').checked = false;
+  document.getElementById('svc-cat').value = 'maintenance';
   toggleMileageFields();
   renderStats(); renderServices();
   showToast(`"${name}" saved!`,'success');

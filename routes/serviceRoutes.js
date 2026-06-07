@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { getServices, createService } = require('../controllers/serviceController');
+const { getServices, createService, updateService, deleteService } = require('../controllers/serviceController');
 
 const router = express.Router();
 
@@ -16,5 +16,8 @@ router.post(
   body('cat').trim().notEmpty().isIn(['maintenance', 'cleaning', 'repair', 'mileage']).withMessage('Service category is invalid.'),
   createService
 );
+
+router.put('/:id', protect, authorize('admin'), updateService);
+router.delete('/:id', protect, authorize('admin'), deleteService);
 
 module.exports = router;
