@@ -279,6 +279,28 @@
   </section>
 
   <div id="footer-wrap"></div>
+  <script>
+    // Initialize server-side user from Passport session
+    const serverUser = <%- user ? JSON.stringify({
+      _id: user._id,
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      profileImage: user.profileImage || '',
+      phone: user.phone,
+      googleId: user.googleId || ''
+    }) : 'null' %>;
+    if (serverUser) {
+      window.addEventListener('DOMContentLoaded', () => {
+        if (typeof auth !== 'undefined') {
+          auth.setServerUser(serverUser);
+          store.set(KEYS.SESSION, serverUser);
+        }
+      });
+    }
+  </script>
   <script src="../public/Js/shared.js"></script>
   <script src="../public/Js/index.js"></script>
   <!-- Intro Overlay -->

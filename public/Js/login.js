@@ -43,12 +43,18 @@ function showPanel() {
     // Swap login field for staff vs customer
     const emailLabel = document.querySelector('label[for="l-email"]');
     const emailInput = document.getElementById('l-email');
+    const googleDivider = document.getElementById('l-google-divider');
+    const googleBtn = document.getElementById('l-google-btn');
     if (currentRole === 'staff') {
       if (emailLabel) emailLabel.textContent = 'Staff Code';
       if (emailInput) { emailInput.type = 'text'; emailInput.placeholder = 'Enter your staff code (e.g. STF-001)'; }
+      if (googleDivider) googleDivider.style.display = 'none';
+      if (googleBtn) googleBtn.style.display = 'none';
     } else {
       if (emailLabel) emailLabel.textContent = 'Email Address';
       if (emailInput) { emailInput.type = 'email'; emailInput.placeholder = 'you@example.com'; }
+      if (googleDivider) googleDivider.style.display = '';
+      if (googleBtn) googleBtn.style.display = '';
     }
   } else {
     const id = currentRole === 'staff' ? 'panel-register-staff' : 'panel-register-customer';

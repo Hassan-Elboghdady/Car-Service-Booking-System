@@ -615,6 +615,8 @@ function seedData() {
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────
+let currentServerUser = null;
+
 const auth = {
   login(email, password) {
     const user = getAll(KEYS.USERS).find(u => u.email === email && u.password === password);
@@ -631,9 +633,10 @@ const auth = {
     store.set(KEYS.SESSION, user);
     return user;
   },
-  logout() { store.remove(KEYS.SESSION); },
-  current() { return store.get(KEYS.SESSION); },
-  isLoggedIn() { return !!store.get(KEYS.SESSION); },
+  logout() { store.remove(KEYS.SESSION); currentServerUser = null; },
+  current() { return currentServerUser || store.get(KEYS.SESSION); },
+  setServerUser(user) { currentServerUser = user; },
+  isLoggedIn() { return !!(currentServerUser || store.get(KEYS.SESSION)); },
   updateCurrent(data) {
     const u = auth.current(); if (!u) return;
     Object.assign(u, data); store.set(KEYS.SESSION, u); upsert(KEYS.USERS, u); return u;
@@ -951,7 +954,20 @@ function buildNavbar(active = '') {
   const links = NAV_PAGES.map(p => `<a href="${p.href}" class="${active.includes(p.href) ? 'active' : ''}">${p.label}</a>`).join('');
 
   const userHtml = user
-    ? `<div class="nav-avatar" title="${user.firstName} ${user.lastName}" onclick="window.location='profile.ejs'">${user.firstName.charAt(0).toUpperCase()}</div>
+    ? `<div class="nav-avatar" title="${user.firstName} ${user.lastName}" onclick="window.location='profile.ejs'" style="
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        overflow: hidden;
+        ${user.profileImage ? `background-image: url('${user.profileImage}'); background-size: cover; background-position: center;` : ''}
+      ">${!user.profileImage ? user.firstName.charAt(0).toUpperCase() : ''}</div>
        <div style="display:flex; flex-direction:column; gap:2px">
          ${user.role === 'admin' ? '<a href="admin-dashboard.ejs" style="font-size:0.7rem; color:var(--primary); font-weight:700">Admin Panel</a>' : ''}
          ${user.role === 'staff' ? '<a href="staff-dashboard.ejs" style="font-size:0.7rem; color:var(--primary); font-weight:700">Staff Panel</a>' : ''}
@@ -997,7 +1013,18 @@ function initHamburger() {
   btn.addEventListener('click', () => { btn.classList.toggle('open'); nav.classList.toggle('open'); });
 }
 
-async function doLogout() { try { await fetch('/api/users/logout', {method:'POST'}); } catch(e){} auth.logout(); showToast('Logged out successfully', 'success'); setTimeout(() => location.href = 'login.ejs', 700); }
+async function doLogout() { 
+  try { 
+    await fetch('/auth/logout', { method: 'GET' }); 
+  } catch(e) { 
+    try { 
+      await fetch('/api/users/logout', { method: 'POST' }); 
+    } catch(e2) {} 
+  }
+  auth.logout();
+  showToast('Logged out successfully', 'success');
+  setTimeout(() => location.href = '/login', 700);
+}
 
 // ─── FOOTER BUILDER ───────────────────────────────────────────
 function buildFooter() {
@@ -1108,6 +1135,63 @@ function showAuthGuard(containerId, message = 'Login or create an account to acc
     </div>`;
 }
 
+// Sync auth state with backend on every page load
+async function syncAuthState() {
+  const page = location.pathname.split('/').pop() || 'index.ejs';
+  if (page.includes('login')) return;
+  
+  try {
+    const response = await api.get('/users/profile');
+    const user = response.data;
+    
+    if (user) {
+      const cachedUser = store.get(KEYS.SESSION);
+      const formattedUser = {
+        _id: user._id,
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profileImage: user.profileImage || '',
+        phone: user.phone,
+        googleId: user.googleId || '',
+        points: user.points || 0
+      };
+      
+      const shouldUpdate = !cachedUser || 
+                           cachedUser.id !== user._id || 
+                           cachedUser.email !== user.email || 
+                           cachedUser.points !== user.points ||
+                           cachedUser.role !== user.role ||
+                           cachedUser.profileImage !== (user.profileImage || '') ||
+                           cachedUser.firstName !== user.firstName ||
+                           cachedUser.lastName !== user.lastName;
+                           
+      if (shouldUpdate) {
+        store.set(KEYS.SESSION, formattedUser);
+        auth.setServerUser(formattedUser);
+        buildNavbar(page);
+      }
+    }
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      if (store.get(KEYS.SESSION)) {
+        store.remove(KEYS.SESSION);
+        auth.setServerUser(null);
+        buildNavbar(page);
+        
+        // If on protected page, redirect
+        const protectedPages = ['profile.ejs', 'my-bookings.ejs', 'cars.ejs', 'admin-', 'staff-'];
+        if (protectedPages.some(p => page.includes(p))) {
+          showToast('Session expired. Please log in again.', 'warning');
+          setTimeout(() => location.href = 'login.ejs', 1000);
+        }
+      }
+    }
+  }
+}
+
 // ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   seedData();
@@ -1115,6 +1199,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const page = location.pathname.split('/').pop() || 'index.ejs';
   buildNavbar(page);
   initChatbot();
+  syncAuthState();
 });
 
 function initChatbot() {

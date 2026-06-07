@@ -3,6 +3,10 @@ const fs = require('fs');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const passport = require('passport');
+require('./config/passport');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 const userRoutes = require('./routes/userRoutes');
 const carRoutes = require('./routes/carRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -15,6 +19,8 @@ const brandRoutes = require('./routes/brandRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const staffCodeRoutes = require('./routes/staffCodeRoutes');
 const couponRoutes = require('./routes/couponRoutes');
+const authRoutes = require('./routes/authRoutes');
+const isAuthenticated = require('./middleware/isAuthenticated');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -51,6 +57,29 @@ app.use(
   })
 );
 
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Middleware to pass user to all views
+app.use(async (req, res, next) => {
+  if (!req.user && req.cookies && req.cookies.as_token) {
+    try {
+      const decoded = jwt.verify(req.cookies.as_token, process.env.JWT_SECRET || 'fallback_secret');
+      if (decoded && decoded.id) {
+        const user = await User.findById(decoded.id).select('-password');
+        if (user) {
+          req.user = user;
+        }
+      }
+    } catch (error) {
+      // Ignore invalid/expired token
+    }
+  }
+  res.locals.user = req.user || null;
+  next();
+});
+
 // Make the Public folder available for CSS, JavaScript, and images.
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/services', express.static(path.join(__dirname, 'public', 'images', 'services')));
@@ -60,7 +89,25 @@ app.get('/', (req, res) => {
   res.status(200).render('index');
 });
 
+// Protected routes - require authentication
+app.get('/my-bookings', isAuthenticated, (req, res) => {
+  res.status(200).render('my-bookings');
+});
+
+app.get('/profile', isAuthenticated, (req, res) => {
+  res.status(200).render('profile');
+});
+
+app.get('/admin-dashboard', isAuthenticated, (req, res) => {
+  res.status(200).render('admin-dashboard');
+});
+
+app.get('/staff-dashboard', isAuthenticated, (req, res) => {
+  res.status(200).render('staff-dashboard');
+});
+
 // ─── API ROUTES ───────────────────────────────────────────────
+app.use('/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/bookings', bookingRoutes);

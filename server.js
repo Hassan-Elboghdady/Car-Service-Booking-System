@@ -3,8 +3,6 @@ const path = require('path');
 const http = require('http');
 const https = require('https');
 const dotenv = require('dotenv');
-const app = require('./app');
-const connectDB = require('./config/db');
 
 const envPath = path.join(__dirname, '.env');
 
@@ -20,6 +18,9 @@ if (fs.existsSync(envPath)) {
 } else {
   dotenv.config();
 }
+
+const app = require('./app');
+const connectDB = require('./config/db');
 
 const PORT = process.env.PORT || 5000;
 
