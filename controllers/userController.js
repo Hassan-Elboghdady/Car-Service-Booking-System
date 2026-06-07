@@ -51,12 +51,14 @@ const register = async (req, res, next) => {
       lastName,
       email: email.toLowerCase(),
       phone,
+      phoneNumber: phone,
       password: hashedPassword,
       role: role || 'customer',
       staffCode: staffCode || '',
       staffRole: staffRole || '',
       userType: userType || '',
       points: 0,
+      profileCompleted: (role || 'customer') !== 'customer',
     });
 
     // Mark staff code as used

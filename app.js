@@ -43,6 +43,17 @@ app.use(express.urlencoded({ extended: true, limit: '200mb' }));
 // Parse cookies (used for JWT cookie-based auth).
 app.use(cookieParser());
 
+// Connect to database before proceeding to session and routing logic
+const connectDB = require('./config/db');
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(new Error('Database connection failed: ' + error.message));
+  }
+});
+
 // Session support for authentication and user state.
 app.use(
   session({
@@ -80,6 +91,23 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// Middleware to force profile completion for customers who logged in via social auth
+app.use((req, res, next) => {
+  if (
+    req.user &&
+    req.user.role === 'customer' &&
+    !req.user.profileCompleted &&
+    req.path !== '/complete-profile' &&
+    req.path !== '/api/users/complete-profile' &&
+    req.path !== '/auth/logout' &&
+    !req.path.startsWith('/public') &&
+    !req.path.startsWith('/services')
+  ) {
+    return res.redirect('/complete-profile');
+  }
+  next();
+});
+
 // Make the Public folder available for CSS, JavaScript, and images.
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/services', express.static(path.join(__dirname, 'public', 'images', 'services')));
@@ -104,6 +132,13 @@ app.get('/admin-dashboard', isAuthenticated, (req, res) => {
 
 app.get('/staff-dashboard', isAuthenticated, (req, res) => {
   res.status(200).render('staff-dashboard');
+});
+
+app.get('/complete-profile', isAuthenticated, (req, res) => {
+  if (req.user && req.user.profileCompleted) {
+    return res.redirect('/');
+  }
+  res.status(200).render('complete-profile');
 });
 
 // ─── API ROUTES ───────────────────────────────────────────────

@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { register, login, logout, getProfile, updateProfile, uploadProfileImage, getTopCustomers, getAllStaff, deleteStaff, updateStaffRole } = require('../controllers/userController');
+const { submitCompleteProfile } = require('../controllers/completeProfileController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../config/upload');
 
@@ -64,5 +65,30 @@ router.delete('/staff/:id', protect, authorize('admin'), deleteStaff);
 
 // PUT /api/users/staff/:id/role — admin only
 router.put('/staff/:id/role', protect, authorize('admin'), updateStaffRole);
+
+function isValidPlate(plate) {
+  const cleaned = String(plate || '').replace(/\s+/g, '');
+  if (!/^[\p{Script=Arabic}0-9]{1,7}$/u.test(cleaned)) return false;
+  const letters = (cleaned.match(/\p{Script=Arabic}/gu) || []).length;
+  const digits = (cleaned.match(/[0-9]/g) || []).length;
+  return letters <= 3 && digits <= 4;
+}
+
+// POST /api/users/complete-profile
+router.post(
+  '/complete-profile',
+  protect,
+  [
+    body('phone').trim().notEmpty().withMessage('Phone number is required.')
+      .matches(/^(010|011|012|015)\d{8}$/).withMessage('Valid Egyptian mobile required (11 digits, starting 010/011/012/015).'),
+    body('brand').trim().notEmpty().withMessage('Car brand is required.'),
+    body('model').trim().notEmpty().withMessage('Car model is required.'),
+    body('year').isInt({ min: 2000, max: 2030 }).withMessage('Year must be between 2000 and 2030.'),
+    body('plate').trim().notEmpty().withMessage('License plate is required.')
+      .custom((value) => isValidPlate(value)).withMessage('License plate must use up to 3 Arabic letters and up to 4 digits.'),
+    body('color').trim().notEmpty().withMessage('Car color is required.'),
+  ],
+  submitCompleteProfile
+);
 
 module.exports = router;

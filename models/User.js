@@ -60,6 +60,37 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    phoneNumber: {
+      type: String,
+      default: '',
+    },
+    carBrand: {
+      type: String,
+      default: '',
+    },
+    carModel: {
+      type: String,
+      default: '',
+    },
+    carYear: {
+      type: Number,
+    },
+    licensePlate: {
+      type: String,
+      default: '',
+    },
+    carColor: {
+      type: String,
+      default: '',
+    },
+    profileCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    facebookId: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

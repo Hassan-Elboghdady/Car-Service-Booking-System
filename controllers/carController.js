@@ -52,6 +52,17 @@ const addCar = async (req, res, next) => {
       emoji: emoji || '🚗',
     });
 
+    // Sync car details to the User document and mark profileCompleted as true
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, {
+      carBrand: brand,
+      carModel: model,
+      carYear: parseInt(year),
+      licensePlate: plate,
+      carColor: color,
+      profileCompleted: true,
+    });
+
     res.status(201).json({
       message: 'Car added successfully.',
       data: car,
