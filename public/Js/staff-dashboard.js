@@ -25,14 +25,46 @@ function staffSvcLabel(b) {
 
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
-  if (!requireRole('staff')) return;
   initSidebar();
 
-  const user = auth.current();
-  document.getElementById('staff-name').textContent   = user?.firstName || 'Staff';
-  document.getElementById('staff-avatar').textContent = (user?.firstName || 'S').charAt(0);
+  let user = null;
+  try {
+    // Force a fresh API call for the profile
+    const res = await api.get('/users/profile');
+    if (res && res.data) {
+      user = res.data;
+      
+      // Update local storage so other tabs have the fresh data
+      const merged = Object.assign({}, auth.current() || {}, {
+        staffRole: user.staffRole || '',
+        userType: user.userType || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        role: user.role || '',
+        id: user._id,
+        _id: user._id
+      });
+      store.set(KEYS.SESSION, merged);
+      if (auth.setServerUser) auth.setServerUser(merged);
+    }
+  } catch(e) {
+    console.error('Profile fetch failed:', e);
+    user = auth.current(); // fallback to local cache
+  }
 
-  const role = (user?.staffRole || '').toLowerCase();
+  // If completely unauthenticated, kick them out
+  if (!user || (user.role !== 'staff' && user.role !== 'admin')) {
+    location.href = 'index.ejs';
+    return;
+  }
+
+  // Safely grab names with fallbacks
+  const fName = user.firstName || user.name || 'Staff';
+  document.getElementById('staff-name').textContent = fName;
+  document.getElementById('staff-avatar').textContent = fName.charAt(0).toUpperCase();
+
+  const role = (user.staffRole || '').toLowerCase();
   
   let welcomeIcon = '';
   let badgeHTML = '';
@@ -49,6 +81,15 @@ window.addEventListener('DOMContentLoaded', async () => {
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       Mechanic
     </span>`;
+  } else if (role === 'driver') {
+    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>`;
+    badgeHTML = `<span class="badge badge-green" style="padding: 4px 8px; font-weight: 600;">Driver</span>`;
+  } else if (role === 'receptionist') {
+    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    badgeHTML = `<span class="badge badge-blue" style="padding: 4px 8px; font-weight: 600;">Receptionist</span>`;
+  } else if (role === 'detailer') {
+    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M12 2l7 4v6a7 7 0 0 1-14 0V6l7-4z"/></svg>`;
+    badgeHTML = `<span class="badge badge-gray" style="padding: 4px 8px; font-weight: 600;">Detailer</span>`;
   } else {
     welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M2 18a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4v-2H2v2z"/><path d="M12 2a10 10 0 0 0-10 10h20A10 10 0 0 0 12 2z"/><path d="M12 2v10"/></svg>`;
     badgeHTML = `<span class="badge badge-yellow" style="padding: 4px 8px; font-weight: 600;">No Role Assigned</span>`;
@@ -58,17 +99,26 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (welcomeIconContainer) {
     welcomeIconContainer.innerHTML = welcomeIcon;
   }
-  document.getElementById('staff-role-tag').innerHTML = badgeHTML;
+  const roleTag = document.getElementById('staff-role-tag');
+  if (roleTag) {
+    roleTag.innerHTML = badgeHTML;
+  }
 
+  const userId = user._id || user.id;
   const allBookings = await bookingsAPI.allWithDetails();
-  const myJobs  = allBookings.filter(b => b.assignedStaff === user.id);
+  const myJobs  = allBookings.filter(b => b.assignedStaff === userId);
   const today   = todayStr();
 
+  const mechanicLayout = document.getElementById('mechanic-layout');
+  const mainLayout = document.getElementById('staff-main-layout');
+
   if (role === 'manager') {
-    document.getElementById('mechanic-layout').style.display = 'none';
+    if (mechanicLayout) mechanicLayout.style.display = 'none';
+    if (mainLayout) mainLayout.style.display = 'block';
     renderManagerDash(allBookings, myJobs, today);
   } else {
-    document.getElementById('staff-main-layout').style.display = 'none';
+    if (mainLayout) mainLayout.style.display = 'none';
+    if (mechanicLayout) mechanicLayout.style.display = 'block';
     renderMechanicDash(myJobs, today);
   }
 });
@@ -138,8 +188,11 @@ function renderManagerDash(allBookings, myJobs, today) {
       <div style="padding:0 24px 24px">
         ${(()=>{
           const svcRev = {};
+          // Strip all HTML tags to get plain service name
+          const stripHtml = (html) => html.replace(/<[^>]*>/g, '').trim();
           allBookings.forEach(b => {
-            const n = staffSvcLabel(b).replace(/^[^\s]+ /,'') || 'Other';
+            const raw = staffSvcLabel(b);
+            const n = stripHtml(raw) || 'Other';
             svcRev[n]=(svcRev[n]||0)+(b.total||0);
           });
           const maxR = Math.max(...Object.values(svcRev),1);
@@ -241,80 +294,7 @@ window.completeJob = async (id) => {
   showToast('Job completed', 'success');
   setTimeout(() => location.reload(), 600);
 };
-const STAFF_MILEAGE_NAMES = {
-  'pkg-10k':'10,000 km Service','pkg-20k':'20,000 km Service','pkg-30k':'30,000 km Service',
-  'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Major Service',
-  'pkg-70k':'70,000 km Service','pkg-80k':'80,000 km Service','pkg-90k':'90,000 km Service',
-  'pkg-100k':'100,000 km Overhaul',
-};
-
-const SVG_CLIPBOARD = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`;
-const SVG_CLOCK = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
-const SVG_CHECK_CIRCLE = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
-const SVG_HOURGLASS = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7 7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7 7 7 0 0 1 7 7v4"/></svg>`;
-const SVG_WRENCH = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
-const SVG_REVENUE = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
-const SVG_USERS = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
-
-function staffSvcLabel(b) {
-  if (b.service?.name) return `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.1rem')} ${b.service.name}</span>`;
-  const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
-  const mId = ids.find(id => STAFF_MILEAGE_NAMES[id]);
-  if (mId) return `🛣️ ${STAFF_MILEAGE_NAMES[mId]}`;
-  if (ids.length > 1) return `🔧 ${ids.length} Services`;
-  return '';
-}
-
-window.addEventListener('DOMContentLoaded', async () => {
-  seedData();
-  if (!requireRole('staff')) return;
-  initSidebar();
-
-  const user = auth.current();
-  document.getElementById('staff-name').textContent   = user?.firstName || 'Staff';
-  document.getElementById('staff-avatar').textContent = (user?.firstName || 'S').charAt(0);
-
-  const role = (user?.staffRole || '').toLowerCase();
-  
-  let welcomeIcon = '';
-  let badgeHTML = '';
-
-  if (role === 'manager') {
-    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 20h18v2H3z"/></svg>`;
-    badgeHTML = `<span class="badge badge-red" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-weight: 600;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 20h18v2H3z"/></svg>
-      Manager
-    </span>`;
-  } else if (role === 'mechanic') {
-    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
-    badgeHTML = `<span class="badge badge-blue" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-weight: 600;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      Mechanic
-    </span>`;
-  } else {
-    welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M2 18a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4v-2H2v2z"/><path d="M12 2a10 10 0 0 0-10 10h20A10 10 0 0 0 12 2z"/><path d="M12 2v10"/></svg>`;
-    badgeHTML = `<span class="badge badge-yellow" style="padding: 4px 8px; font-weight: 600;">No Role Assigned</span>`;
-  }
-
-  const welcomeIconContainer = document.getElementById('staff-welcome-icon');
-  if (welcomeIconContainer) {
-    welcomeIconContainer.innerHTML = welcomeIcon;
-  }
-  document.getElementById('staff-role-tag').innerHTML = badgeHTML;
-
-  const allBookings = await bookingsAPI.allWithDetails();
-  const myJobs  = allBookings.filter(b => b.assignedStaff === user.id);
-  const today   = todayStr();
-
-  if (role === 'manager') {
-    document.getElementById('mechanic-layout').style.display = 'none';
-    renderManagerDash(allBookings, myJobs, today);
-  } else {
-    document.getElementById('staff-main-layout').style.display = 'none';
-    renderMechanicDash(myJobs, today);
-  }
-});
+// Duplicates removed
 
 function renderMechanicDash(myJobs, today) {
   document.getElementById('staff-stats').innerHTML = [
@@ -381,8 +361,11 @@ function renderManagerDash(allBookings, myJobs, today) {
       <div style="padding:0 24px 24px">
         ${(()=>{
           const svcRev = {};
+          // Strip all HTML tags to get plain service name
+          const stripHtml = (html) => html.replace(/<[^>]*>/g, '').trim();
           allBookings.forEach(b => {
-            const n = staffSvcLabel(b).replace(/^[^\s]+ /,'') || 'Other';
+            const raw = staffSvcLabel(b);
+            const n = stripHtml(raw) || 'Other';
             svcRev[n]=(svcRev[n]||0)+(b.total||0);
           });
           const maxR = Math.max(...Object.values(svcRev),1);
