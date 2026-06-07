@@ -8,6 +8,41 @@ let liveMileagePrices = {};
 // Live tier copy (editable)
 let liveTiers = {};
 
+// -- Image file uploader helper --
+window.previewServiceImage = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64 = e.target.result;
+    document.getElementById('svc-image').value = base64;
+    const preview = document.getElementById('svc-image-preview');
+    if (preview) { preview.src = base64; preview.style.display = 'block'; }
+    const label = document.getElementById('svc-image-label');
+    if (label) label.style.borderColor = 'var(--primary)';
+  };
+  reader.readAsDataURL(file);
+};
+
+function resetServiceImageUploader() {
+  const fileInput = document.getElementById('svc-image-file');
+  if (fileInput) fileInput.value = '';
+  const hidden = document.getElementById('svc-image');
+  if (hidden) hidden.value = '';
+  const preview = document.getElementById('svc-image-preview');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  const label = document.getElementById('svc-image-label');
+  if (label) label.style.borderColor = 'var(--gray-300)';
+}
+
+function loadImageIntoUploader(imageUrl) {
+  const hidden = document.getElementById('svc-image');
+  if (hidden) hidden.value = imageUrl || '';
+  const preview = document.getElementById('svc-image-preview');
+  if (preview && imageUrl) { preview.src = imageUrl; preview.style.display = 'block'; }
+  else if (preview) { preview.src = ''; preview.style.display = 'none'; }
+}
+
 async function loadServicesFromDb() {
   try {
     const services = await servicesAPI.getAll();
@@ -29,6 +64,7 @@ async function loadServicesFromDb() {
         name: s.name,
         dur: s.duration || '',
         desc: s.desc || '',
+        image: s.image || '',
         includes: Array.isArray(s.includes) ? s.includes : [],
       }));
       const prices = {};
@@ -171,7 +207,7 @@ window.saveMileagePrices = () => {
 
 // --- ADD MILEAGE PACKAGE --------------------------------------
 window.openAddMileageModal = () => {
-  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes','mp-emoji'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   const saveBtn = document.querySelector('#add-mileage-modal .modal-footer .btn-primary');
   if (saveBtn) { saveBtn.textContent = 'Add Package'; saveBtn.onclick = addMileagePackage; }
   openModal('add-mileage-modal');
@@ -185,6 +221,7 @@ window.addMileagePackage = async () => {
   const mid  = parseInt(document.getElementById('mp-mid').value) || 0;
   const prem = parseInt(document.getElementById('mp-prem').value) || 0;
   const desc = document.getElementById('mp-desc').value.trim();
+  const emoji = document.getElementById('mp-emoji').value.trim() || '🛣️';
   const includesStr = document.getElementById('mp-includes').value;
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
   if (!name) { showToast('Package name is required', 'error'); return; }
@@ -202,6 +239,7 @@ window.addMileagePackage = async () => {
       cat: 'mileage',
       duration: dur,
       desc,
+      emoji,
       includes,
       priceByTier: { 1: eco, 2: mid, 3: prem },
     });
@@ -212,14 +250,14 @@ window.addMileagePackage = async () => {
   }
 
   const custom = store.get('as_mileage_pkgs') || [];
-  custom.push({ id, name, dur, desc, includes });
+  custom.push({ id, name, dur, desc, includes, emoji });
   store.set('as_mileage_pkgs', custom);
 
   liveMileagePrices[id] = { 1: eco, 2: mid, 3: prem };
   store.set('as_mileage_prices', liveMileagePrices);
 
   closeModal('add-mileage-modal');
-  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes','mp-emoji'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   renderMileageTable();
   updateMileageBadge();
   showToast(`${name} added! ✅`, 'success');
@@ -266,6 +304,7 @@ window.editMileagePkg = (id) => {
   document.getElementById('mp-mid').value  = p[2] || '';
   document.getElementById('mp-prem').value = p[3] || '';
   document.getElementById('mp-desc').value = pkg.desc || '';
+  document.getElementById('mp-emoji').value = pkg.emoji || '🛣️';
   document.getElementById('mp-includes').value = (pkg.includes || []).join('\n');
   // Change save button to "Update"
   const saveBtn = document.querySelector('#add-mileage-modal .modal-footer .btn-primary');
@@ -280,6 +319,7 @@ window.updateMileagePkg = async (id) => {
   const mid  = parseInt(document.getElementById('mp-mid').value) || 0;
   const prem = parseInt(document.getElementById('mp-prem').value) || 0;
   const desc = document.getElementById('mp-desc').value.trim();
+  const emoji = document.getElementById('mp-emoji').value.trim() || '🛣️';
   const includesStr = document.getElementById('mp-includes').value;
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
   if (!name) { showToast('Package name is required', 'error'); return; }
@@ -287,10 +327,10 @@ window.updateMileagePkg = async (id) => {
   const custom = store.get('as_mileage_pkgs') || [];
   const idx = custom.findIndex(p => p.id === id);
   if (idx !== -1) {
-    custom[idx] = { ...custom[idx], name, dur, desc, includes };
+    custom[idx] = { ...custom[idx], name, dur, desc, includes, emoji };
     store.set('as_mileage_pkgs', custom);
   } else {
-    custom.push({ id, name, dur, desc, includes });
+    custom.push({ id, name, dur, desc, includes, emoji });
     store.set('as_mileage_pkgs', custom);
   }
 
@@ -301,6 +341,7 @@ window.updateMileagePkg = async (id) => {
       cat: 'mileage',
       duration: dur,
       desc,
+      emoji,
       includes,
       priceByTier: { 1: eco, 2: mid, 3: prem },
     });
@@ -316,7 +357,7 @@ window.updateMileagePkg = async (id) => {
   closeModal('add-mileage-modal');
   const saveBtn = document.querySelector('#add-mileage-modal .modal-footer .btn-primary');
   if (saveBtn) { saveBtn.textContent = 'Add Package'; saveBtn.onclick = addMileagePackage; }
-  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['mp-name','mp-km','mp-dur','mp-eco','mp-mid','mp-prem','mp-desc','mp-includes','mp-emoji'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   renderMileageTable();
   updateMileageBadge();
   showToast(`"${name}" updated!`, 'success');
@@ -444,6 +485,7 @@ window.editService = (id) => {
   document.getElementById('svc-dur').value   = svc.duration;
   document.getElementById('svc-price').value = svc.price;
   document.getElementById('svc-desc').value  = svc.desc||'';
+  loadImageIntoUploader(svc.image || '');
   document.getElementById('svc-includes').value = (svc.includes || []).join('\n');
   document.getElementById('svc-popular').checked = !!svc.popular;
   toggleMileageFields();
@@ -482,6 +524,7 @@ async function saveService() {
   const cat       = document.getElementById('svc-cat').value;
   const dur       = document.getElementById('svc-dur').value.trim() || '1h';
   const desc      = document.getElementById('svc-desc').value.trim();
+  const image     = document.getElementById('svc-image').value.trim();
   const pop       = document.getElementById('svc-popular').checked;
   if (!name) { showToast('Service name is required','error'); return; }
 
@@ -513,6 +556,7 @@ async function saveService() {
           cat: 'mileage',
           duration: dur,
           desc,
+          image,
           includes,
           priceByTier: { 1: eco, 2: mid, 3: prem },
         });
@@ -527,6 +571,7 @@ async function saveService() {
           cat: 'mileage',
           duration: dur,
           desc,
+          image,
           includes,
           priceByTier: { 1: eco, 2: mid, 3: prem },
         });
@@ -540,12 +585,12 @@ async function saveService() {
     if (isExistingPackage) {
       const idx = custom.findIndex(p => p.id === pkgId);
       if (idx !== -1) {
-        custom[idx] = { id: pkgId, name, dur, desc, includes };
+        custom[idx] = { id: pkgId, name, dur, desc, includes, image };
       } else {
-        custom.push({ id: pkgId, name, dur, desc, includes });
+        custom.push({ id: pkgId, name, dur, desc, includes, image });
       }
     } else {
-      custom.push({ id: pkgId, name, dur, desc, includes });
+      custom.push({ id: pkgId, name, dur, desc, includes, image });
     }
 
     store.set('as_mileage_pkgs', custom);
@@ -556,6 +601,7 @@ async function saveService() {
     document.getElementById('svc-edit-id').value = '';
     document.getElementById('svc-modal-title').textContent = 'Add New Service';
     ['svc-name','svc-dur','svc-price','svc-desc','svc-km','svc-price-eco','svc-price-mid','svc-price-prem','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    resetServiceImageUploader();
     document.getElementById('svc-popular').checked = false;
     document.getElementById('svc-cat').value = 'maintenance';
     toggleMileageFields();
@@ -569,7 +615,7 @@ async function saveService() {
   const includes = includesStr.split('\n').map(s=>s.trim()).filter(Boolean);
 
   const existing = svcs.find(s=>s.id===id);
-  const newSvc = { id, name, cat, duration:dur, price, desc, popular:pop, includes };
+  const newSvc = { id, name, cat, duration:dur, price, desc, image, popular:pop, includes };
 
   if (isEditing) {
     try {
@@ -581,6 +627,7 @@ async function saveService() {
         price,
         priceByTier: existing?.priceByTier || {},
         desc,
+        image,
         popular: pop,
         includes,
       });
@@ -599,6 +646,7 @@ async function saveService() {
         price,
         priceByTier: {},
         desc,
+        image,
         popular: pop,
         includes,
       });
@@ -617,6 +665,7 @@ async function saveService() {
   document.getElementById('svc-edit-id').value = '';
   document.getElementById('svc-modal-title').textContent = 'Add New Service';
   ['svc-name','svc-dur','svc-price','svc-desc','svc-includes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  resetServiceImageUploader();
   document.getElementById('svc-popular').checked = false;
   document.getElementById('svc-cat').value = 'maintenance';
   toggleMileageFields();

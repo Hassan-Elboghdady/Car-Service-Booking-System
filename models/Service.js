@@ -6,6 +6,7 @@ const serviceSchema = new mongoose.Schema(
     name: { type: String, required: true },
     icon: { type: String, default: '' },
     emoji: { type: String, default: '' },
+    image: { type: String, default: '' },
     cat: {
       type: String,
       required: true,

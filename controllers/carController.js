@@ -4,7 +4,7 @@ const Car = require('../models/Car');
 // GET /api/cars — get all cars for the logged-in user.
 const getCars = async (req, res, next) => {
   try {
-    const query = req.user.role === 'admin' ? {} : { owner: req.user._id };
+    const query = { owner: req.user._id };
     const cars = await Car.find(query).sort({ createdAt: -1 });
     res.status(200).json({
       message: 'Cars fetched successfully.',

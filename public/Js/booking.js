@@ -96,7 +96,7 @@ function renderStep2(filter) {
 
     return `
       <div class="svc-select-card ${sel?'selected':''} ${isMileage?'mileage-card':''}" onclick="toggleService('${s.id}')">
-        <div class="svc-select-icon">${renderServiceIconHtml(s,'2rem')}</div>
+        <div class="svc-select-icon">${isMileage ? `<span style="font-size:2rem;line-height:1">${s.emoji||'🛣️'}</span>` : renderServiceIconHtml(s,'2rem')}</div>
         <div class="svc-select-info">
           <h4>${s.name} ${s.popular?'<span class="badge badge-red" style="font-size:.65rem">Popular</span>':''} ${isMileage&&sel?'<span class="badge badge-green" style="font-size:.65rem">✓ Selected</span>':''}</h4>
           <p>${s.desc?.slice(0,70)||''}  ${SVG_ICONS.clock} ${s.duration}</p>

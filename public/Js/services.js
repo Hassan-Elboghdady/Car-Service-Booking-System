@@ -109,6 +109,7 @@ async function loadCustomServicesFromDb() {
         name: s.name,
         dur: s.duration || '',
         desc: s.desc || '',
+        image: s.image || '',
         includes: Array.isArray(s.includes) ? s.includes : [],
       }));
       const prices = {};
@@ -229,7 +230,7 @@ function renderMileagePkgs() {
       ${pkg.popular ? '<div class="mileage-pop-badge">Most Popular ⭐</div>' : ''}
 
       <div class="mpkg-header">
-        ${renderServiceIconHtml(pkg,'3.5rem')}
+        <div class="mpkg-emoji">${pkg.emoji || '🛣️'}</div>
         <div class="mpkg-name">${pkg.name}</div>
         <div class="mpkg-tagline">${pkg.tagline}</div>
         <div class="mpkg-duration">⏱️ ${pkg.duration}</div>
