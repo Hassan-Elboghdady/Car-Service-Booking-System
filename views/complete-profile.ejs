@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Complete Your Profile – AutoServe</title>
+  <meta name="description" content="Please complete your profile details to access the AutoServe dashboard." />
+  <link rel="stylesheet" href="../public/Css/shared.css" />
+  <link rel="stylesheet" href="../public/Css/login.css" />
+  <style>
+    /* Styling to center the single box on the screen */
+    .complete-profile-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--gray-900) 0%, #1a0006 100%);
+      padding: 40px 20px;
+    }
+    .complete-profile-box {
+      max-width: 520px;
+      width: 100%;
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-xl);
+    }
+    .complete-profile-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .complete-profile-header img {
+      height: 48px;
+      border-radius: 6px;
+      margin: 0 auto 12px;
+      display: block;
+    }
+    .complete-profile-header h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+    .complete-profile-header p {
+      font-size: 0.9rem;
+      color: var(--gray-500);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="complete-profile-container">
+    <div class="complete-profile-box animate-fade-up">
+      <div class="complete-profile-header">
+        <img src="/public/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" />
+        <h2>One More Step!</h2>
+        <p>Please provide your phone number and car details to complete registration.</p>
+      </div>
+
+      <div id="complete-profile-alert"></div>
+
+      <!-- Phone Number -->
+      <div class="form-group">
+        <label class="form-label" for="cp-phone">Phone Number * <span style="font-size:.72rem;color:var(--gray-500)">(Egyptian mobile, 11 digits)</span></label>
+        <input class="form-control" id="cp-phone" type="tel" placeholder="01012345678" maxlength="11" />
+        <div class="form-hint">Format: 01X XXXXXXXX — must start with 010, 011, 012 or 015</div>
+      </div>
+
+      <!-- Car Section -->
+      <div class="car-section" style="border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px; background: var(--gray-50);">
+        <h4 class="car-section-title" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">🚗 Add Your Car</h4>
+        
+        <div class="form-group">
+          <label class="form-label" for="cp-brand">Car Brand *</label>
+          <select class="form-control" id="cp-brand">
+            <option value="">Select brand…</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="cp-model">Model *</label>
+          <select class="form-control" id="cp-model" disabled>
+            <option value="">Select model…</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="cp-year">Year *</label>
+          <select class="form-control" id="cp-year" disabled>
+            <option value="">Select year…</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="cp-plate-numbers">License Plate *</label>
+            <div class="plate-split" style="display: flex; gap: 8px;">
+              <input class="form-control plate-input plate-numbers" id="cp-plate-numbers" placeholder="1234" inputmode="numeric" maxlength="4" style="flex: 1;" />
+              <input class="form-control plate-input plate-letters" id="cp-plate-letters" placeholder="أ ب ج" dir="rtl" maxlength="7" style="flex: 1;" />
+              <input type="hidden" id="cp-plate" name="plate" />
+            </div>
+            <div class="form-hint" style="font-size:.74rem;color:var(--gray-500)">Numbers (max 4) on the left — Arabic letters (max 3) on the right.</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="cp-color">Color *</label>
+            <select class="form-control" id="cp-color">
+              <option value="">Select color…</option>
+              <option value="Black">Black</option>
+              <option value="White">White</option>
+              <option value="Silver">Silver</option>
+              <option value="Gray">Gray</option>
+              <option value="Red">Red</option>
+              <option value="Blue">Blue</option>
+              <option value="Green">Green</option>
+              <option value="Yellow">Yellow</option>
+              <option value="Orange">Orange</option>
+              <option value="Brown">Brown</option>
+              <option value="Beige">Beige</option>
+              <option value="Gold">Gold</option>
+              <option value="Purple">Purple</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="form-group" id="cp-color-custom-wrap" style="display:none; margin-top:12px;">
+              <input class="form-control" id="cp-color-custom" placeholder="Enter custom color" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="cp-submit-btn">Complete Profile →</button>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/auth/logout" class="btn-link" style="font-size: 0.9rem; color: var(--gray-500); hover: color: var(--primary);">Cancel & Log Out</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-root"></div>
+  <script src="../public/Js/shared.js"></script>
+  <script src="../public/Js/complete-profile.js"></script>
+</body>
+
+</html>

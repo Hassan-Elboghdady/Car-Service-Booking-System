@@ -45,16 +45,19 @@ function showPanel() {
     const emailInput = document.getElementById('l-email');
     const googleDivider = document.getElementById('l-google-divider');
     const googleBtn = document.getElementById('l-google-btn');
+    const facebookBtn = document.getElementById('l-facebook-btn');
     if (currentRole === 'staff') {
       if (emailLabel) emailLabel.textContent = 'Staff Code';
       if (emailInput) { emailInput.type = 'text'; emailInput.placeholder = 'Enter your staff code (e.g. STF-001)'; }
       if (googleDivider) googleDivider.style.display = 'none';
       if (googleBtn) googleBtn.style.display = 'none';
+      if (facebookBtn) facebookBtn.style.display = 'none';
     } else {
       if (emailLabel) emailLabel.textContent = 'Email Address';
       if (emailInput) { emailInput.type = 'email'; emailInput.placeholder = 'you@example.com'; }
       if (googleDivider) googleDivider.style.display = '';
       if (googleBtn) googleBtn.style.display = '';
+      if (facebookBtn) facebookBtn.style.display = '';
     }
   } else {
     const id = currentRole === 'staff' ? 'panel-register-staff' : 'panel-register-customer';

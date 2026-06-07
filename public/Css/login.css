@@ -90,6 +90,25 @@
 }
 .btn-google img { width: 18px; height: 18px; }
 
+/* Facebook button */
+.btn-facebook { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px; 
+  background: #1877f2; 
+  border: 1px solid #1877f2; 
+  color: #fff; 
+  font-weight: 600; 
+  transition: var(--transition); 
+}
+.btn-facebook:hover { 
+  background: #1565c0; 
+  border-color: #1565c0; 
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.24); 
+}
+.btn-facebook svg, .btn-facebook img { width: 18px; height: 18px; }
+
 /* Strength colors */
 .strength-0 { width: 0!important; }
 .strength-1 { width: 25%; background: var(--danger)!important; }
