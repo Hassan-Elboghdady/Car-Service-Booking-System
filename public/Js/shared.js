@@ -28,15 +28,15 @@ const KEYS = {
 // ─── API FETCH HELPER (AJAX/Fetch — talks to Node.js backend) ─
 const api = {
   base: '/api',
-  /** Core request method — auto-attaches JWT and parses JSON. */
+  /** Core request method — auto-attaches JWT cookie and parses JSON. */
   async request(path, options = {}) {
     const headers = { ...options.headers };
     if (!headers['Content-Type'] && !(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }
     
-    // The browser will automatically attach the httpOnly cookie.
-    const res = await fetch(this.base + path, { ...options, headers });
+    // credentials: 'include' ensures the httpOnly cookie is sent with every request
+    const res = await fetch(this.base + path, { ...options, headers, credentials: 'include' });
     const data = await res.json();
     if (!res.ok) {
       const err = new Error(data.message || 'Request failed');
@@ -1153,6 +1153,8 @@ async function syncAuthState() {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        staffRole: user.staffRole || '',
+        userType: user.userType || '',
         profileImage: user.profileImage || '',
         phone: user.phone,
         googleId: user.googleId || '',
@@ -1164,6 +1166,7 @@ async function syncAuthState() {
                            cachedUser.email !== user.email || 
                            cachedUser.points !== user.points ||
                            cachedUser.role !== user.role ||
+                           cachedUser.staffRole !== (user.staffRole || '') ||
                            cachedUser.profileImage !== (user.profileImage || '') ||
                            cachedUser.firstName !== user.firstName ||
                            cachedUser.lastName !== user.lastName;

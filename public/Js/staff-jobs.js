@@ -118,16 +118,15 @@ function daysDiff(dateStr) {
   return Math.round((d - today) / 86400000);
 }
 
-window.claimJob = (id) => {
+window.claimJob = async (id) => {
   const user = auth.current();
-  const list = getAll(KEYS.BOOKINGS);
-  const b = list.find(x => x.id === id);
-  if (!b) return;
-  if (b.assignedStaff) { showToast('This job was just claimed by someone else!', 'error'); renderJobs(); return; }
-  b.assignedStaff = user.id;
-  saveAll(KEYS.BOOKINGS, list);
-  showToast('Job claimed! It is now in your My Jobs tab. ✅', 'success');
-  renderJobs();
+  try {
+    await api.put(`/bookings/${id}/assign`, { staffId: user.id || user._id });
+    showToast('Job claimed! It is now in your My Jobs tab. ✅', 'success');
+    await renderJobs();
+  } catch (err) {
+    showToast(err.message || 'Failed to claim job', 'error');
+  }
 };
 
 window.start    = async (id) => { await bookingsAPI.updateStatus(id, 'in_progress'); showToast('Job started! 🔧', 'success'); await renderJobs(); };

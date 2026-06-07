@@ -303,12 +303,17 @@ const updateStaffRole = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { staffRole } = req.body;
-    const user = await User.findById(id);
+    
+    const user = await User.findByIdAndUpdate(
+      id,
+      { staffRole },
+      { new: true, runValidators: true }
+    );
+    
     if (!user) {
       return res.status(404).json({ message: 'Staff member not found.' });
     }
-    user.staffRole = staffRole;
-    await user.save();
+    
     res.status(200).json({ message: 'Staff role updated.', data: user });
   } catch (error) {
     next(error);
