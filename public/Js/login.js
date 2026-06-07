@@ -241,7 +241,12 @@ document.getElementById('login-btn')?.addEventListener('click', async () => {
       else location.href = 'index.ejs';
     }, 700);
   } catch (error) {
-    showFieldErr(alertEl, 'l-email', `⚠️ ${error.message}`);
+    if (error && error.status === 403 && error.data && error.data.redirect) {
+      showFieldErr(alertEl, 'l-email', '⚠️ Profile completion required');
+      setTimeout(() => { window.location.href = error.data.redirect; }, 800);
+    } else {
+      showFieldErr(alertEl, 'l-email', `⚠️ ${error.message || 'Request failed'}`);
+    }
   } finally {
     loginBtn.innerHTML = oldText;
     loginBtn.disabled = false;
@@ -345,7 +350,12 @@ document.getElementById('reg-cust-btn')?.addEventListener('click', async () => {
     showToast(`Welcome to AutoServe, ${userRes.data.firstName}! 🚗`, 'success');
     setTimeout(() => location.href = 'index.ejs', 700);
   } catch (error) {
-    showFieldErr(alertEl, 'rc-email', error.message);
+    if (error && error.status === 403 && error.data && error.data.redirect) {
+      alertEl.innerHTML = `<div class="alert alert-warning">${error.data.message}</div>`;
+      setTimeout(() => { window.location.href = error.data.redirect; }, 800);
+    } else {
+      showFieldErr(alertEl, 'rc-email', error.message || 'Request failed');
+    }
   } finally {
     regBtn.innerHTML = oldText;
     regBtn.disabled = false;
@@ -409,7 +419,12 @@ document.getElementById('reg-staff-btn')?.addEventListener('click', async () => 
     showToast(`Staff account created! Welcome, ${userRes.data.firstName}! Your admin will assign your role.`, 'success');
     setTimeout(() => location.href = 'staff-dashboard.ejs', 700);
   } catch (error) {
-    showFieldErr(alertEl, 'rs-email', error.message);
+    if (error && error.status === 403 && error.data && error.data.redirect) {
+      alertEl.innerHTML = `<div class="alert alert-warning">${error.data.message}</div>`;
+      setTimeout(() => { window.location.href = error.data.redirect; }, 800);
+    } else {
+      showFieldErr(alertEl, 'rs-email', error.message || 'Request failed');
+    }
   } finally {
     regBtn.innerHTML = oldText;
     regBtn.disabled = false;

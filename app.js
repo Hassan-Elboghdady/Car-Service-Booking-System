@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const session = require('express-session');
 const passport = require('passport');
 require('./config/passport');
@@ -97,20 +98,40 @@ app.use((req, res, next) => {
     req.user &&
     req.user.role === 'customer' &&
     !req.user.profileCompleted &&
-    req.path !== '/complete-profile' &&
-    req.path !== '/api/users/complete-profile' &&
-    req.path !== '/auth/logout' &&
-    !req.path.startsWith('/public') &&
-    !req.path.startsWith('/services')
+    req.path !== '/complete-profile'
   ) {
+    const isApi = req.path.startsWith('/api');
+    const isAuth = req.path.startsWith('/auth');
+    const isStatic = req.path.startsWith('/public') || req.path.startsWith('/services');
+
+    // Allow static assets and logout
+    if (isStatic || req.path === '/auth/logout') return next();
+
+    // Allow auth routes (passport callbacks etc.)
+    if (isAuth) return next();
+
+    // Allow unauthenticated API auth endpoints so a client can login/register
+    const allowApiPaths = ['/api/users/login', '/api/users/register', '/api/users/complete-profile'];
+    if (isApi && allowApiPaths.includes(req.path)) return next();
+
+    // For API calls, return a JSON error so the frontend client can handle it
+    if (isApi) {
+      return res.status(403).json({ message: 'Profile completion required', redirect: '/complete-profile' });
+    }
+
+    // Otherwise redirect browser requests to the completion page
     return res.redirect('/complete-profile');
   }
   next();
 });
 
 // Make the Public folder available for CSS, JavaScript, and images.
-app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/services', express.static(path.join(__dirname, 'public', 'images', 'services')));
+// Use gzip/deflate compression to reduce payload sizes on Vercel and browsers
+app.use(compression());
+
+// Serve static assets with long cache lifetimes; Vercel will serve these efficiently.
+app.use('/public', express.static(path.join(__dirname, 'public'), { maxAge: '30d' }));
+app.use('/services', express.static(path.join(__dirname, 'public', 'images', 'services'), { maxAge: '30d' }));
 
 // Return the main HTML page when the browser opens the home route.
 app.get('/', (req, res) => {
