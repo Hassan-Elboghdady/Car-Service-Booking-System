@@ -24,10 +24,20 @@ async function loadBrandsFromDb() {
 window.addEventListener('DOMContentLoaded', async () => {
   seedData(); if (!requireRole('admin')) return; initSidebar();
   await loadBrandsFromDb();
-  
-  // Re-load vehicles and bookings to reflect updates
-  let cars = getAll(KEYS.CARS);
-  let allB = getAll(KEYS.BOOKINGS);
+
+  // Fetch all vehicles and bookings from the real database
+  let cars = [];
+  let allB = [];
+  try {
+    const [carsRes, bookingsRes] = await Promise.all([
+      api.get('/cars/all'),
+      api.get('/bookings/all'),
+    ]);
+    cars = carsRes.data || [];
+    allB  = bookingsRes.data || [];
+  } catch (e) {
+    showToast('Could not load data from the server.', 'error');
+  }
 
   // Expose Modal Toggle functions globally
   window.toggleBrandLogoInput = () => {
@@ -43,7 +53,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
 
   function updateStats() {
-    const uniqueBrands = [...new Set(cars.map(c=>c.brand))].length;
+    const uniqueBrands = Object.keys(CARS_DB).length;
     document.getElementById('v-stats').innerHTML = [
       {
         l: 'Total Vehicles',
@@ -60,39 +70,48 @@ window.addEventListener('DOMContentLoaded', async () => {
     ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
   }
 
+  // owner is already populated by the server (firstName, lastName, email)
+  function getCarId(c) { return c._id || c.id || ''; }
+
   function render(q='') {
     const data = q ? cars.filter(c=>{
-      const owner = getById(KEYS.USERS, c.owner)||{};
+      const owner = (typeof c.owner === 'object' && c.owner) ? c.owner : {};
       const term = (c.brand+' '+c.model+' '+c.plate+' '+c.color+' '+c.year+' '+(owner.firstName||'')+' '+(owner.lastName||'')+' '+(owner.email||'')).toLowerCase();
       return term.includes(q);
     }) : cars;
 
     const trashIcon = SVG_ICONS.trash || '🗑️';
 
-    document.getElementById('v-tbody').innerHTML = data.map(c=>{
-      const owner = getById(KEYS.USERS, c.owner)||{};
-      const bkCnt = allB.filter(b=>b.carId===c.id).length;
-      return `<tr>
-        <td><strong>${owner.firstName||''} ${owner.lastName||''}</strong><br><small>${owner.email||''}</small></td>
-        <td>${getBrandLogoHtml(c.brand)} <strong>${c.brand}</strong></td>
-        <td>${c.model}</td>
-        <td>${c.year}</td>
-        <td><span class="badge badge-gray">${c.plate}</span></td>
-        <td><span style="display:inline-block;width:12px;height:12px;background:${c.color.toLowerCase()};border:1px solid #ccc;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>${c.color}</td>
-        <td>${bkCnt}</td>
-        <td>
-          <button class="btn btn-ghost btn-sm" onclick="deleteCustomerVehicle('${c.id}')" style="padding:4px; min-height:0; color:var(--red); height:28px; width:28px; display:flex; align-items:center; justify-content:center;" title="Remove Registered Vehicle">
-            ${trashIcon}
-          </button>
-        </td>
-      </tr>`;
-    }).join('');
+    document.getElementById('v-tbody').innerHTML = data.length
+      ? data.map(c=>{
+          const owner = (typeof c.owner === 'object' && c.owner) ? c.owner : {};
+          const cid = getCarId(c);
+          const bkCnt = allB.filter(b => {
+            const bCarId = b.carId?._id || b.carId?.id || b.carId || '';
+            return bCarId === cid;
+          }).length;
+          return `<tr>
+            <td><strong>${owner.firstName||'—'} ${owner.lastName||''}</strong><br><small style="color:var(--gray-500)">${owner.email||''}</small></td>
+            <td>${getBrandLogoHtml(c.brand)} <strong>${c.brand}</strong></td>
+            <td>${c.model}</td>
+            <td>${c.year}</td>
+            <td><span class="badge badge-gray">${c.plate}</span></td>
+            <td><span style="display:inline-block;width:12px;height:12px;background:${c.color.toLowerCase()};border:1px solid #ccc;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>${c.color}</td>
+            <td>${bkCnt}</td>
+            <td>
+              <button class="btn btn-ghost btn-sm" onclick="deleteCustomerVehicle('${cid}')" style="padding:4px; min-height:0; color:var(--red); height:28px; width:28px; display:flex; align-items:center; justify-content:center;" title="Remove Registered Vehicle">
+                ${trashIcon}
+              </button>
+            </td>
+          </tr>`;
+        }).join('')
+      : `<tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:32px">No vehicles found.</td></tr>`;
   }
 
   window.deleteCustomerVehicle = async (carId) => {
-    const car = getById(KEYS.CARS, carId);
+    const car = cars.find(c => getCarId(c) === carId);
     if (!car) return;
-    const owner = getById(KEYS.USERS, car.owner) || {};
+    const owner = (typeof car.owner === 'object' && car.owner) ? car.owner : {};
     if (!confirm(`Are you sure you want to remove the registered vehicle "${car.brand} ${car.model} (${car.year})" owned by ${owner.firstName || 'Customer'}?`)) return;
 
     try {
@@ -104,10 +123,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    let allCars = getAll(KEYS.CARS) || [];
-    allCars = allCars.filter(x => x.id !== carId);
-    saveAll(KEYS.CARS, allCars);
-    cars = allCars;
+    cars = cars.filter(c => getCarId(c) !== carId);
 
     showToast('Vehicle removed successfully!', 'success');
     updateStats();
@@ -117,8 +133,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   function renderReminders() {
     const reminders = cars.map(c => {
-      const lastSvce = allB.filter(b=>b.carId===c.id&&b.status==='completed').sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-      const owner = getById(KEYS.USERS, c.owner)||{};
+      const cid = getCarId(c);
+      const lastSvce = allB.filter(b => {
+        const bCarId = b.carId?._id || b.carId?.id || b.carId || '';
+        return bCarId === cid && b.status === 'completed';
+      }).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+      const owner = (typeof c.owner === 'object' && c.owner) ? c.owner : {};
       if (!lastSvce) return null;
       const daysSince = Math.floor((Date.now() - new Date(lastSvce.date)) / 86400000);
       if (daysSince < 60) return null;

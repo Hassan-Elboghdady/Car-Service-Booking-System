@@ -143,12 +143,52 @@
       <button class="modal-close" onclick="closeModal('add-car-from-booking')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label">Brand *</label><select class="form-control" id="ab-brand"><option value="">Select</option></select></div>
-      <div class="form-group"><label class="form-label">Model *</label><select class="form-control" id="ab-model" disabled><option value="">Select</option></select></div>
-      <div class="form-group"><label class="form-label">Year *</label><select class="form-control" id="ab-year" disabled><option value="">Select</option></select></div>
+      <div id="ab-alert"></div>
+      <div class="form-group">
+        <label class="form-label" for="ab-brand">Car Brand *</label>
+        <select class="form-control" id="ab-brand"><option value="">Select brand…</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ab-model">Model *</label>
+        <select class="form-control" id="ab-model" disabled><option value="">Select model…</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ab-year">Year *</label>
+        <select class="form-control" id="ab-year" disabled><option value="">Select year…</option></select>
+      </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Plate *</label><input class="form-control" id="ab-plate" placeholder="أ ب ج 1234"/></div>
-        <div class="form-group"><label class="form-label">Color *</label><input class="form-control" id="ab-color" placeholder="e.g. Black"/></div>
+        <div class="form-group">
+          <label class="form-label" for="ab-plate-numbers">License Plate *</label>
+          <div class="plate-split">
+            <input class="form-control plate-input plate-numbers" id="ab-plate-numbers" placeholder="1234" inputmode="numeric" maxlength="4"/>
+            <input class="form-control plate-input plate-letters" id="ab-plate-letters" placeholder="أ ب ج" dir="rtl" maxlength="7"/>
+            <input type="hidden" id="ab-plate"/>
+          </div>
+          <div class="form-hint">Numbers (max 4) on the left — Arabic letters (max 3) on the right.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ab-color">Color *</label>
+          <select class="form-control" id="ab-color">
+            <option value="">Select color…</option>
+            <option value="Black">Black</option>
+            <option value="White">White</option>
+            <option value="Silver">Silver</option>
+            <option value="Gray">Gray</option>
+            <option value="Red">Red</option>
+            <option value="Blue">Blue</option>
+            <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Orange">Orange</option>
+            <option value="Brown">Brown</option>
+            <option value="Beige">Beige</option>
+            <option value="Gold">Gold</option>
+            <option value="Purple">Purple</option>
+            <option value="Other">Other</option>
+          </select>
+          <div class="form-group" id="ab-color-custom-wrap" style="display:none; margin-top:10px;">
+            <input class="form-control" id="ab-color-custom" placeholder="Enter custom color"/>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">

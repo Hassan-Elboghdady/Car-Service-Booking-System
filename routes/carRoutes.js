@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { getCars, addCar, deleteCar } = require('../controllers/carController');
-const { protect } = require('../middleware/authMiddleware');
+const { getCars, getAllCars, addCar, deleteCar } = require('../controllers/carController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -13,6 +13,9 @@ function isValidPlate(plate) {
   const digits = (cleaned.match(/[0-9]/g) || []).length;
   return letters <= 3 && digits <= 4;
 }
+
+// GET /api/cars/all — get ALL cars with owner info (admin only)
+router.get('/all', protect, authorize('admin'), getAllCars);
 
 // GET /api/cars — get user's cars (protected)
 router.get('/', protect, getCars);
@@ -36,3 +39,4 @@ router.post(
 router.delete('/:id', protect, deleteCar);
 
 module.exports = router;
+
