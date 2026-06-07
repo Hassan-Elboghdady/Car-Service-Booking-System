@@ -85,12 +85,31 @@ function renderTable() {
     </tr>`).join('');
 }
 
+async function renderBookings() {
+  const response = await bookingsAPI.getPage(bkPage, bkLimit);
+  allB = (response.data || []).map(formatBackendBooking);
+  bkMeta = response.meta || bkMeta;
+  renderStats();
+  await renderTable();
+  const pager = document.getElementById('bm-pager');
+  if (pager) {
+    pager.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px">
+        <div style="font-size:.82rem;color:var(--gray-500)">Page ${bkMeta.page || bkPage} of ${bkMeta.pages || 1} · ${bkMeta.total || 0} total bookings</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" ${bkPage <= 1 ? 'disabled' : ''} onclick="changeBookingPage(${bkPage - 1})">Previous</button>
+          <button class="btn btn-ghost btn-sm" ${bkPage >= (bkMeta.pages || 1) ? 'disabled' : ''} onclick="changeBookingPage(${bkPage + 1})">Next</button>
+        </div>
+      </div>`;
+  }
+}
+
 window.removeBooking = async (id) => {
   const b = allB.find(x=>x.id===id); if(!b) return;
   const customerName = `${b.user?.firstName||''} ${b.user?.lastName||''}`.trim();
   if (!confirm(`Permanently remove this booking for ${customerName || 'this customer'}? This cannot be undone.`)) return;
   await bookingsAPI.remove(id);
-  allB = await bookingsAPI.allWithDetails();
+  await renderBookings();
   renderStats(); renderTable();
   showToast(`Booking removed permanently.`, 'success');
 };
@@ -100,20 +119,19 @@ window.rejectBooking = async (id) => {
   const customerName = `${b.user?.firstName||''} ${b.user?.lastName||''}`.trim();
   if (!confirm(`Reject booking for ${customerName || 'this customer'}? This will set the status to Cancelled.`)) return;
   await bookingsAPI.updateStatus(id, 'cancelled');
-  allB = await bookingsAPI.allWithDetails();
-  renderStats(); renderTable();
+  await renderBookings();
   showToast(`Booking rejected for ${customerName || 'customer'}.`, 'warning');
 };
 
 window.updateStatus = async (id, status) => {
   await bookingsAPI.updateStatus(id, status);
-  allB = await bookingsAPI.allWithDetails();
-  renderTable(); showToast('Status updated','success');
+  await renderBookings(); showToast('Status updated','success');
 };
 
 window.assignStaff = async (id, staffId) => {
   await bookingsAPI.assignStaff(id, staffId);
-  allB = await bookingsAPI.allWithDetails(); renderTable();
+  await renderBookings();
+  renderTable();
   showToast('Staff assigned','success');
 };
 

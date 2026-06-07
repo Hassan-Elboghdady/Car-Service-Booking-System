@@ -30,7 +30,6 @@
     <a href="index.ejs"><span class="s-icon">🏠</span> Main Site</a>
     <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
   </nav>
-  <!-- Revenue widget for Manager role  populated by JS -->
   <div id="mgr-sidebar-stats" style="display:none;margin:16px;padding:16px;background:rgba(230,0,35,.08);border-radius:var(--radius-md);border:1px solid rgba(230,0,35,.18)">
     <div style="font-size:.7rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px"> Revenue Today</div>
     <div id="mgr-rev-today" style="font-size:1.2rem;font-weight:800;color:var(--primary)">EGP </div>
@@ -64,10 +63,8 @@
       </div>
     </div>
 
-    <!-- Stats (4 cards for mechanic, 6 for manager  rendered by JS) -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;margin-bottom:28px" id="staff-stats"></div>
 
-    <!-- Mechanic layout: jobs list + today sidebar -->
     <div style="display:grid;grid-template-columns:1fr 300px;gap:24px" id="mechanic-layout">
       <div class="card">
         <div class="card-header flex-between">
@@ -82,7 +79,6 @@
       </div>
     </div>
 
-    <!-- Manager layout: full-width sections rendered by JS -->
     <div id="staff-main-layout"></div>
   </div>
 </div>

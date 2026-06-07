@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.use(protect);
-router.use(authorize('admin')); // All inventory operations require admin role
+router.use(authorize('admin'));
 
 router.get('/', getAllItems);
 router.post('/', createItem);

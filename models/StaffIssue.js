@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const staffIssueSchema = new mongoose.Schema({
   staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  bookingId: { type: String }, // Can be booking ID
+  bookingId: { type: String },
   type: { type: String, required: true },
   severity: { type: String, default: 'low' },
   desc: { type: String, required: true },

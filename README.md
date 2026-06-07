@@ -43,6 +43,13 @@ HTTPS_KEY_PATH=path/to/privkey.pem
 HTTPS_CERT_PATH=path/to/fullchain.pem
 ```
 
+## Vercel Deployment
+
+- The project now includes `vercel.json` and `api/index.js` for Vercel deployment.
+- Push the repo to GitHub, import it in Vercel, and deploy with the default settings.
+- Vercel will handle HTTPS automatically for the deployed app.
+- The local HTTPS settings above are only needed if you want to run HTTPS on your own machine.
+
 ## Notes
 
 - `server.js` loads environment variables with `dotenv` and connects to MongoDB.

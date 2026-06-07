@@ -719,6 +719,13 @@ const servicesAPI = {
 const reviewsAPI = {
   async getApproved() { try { const r = await api.get('/reviews/approved'); return r.data || []; } catch(e) { return []; } },
   async getAll() { try { const r = await api.get('/reviews/all'); return r.data || []; } catch(e) { return []; } },
+  async getPage(page = 1, limit = 5) {
+    try {
+      return await api.get(`/reviews/all?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`);
+    } catch (e) {
+      return { data: [], meta: { page, limit, total: 0, pages: 1 } };
+    }
+  },
   async add(data) { try { const r = await api.post('/reviews', data); return r.data; } catch(e) { return null; } },
   async updateStatus(id, status) { try { const r = await api.put(`/reviews/${id}/status`, { status }); return r.data; } catch(e) { return null; } },
   async remove(id) { try { await api.del(`/reviews/${id}`); return true; } catch(e) { return false; } },

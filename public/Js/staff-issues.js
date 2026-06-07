@@ -1,4 +1,3 @@
-// staff-issues.js
 window.addEventListener('DOMContentLoaded', async () => {
   seedData(); if (!requireRole('staff')) return; initSidebar();
   const user = auth.current();
@@ -22,7 +21,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       await api.post('/issues', {
         staffId: user.id, bookingId: bid, type, severity: sev, desc
       });
-      // Notify admin
       notify({ message:`Staff ${user.firstName} reported a problem: ${type}`, type:'warning', icon:'✅' });
       el.innerHTML='<div class="alert alert-success">✅ Issue submitted to admin. Thank you.</div>';
       document.getElementById('iss-desc').value='';
