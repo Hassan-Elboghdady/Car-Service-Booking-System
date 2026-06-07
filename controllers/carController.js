@@ -16,6 +16,22 @@ const getCars = async (req, res, next) => {
   }
 };
 
+// GET /api/cars/all — get ALL cars (admin only) with owner info populated.
+const getAllCars = async (req, res, next) => {
+  try {
+    const cars = await Car.find({})
+      .populate('owner', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+    res.status(200).json({
+      message: 'All cars fetched successfully.',
+      count: cars.length,
+      data: cars,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // POST /api/cars — add a new car for the logged-in user.
 const addCar = async (req, res, next) => {
   try {
@@ -66,4 +82,4 @@ const deleteCar = async (req, res, next) => {
   }
 };
 
-module.exports = { getCars, addCar, deleteCar };
+module.exports = { getCars, getAllCars, addCar, deleteCar };

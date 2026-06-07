@@ -1,5 +1,5 @@
-// car-details.js   Fixed: correctly reads ?id= from URL, validates ownership
-window.addEventListener('DOMContentLoaded', () => {
+// car-details.js   Fixed: loads car from real backend API
+window.addEventListener('DOMContentLoaded', async () => {
   seedData();
 
   const user = auth.current();
@@ -17,33 +17,25 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="empty-icon">🔧</div>
         <h3>No Vehicle Selected</h3>
         <p>Please go to <a href="cars.ejs">My Cars</a> and pick a vehicle to view.</p>
-        <a href="cars.ejs" class="btn btn-primary mt-16">? Back to My Cars</a>
+        <a href="cars.ejs" class="btn btn-primary mt-16">← Back to My Cars</a>
       </div>`;
     return;
   }
 
-  const allCars = getAll(KEYS.CARS);
-  const car = allCars.find(c => c.id === carId);
+  // Fetch the user's cars from the real backend
+  let car = null;
+  try {
+    const myCars = await carsAPI.forUser(user.id);
+    car = myCars.find(c => (c._id || c.id) === carId);
+  } catch(e) {}
 
   if (!car) {
     document.getElementById('cd-auth-guard').innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">🔧?</div>
+        <div class="empty-icon">🔧❌</div>
         <h3>Vehicle Not Found</h3>
-        <p>This vehicle doesn't exist in our records.</p>
-        <a href="cars.ejs" class="btn btn-primary mt-16">? Back to My Cars</a>
-      </div>`;
-    return;
-  }
-
-  // Admins can view any car; customers can only view their own
-  if (user.role === 'customer' && car.owner !== user.id) {
-    document.getElementById('cd-auth-guard').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🔧?</div>
-        <h3>Access Denied</h3>
-        <p>This vehicle does not belong to your account.</p>
-        <a href="cars.ejs" class="btn btn-primary mt-16">? Back to My Cars</a>
+        <p>This vehicle doesn't exist or was removed.</p>
+        <a href="cars.ejs" class="btn btn-primary mt-16">← Back to My Cars</a>
       </div>`;
     return;
   }
@@ -62,6 +54,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderCar(car) {
+  const cid = car._id || car.id;
   document.getElementById('cd-title').textContent  = `${car.emoji || '🚗'} ${car.brand} ${car.model}`;
   document.getElementById('cd-brand').textContent  = car.brand;
   document.getElementById('cd-model').textContent  = car.model;
@@ -69,7 +62,7 @@ function renderCar(car) {
   document.getElementById('cd-plate').textContent  = car.plate  || '';
   document.getElementById('cd-color').textContent  = car.color  || '';
   document.getElementById('cd-created').textContent = formatDate(car.createdAt || new Date());
-  document.getElementById('cd-book-btn').href      = `booking.ejs?car=${car.id}`;
+  document.getElementById('cd-book-btn').href      = `booking.ejs?car=${cid}`;
 }
 
 async function renderHistory(carId) {

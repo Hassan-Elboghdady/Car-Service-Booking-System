@@ -379,19 +379,58 @@ function updateSidebar() {
 }
 
 // --- ADD CAR FROM BOOKING -------------------------------------
+
+// Plate validation (matches login page)
+function abIsValidPlate(plate) {
+  const cleaned = String(plate || '').replace(/\s+/g, '');
+  if (!/^[\p{Script=Arabic}0-9]{1,7}$/u.test(cleaned)) return false;
+  const letters = (cleaned.match(/\p{Script=Arabic}/gu) || []).length;
+  const digits  = (cleaned.match(/[0-9]/g) || []).length;
+  return letters <= 3 && digits <= 4;
+}
+
+function abExtractArabicLetters(s) {
+  return (String(s).match(/\p{Script=Arabic}/gu) || []).slice(0, 3);
+}
+
+// Inline field-error helpers
+function abShowFieldErr(inputId, msg) {
+  const alertEl = document.getElementById('ab-alert');
+  const el = document.getElementById(inputId);
+  if (el) {
+    el.classList.add('is-invalid');
+    let errDiv = el.parentElement.querySelector('.form-error');
+    if (!errDiv) { errDiv = document.createElement('div'); errDiv.className = 'form-error'; el.parentElement.appendChild(errDiv); }
+    errDiv.textContent = msg;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  if (alertEl) alertEl.innerHTML = `<div class="alert alert-danger">${msg}</div>`;
+}
+
+function abClearErrors() {
+  const alertEl = document.getElementById('ab-alert');
+  if (alertEl) alertEl.innerHTML = '';
+  ['ab-brand','ab-model','ab-year','ab-plate-numbers','ab-plate-letters','ab-color','ab-color-custom'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.classList.remove('is-invalid');
+    const e = el.parentElement.querySelector('.form-error'); if (e) e.remove();
+  });
+}
+
 function buildAddCarModal() {
   const bSel = document.getElementById('ab-brand');
   const mSel = document.getElementById('ab-model');
   const ySel = document.getElementById('ab-year');
   if (!bSel) return;
 
+  // Populate brands
   Object.keys(CARS_DB).forEach(b => {
     const o = document.createElement('option'); o.value = b; o.textContent = b; bSel.appendChild(o);
   });
 
   bSel.addEventListener('change', () => {
-    mSel.innerHTML = '<option value="">Select model</option>';
-    ySel.innerHTML = '<option value="">Select year</option>';
+    mSel.innerHTML = '<option value="">Select model…</option>';
+    ySel.innerHTML = '<option value="">Select year…</option>';
     mSel.disabled = !bSel.value; ySel.disabled = true;
     Object.keys(CARS_DB[bSel.value]?.models || {}).forEach(m => {
       const o = document.createElement('option'); o.value = m; o.textContent = m; mSel.appendChild(o);
@@ -399,18 +438,82 @@ function buildAddCarModal() {
   });
 
   mSel.addEventListener('change', () => {
-    ySel.innerHTML = '<option value="">Select year</option>'; ySel.disabled = !mSel.value;
+    ySel.innerHTML = '<option value="">Select year…</option>'; ySel.disabled = !mSel.value;
     (CARS_DB[bSel.value]?.models[mSel.value] || []).slice().reverse().forEach(y => {
       const o = document.createElement('option'); o.value = y; o.textContent = y; ySel.appendChild(o);
     });
   });
 
+  // Plate split formatting
+  const plateNumEl = document.getElementById('ab-plate-numbers');
+  const plateLetEl = document.getElementById('ab-plate-letters');
+  const plateHidEl = document.getElementById('ab-plate');
+
+  function formatAbPlateLetters() {
+    if (!plateLetEl) return;
+    const letters = abExtractArabicLetters(plateLetEl.value);
+    plateLetEl.dataset.raw = letters.join('');
+    plateLetEl.value = letters.join(' ');
+  }
+  function formatAbPlateNumbers() {
+    if (!plateNumEl) return;
+    plateNumEl.value = (plateNumEl.value || '').replace(/\D/g, '').slice(0, 4);
+  }
+  if (plateLetEl) {
+    plateLetEl.addEventListener('input', formatAbPlateLetters);
+    plateLetEl.addEventListener('paste', () => setTimeout(formatAbPlateLetters, 0));
+  }
+  if (plateNumEl) {
+    plateNumEl.addEventListener('input', formatAbPlateNumbers);
+    plateNumEl.addEventListener('paste', () => setTimeout(formatAbPlateNumbers, 0));
+  }
+
+  // Color custom toggle
+  const colorSel = document.getElementById('ab-color');
+  const colorCustomWrap = document.getElementById('ab-color-custom-wrap');
+  const colorCustomInput = document.getElementById('ab-color-custom');
+  colorSel?.addEventListener('change', () => {
+    const showCustom = colorSel.value === 'Other';
+    if (colorCustomWrap) colorCustomWrap.style.display = showCustom ? 'block' : 'none';
+    if (!showCustom && colorCustomInput) colorCustomInput.value = '';
+  });
+
+  // Reset modal on open
+  document.getElementById('add-car-from-booking')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('add-car-from-booking')) {
+      abClearErrors();
+    }
+  });
+
+  // Save button with full validation
   document.getElementById('ab-save')?.addEventListener('click', async () => {
-    const b = bSel.value, m = mSel.value, y = ySel.value;
-    const p = document.getElementById('ab-plate').value.trim();
-    const c = document.getElementById('ab-color').value.trim();
-    if (!b||!m||!y||!p||!c) { showToast('Please fill all fields', 'warning'); return; }
-    const car = await carsAPI.add({ brand:b, model:m, year:parseInt(y), plate:p, color:c, emoji:CARS_DB[b]?.emoji||'🚗' });
+    abClearErrors();
+
+    const b = bSel.value;
+    const m = mSel.value;
+    const y = ySel.value;
+    const plateNumbers = plateNumEl?.value.trim() || '';
+    const plateLettersRaw = plateLetEl?.dataset?.raw || '';
+    const plate = (plateLettersRaw + plateNumbers).trim();
+    const color = colorSel?.value || '';
+    const customColor = colorCustomInput?.value.trim() || '';
+
+    if (!b) { abShowFieldErr('ab-brand', 'Please select your car brand.'); return; }
+    if (!m) { abShowFieldErr('ab-model', 'Please select your car model.'); return; }
+    if (!y) { abShowFieldErr('ab-year',  'Please select the car year.'); return; }
+    if (!plateNumbers && !plateLettersRaw) { abShowFieldErr('ab-plate-numbers', 'Please enter your license plate.'); return; }
+    if (!abIsValidPlate(plate)) { abShowFieldErr('ab-plate-numbers', 'License plate must use up to 3 Arabic letters and up to 4 digits.'); return; }
+    if (!color) { abShowFieldErr('ab-color', 'Please select your car color.'); return; }
+    if (color === 'Other' && !customColor) { abShowFieldErr('ab-color-custom', 'Please enter your custom color.'); return; }
+
+    const finalColor = color === 'Other' ? customColor : color;
+    const finalPlate = plate.replace(/\s+/g, '');
+
+    const car = await carsAPI.add({
+      brand: b, model: m, year: parseInt(y),
+      plate: finalPlate, color: finalColor,
+      emoji: CARS_DB[b]?.emoji || '🚗'
+    });
     userCars = await carsAPI.forUser(auth.current()?.id || '');
     booking.carId = car._id || car.id;
     closeModal('add-car-from-booking');

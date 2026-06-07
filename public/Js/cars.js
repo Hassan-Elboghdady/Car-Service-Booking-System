@@ -141,7 +141,9 @@ async function buildMyCars() {
 function renderMyCars(cars) {
   const list = document.getElementById('my-cars-list');
   if (!list) return;
-  list.innerHTML = cars.map(c => `
+  list.innerHTML = cars.map(c => {
+    const cid = c._id || c.id;
+    return `
     <div class="my-car-card">
       <div class="my-car-emoji" style="border-radius:8px; overflow:hidden;">
         <img src="${getCarImage(c.brand, c.model)}" alt="${c.brand} ${c.model}" style="width:100%; height:100%; object-fit:cover;">
@@ -154,15 +156,19 @@ function renderMyCars(cars) {
         </div>
       </div>
       <div class="my-car-actions">
-        <a href="car-details.ejs?id=${c.id}" class="btn btn-outline btn-sm">View Details</a>
-        <a href="booking.ejs?car=${c.id}" class="btn btn-primary btn-sm">Book Service</a>
-        <button class="btn btn-danger btn-sm" onclick="confirmRemoveCar('${c.id}')">✕</button>
+        <a href="car-details.ejs?id=${cid}" class="btn btn-outline btn-sm">View Details</a>
+        <a href="booking.ejs?car=${cid}" class="btn btn-primary btn-sm">Book Service</a>
+        <button class="btn btn-danger btn-sm" onclick="confirmRemoveCar('${cid}')">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 window.confirmRemoveCar = async (id) => {
-  const car = getById(KEYS.CARS, id);
+  const user = auth.current();
+  if (!user) return;
+  const myCars = await carsAPI.forUser(user.id);
+  const car = myCars.find(c => (c._id || c.id) === id);
   if (!car) return;
   if (!confirm(`Remove ${car.brand} ${car.model} from your vehicles?`)) return;
   await carsAPI.remove(id);

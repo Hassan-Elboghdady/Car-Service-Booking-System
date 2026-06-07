@@ -68,6 +68,16 @@
 /* Form hint */
 .form-hint { font-size: .73rem; color: var(--gray-500); margin-top: 4px; }
 
+/* License plate split inputs (matches login page) */
+.plate-split { display: flex; gap: 8px; align-items: center; }
+.plate-input  { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--gray-200); font-size: 1rem; }
+.plate-numbers { width: 110px; text-align: left; }
+.plate-letters { flex: 1; text-align: right; direction: rtl; }
+
+/* Inline field validation errors */
+.form-error { font-size: .75rem; color: var(--danger, #ef4444); margin-top: 4px; }
+.form-control.is-invalid { border-color: var(--danger, #ef4444) !important; background: #fff5f5; }
+
 @media(max-width:768px) {
   .wizard-layout { grid-template-columns: 1fr; }
   .wizard-sidebar { position: static; }
