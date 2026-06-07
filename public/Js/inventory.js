@@ -1,4 +1,3 @@
-// inventory.js
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;

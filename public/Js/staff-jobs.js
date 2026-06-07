@@ -1,9 +1,8 @@
-// staff-jobs.js   Mechanic jobs + Available jobs pool
 'use strict';
 
 const JOB_MILEAGE = {
   'pkg-10k':'10,000 km Service','pkg-20k':'20,000 km Service','pkg-30k':'30,000 km Service',
-  'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Major Service',
+  'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Service',
   'pkg-70k':'70,000 km Service','pkg-80k':'80,000 km Service','pkg-90k':'90,000 km Service',
   'pkg-100k':'100,000 km Overhaul',
 };
@@ -16,7 +15,7 @@ function jobSvcLabel(b) {
   return '';
 }
 
-let jTab = 'mine';   // 'mine' | 'available'
+let jTab = 'mine';
 let jFilter = 'all';
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -24,7 +23,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!requireRole('staff')) return;
   initSidebar();
 
-  // Tab switcher: Mine / Available Jobs
   document.querySelectorAll('[data-jtab]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-jtab]').forEach(b => b.classList.remove('active'));
@@ -34,7 +32,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Status filter
   document.querySelectorAll('[data-jf]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-jf]').forEach(b => b.classList.remove('active'));
@@ -54,7 +51,6 @@ async function renderJobs() {
   const statusFilters = document.getElementById('status-filters');
 
   if (jTab === 'available') {
-    // Show ALL unassigned pending bookings that mechanic can claim
     statusFilters.style.display = 'none';
     const avail = allB.filter(b => b.status === 'pending' && !b.assignedStaff);
     if (!avail.length) {
@@ -87,7 +83,6 @@ async function renderJobs() {
     return;
   }
 
-  // My Jobs tab
   statusFilters.style.display = '';
   let jobs = allB.filter(b => b.assignedStaff === user.id);
   if (jFilter !== 'all') jobs = jobs.filter(j => j.status === jFilter);
@@ -117,7 +112,6 @@ async function renderJobs() {
     </div>`).join('');
 }
 
-// --- HELPERS --------------------------------------------------
 function daysDiff(dateStr) {
   const today = new Date(); today.setHours(0,0,0,0);
   const d     = new Date(dateStr); d.setHours(0,0,0,0);

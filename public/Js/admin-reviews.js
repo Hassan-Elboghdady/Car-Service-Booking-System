@@ -1,5 +1,8 @@
 // admin-reviews.js
 let rvFilter = 'all';
+let rvPage = 1;
+const rvLimit = 5;
+let rvMeta = { page: 1, pages: 1, total: 0, limit: rvLimit };
 
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
@@ -16,6 +19,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       document.querySelectorAll('[data-rv]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       rvFilter = btn.dataset.rv;
+      rvPage = 1;
       await renderReviews();
     });
   });
@@ -38,11 +42,18 @@ async function renderStats() {
 
 // --- CUSTOMER REVIEWS -----------------------------------------
 async function renderReviews() {
-  let revs = await reviewsAPI.getAll();
+  const response = await reviewsAPI.getPage(rvPage, rvLimit);
+  let revs = response.data || [];
+  rvMeta = response.meta || rvMeta;
   if (rvFilter !== 'all') revs = revs.filter(r => rvFilter === 'approved' ? r.status === 'approved' : r.status !== 'approved');
   const el = document.getElementById('rv-list');
+  const pager = document.getElementById('rv-pager');
   if (!el) return;
-  if (!revs.length) { el.innerHTML = '<div class="empty-state" style="padding:32px"><div class="empty-icon">🔧</div><p>No reviews yet.</p></div>'; return; }
+  if (!revs.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:32px"><div class="empty-icon">🔧</div><p>No reviews yet.</p></div>';
+    if (pager) pager.innerHTML = '';
+    return;
+  }
   el.innerHTML = [...revs].reverse().map(r => {
     const user = r.userId || {};
     return `<div style="padding:18px 0;border-bottom:1px solid var(--gray-100)">
@@ -63,7 +74,25 @@ async function renderReviews() {
       </div>
     </div>`;
   }).join('');
+
+  if (pager) {
+    pager.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px">
+        <div style="font-size:.82rem;color:var(--gray-500)">Page ${rvMeta.page || rvPage} of ${rvMeta.pages || 1} · ${rvMeta.total || 0} total reviews</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" ${rvPage <= 1 ? 'disabled' : ''} onclick="changeReviewPage(${rvPage - 1})">Previous</button>
+          <button class="btn btn-ghost btn-sm" ${rvPage >= (rvMeta.pages || 1) ? 'disabled' : ''} onclick="changeReviewPage(${rvPage + 1})">Next</button>
+        </div>
+      </div>`;
+  }
 }
+
+window.changeReviewPage = async (page) => {
+  const nextPage = Math.max(1, page);
+  if (nextPage === rvPage) return;
+  rvPage = nextPage;
+  await renderReviews();
+};
 
 window.approveReview = async (id) => {
   await reviewsAPI.updateStatus(id, 'approved');

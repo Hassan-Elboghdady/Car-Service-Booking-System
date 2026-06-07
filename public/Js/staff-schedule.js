@@ -1,4 +1,3 @@
-// staff-schedule.js  Fixed time matching + mileage service names
 'use strict';
 
 const SCHED_MILEAGE = {

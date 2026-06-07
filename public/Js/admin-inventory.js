@@ -1,4 +1,3 @@
-// admin-inventory.js
 let editingId = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -62,49 +61,40 @@ window.openEditItem = async (id) => {
 
 async function seedInventory() {
   const existing = await inventoryAPI.getAll();
-  // Only skip if we already have items
   if (existing.length > 0) return;
   const items = [
-    // Oils & Lubricants
     { name:'Engine Oil 5W-30 (1L)',          icon:'✅', cat:'oils',      unit:'quarts',  cost:120,  qty:80,  lowAt:15, supplier:'Castrol',  minOrder:12, notes:'Mineral base. For petrol engines.' },
     { name:'Engine Oil 5W-40 Synthetic (1L)',icon:'✅', cat:'oils',      unit:'quarts',  cost:185,  qty:60,  lowAt:12, supplier:'Mobil 1',   minOrder:12, notes:'Full synthetic. Petrol & diesel.' },
     { name:'Engine Oil 10W-40 (1L)',         icon:'✅', cat:'oils',      unit:'quarts',  cost:95,   qty:100, lowAt:20, supplier:'Shell',     minOrder:24, notes:'Semi-synthetic multi-grade.' },
     { name:'Gear Box Oil ATF (1L)',          icon:'✅', cat:'oils',      unit:'liters',  cost:140,  qty:40,  lowAt:8,  supplier:'Valvoline', minOrder:6,  notes:'Automatic transmission fluid.' },
     { name:'Power Steering Fluid (500ml)',   icon:'✅', cat:'oils',      unit:'bottles', cost:75,   qty:30,  lowAt:6,  supplier:'Prestone', minOrder:6,  notes:'Universal PSF.' },
-    // Filters
     { name:'Oil Filter (Universal)',         icon:'✅', cat:'filters',   unit:'pcs',     cost:55,   qty:120, lowAt:20, supplier:'Mann',      minOrder:20, notes:'Fits Toyota, Hyundai, MG, Nissan.' },
     { name:'Air Filter (Panel)',             icon:'✅', cat:'filters',   unit:'pcs',     cost:90,   qty:80,  lowAt:15, supplier:'K&N',       minOrder:10, notes:'High-flow panel filter.' },
     { name:'Cabin Air Filter',               icon:'✅', cat:'filters',   unit:'pcs',     cost:75,   qty:60,  lowAt:10, supplier:'Mann',      minOrder:10, notes:'Pollen/dust cabin filter.' },
     { name:'Fuel Filter',                    icon:'✅', cat:'filters',   unit:'pcs',     cost:110,  qty:40,  lowAt:8,  supplier:'Bosch',     minOrder:6,  notes:'In-line fuel filter.' },
-    // Brakes & Tyres
     { name:'Brake Pads (Front)  Economy',  icon:'✅', cat:'brakes',    unit:'sets',    cost:350,  qty:30,  lowAt:6,  supplier:'Brembo',    minOrder:4,  notes:'For Yaris, Spark, i10.' },
     { name:'Brake Pads (Front)  Mid',      icon:'✅', cat:'brakes',    unit:'sets',    cost:480,  qty:24,  lowAt:5,  supplier:'Brembo',    minOrder:4,  notes:'For Corolla, Elantra, MG ZS.' },
     { name:'Brake Pads (Rear)',              icon:'✅', cat:'brakes',    unit:'sets',    cost:290,  qty:20,  lowAt:4,  supplier:'Brembo',    minOrder:4,  notes:'Universal rear set.' },
     { name:'Brake Disc (Front) Pair',       icon:'✅', cat:'brakes',    unit:'pairs',   cost:680,  qty:16,  lowAt:3,  supplier:'ATE',       minOrder:2,  notes:'Ventilated front discs.' },
     { name:'Brake Fluid DOT 4 (500ml)',     icon:'✅', cat:'fluids',    unit:'bottles', cost:65,   qty:50,  lowAt:10, supplier:'ATE',       minOrder:12, notes:'DOT 4 specification.' },
-    // Electrical & Battery
     { name:'Car Battery 55Ah',               icon:'✅', cat:'electrical',unit:'pcs',     cost:1200, qty:15,  lowAt:3,  supplier:'Varta',     minOrder:2,  notes:'12V 55Ah. Economy cars.' },
     { name:'Car Battery 70Ah',               icon:'✅', cat:'electrical',unit:'pcs',     cost:1600, qty:10,  lowAt:2,  supplier:'Bosch',     minOrder:2,  notes:'12V 70Ah. Mid-range cars.' },
     { name:'Spark Plugs (Iridium) x4',      icon:'📋', cat:'electrical',unit:'sets',    cost:320,  qty:40,  lowAt:8,  supplier:'NGK',       minOrder:5,  notes:'Iridium IX. 4-cylinder engines.' },
     { name:'Spark Plugs (Platinum) x4',     icon:'📋', cat:'electrical',unit:'sets',    cost:240,  qty:50,  lowAt:10, supplier:'Denso',     minOrder:5,  notes:'Platinum. Standard replacement.' },
     { name:'Alternator Belt',                icon:'✅', cat:'electrical',unit:'pcs',     cost:180,  qty:25,  lowAt:5,  supplier:'Gates',     minOrder:4,  notes:'V-ribbed serpentine belt.' },
-    // Fluids & Coolants
     { name:'Coolant Concentrate (1L)',       icon:'✅', cat:'fluids',    unit:'liters',  cost:85,   qty:60,  lowAt:12, supplier:'Prestone', minOrder:12, notes:'Mix 50/50 with distilled water.' },
     { name:'Coolant Ready-Mix (5L)',         icon:'✅', cat:'fluids',    unit:'jugs',    cost:220,  qty:30,  lowAt:6,  supplier:'Mobil',     minOrder:4,  notes:'Pre-mixed. Ready to pour.' },
     { name:'Windscreen Washer Fluid (5L)',   icon:'✅', cat:'fluids',    unit:'jugs',    cost:75,   qty:40,  lowAt:8,  supplier:'Rain-X',    minOrder:6,  notes:'Anti-streak formula.' },
     { name:'AC Refrigerant R-134a (250g)',  icon:'✅', cat:'fluids',    unit:'cans',    cost:195,  qty:24,  lowAt:5,  supplier:'Liqui Moly',minOrder:4,  notes:'Automotive AC refrigerant.' },
-    // Belts & Hoses
     { name:'Timing Belt Kit (Economy)',      icon:'✅', cat:'belts',     unit:'kits',    cost:680,  qty:12,  lowAt:3,  supplier:'Gates',     minOrder:2,  notes:'Belt + tensioner + idler. Yaris/Spark.' },
     { name:'Timing Belt Kit (Mid)',          icon:'✅', cat:'belts',     unit:'kits',    cost:950,  qty:10,  lowAt:2,  supplier:'Dayco',     minOrder:2,  notes:'Corolla/Elantra/MG ZS.' },
     { name:'Serpentine Belt',                icon:'✅', cat:'belts',     unit:'pcs',     cost:210,  qty:20,  lowAt:4,  supplier:'Gates',     minOrder:4,  notes:'Multi-rib drive belt.' },
     { name:'Radiator Hose (Upper)',          icon:'✅', cat:'belts',     unit:'pcs',     cost:145,  qty:20,  lowAt:4,  supplier:'Behr',      minOrder:4,  notes:'Upper radiator hose.' },
-    // Cleaning & Detailing
     { name:'Car Shampoo (5L)',               icon:'✅', cat:'cleaning',  unit:'jugs',    cost:120,  qty:20,  lowAt:4,  supplier:'Meguiars',  minOrder:4,  notes:'pH neutral car wash.' },
     { name:'Microfiber Cloths (10-pack)',    icon:'✅', cat:'cleaning',  unit:'packs',   cost:85,   qty:30,  lowAt:5,  supplier:'Chemical Guys',minOrder:5,'notes':'Professional-grade detailing cloths.' },
     { name:'Tyre Shine Spray (500ml)',       icon:'✅', cat:'cleaning',  unit:'bottles', cost:95,   qty:25,  lowAt:5,  supplier:'Armor All', minOrder:6,  notes:'Long-lasting tyre dressing.' },
     { name:'Interior Cleaner (500ml)',       icon:'✅', cat:'cleaning',  unit:'bottles', cost:80,   qty:20,  lowAt:4,  supplier:'Meguiars',  minOrder:6,  notes:'Multi-surface interior spray.' },
     { name:'Engine Degreaser (500ml)',       icon:'✅', cat:'cleaning',  unit:'bottles', cost:110,  qty:18,  lowAt:4,  supplier:'WD-40',     minOrder:6,  notes:'Citrus-based engine cleaner.' },
-    // Spare Parts
     { name:'Wiper Blade (Front) 24"',       icon:'✅', cat:'parts',     unit:'pcs',     cost:140,  qty:30,  lowAt:5,  supplier:'Bosch',     minOrder:6,  notes:'Flat beam style. Universal 24".' },
     { name:'Wiper Blade (Rear) 14"',        icon:'✅', cat:'parts',     unit:'pcs',     cost:90,   qty:20,  lowAt:4,  supplier:'Valeo',     minOrder:6,  notes:'Rear wiper. Universal 14".' },
     { name:'Thermostat (Universal)',         icon:'✅', cat:'parts',     unit:'pcs',     cost:95,   qty:15,  lowAt:3,  supplier:'Gates',     minOrder:5,  notes:'82C rating. Standard fitment.' },
