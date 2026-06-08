@@ -58,7 +58,8 @@ const register = async (req, res, next) => {
       staffRole: staffRole || '',
       userType: userType || '',
       points: 0,
-      profileCompleted: (role || 'customer') !== 'customer',
+      authProvider: 'local',
+      profileCompleted: true, // email/password users provide all info at registration
     });
 
     // Mark staff code as used

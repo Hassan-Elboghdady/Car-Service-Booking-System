@@ -21,10 +21,14 @@ const protect = async (req, res, next) => {
     if (token) {
       decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     } else if (req.session && req.session.userId) {
+      // Legacy session fallback (email/password session)
       decoded = {
         id: req.session.userId,
         role: req.session.userRole,
       };
+    } else if (req.session && req.session.passport && req.session.passport.user) {
+      // Passport/OAuth session fallback (Google, Facebook)
+      decoded = { id: req.session.passport.user };
     }
 
     if (!decoded) {

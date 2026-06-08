@@ -4,7 +4,8 @@ const userSchema = new mongoose.Schema(
   {
     googleId: {
       type: String,
-      default: '',
+      default: null,
+      sparse: true,
     },
     firstName: {
       type: String,
@@ -89,7 +90,13 @@ const userSchema = new mongoose.Schema(
     },
     facebookId: {
       type: String,
-      default: '',
+      default: null,
+      sparse: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google', 'facebook'],
+      default: 'local',
     },
   },
   {

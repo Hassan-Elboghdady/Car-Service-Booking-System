@@ -17,15 +17,17 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           let user = await User.findOne({ email: profile.emails[0].value });
 
           if (user) {
-            if (!user.googleId) {
-              user.googleId = profile.id;
-              await user.save();
-            }
+            // Link Google ID and update provider if not already done
+            let changed = false;
+            if (!user.googleId) { user.googleId = profile.id; changed = true; }
+            if (user.authProvider === 'local') { user.authProvider = 'google'; changed = true; }
+            if (changed) await user.save();
             return done(null, user);
           }
 
           user = await User.create({
             googleId: profile.id,
+            authProvider: 'google',
             firstName: profile.name.givenName || '',
             lastName: profile.name.familyName || '',
             email: profile.emails[0].value,
@@ -33,6 +35,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             phone: '01000000000',
             password: Math.random().toString(36).slice(-12),
             role: 'customer',
+            profileCompleted: false,
           });
 
           return done(null, user);
@@ -68,20 +71,22 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
           }
 
           if (user) {
-            if (!user.facebookId) {
-              user.facebookId = profile.id;
-              await user.save();
-            }
+            // Link Facebook ID and update provider if not already done
+            let changed = false;
+            if (!user.facebookId) { user.facebookId = profile.id; changed = true; }
+            if (user.authProvider === 'local') { user.authProvider = 'facebook'; changed = true; }
+            if (changed) await user.save();
             return done(null, user);
           }
 
           user = await User.create({
             facebookId: profile.id,
+            authProvider: 'facebook',
             firstName: profile.name?.givenName || '',
             lastName: profile.name?.familyName || '',
             email: email || `${profile.id}@facebook.com`,
             profileImage: profile.photos && profile.photos[0] ? profile.photos[0].value : '',
-            phone: '01000000000', // fallback temporary number to satisfy validation
+            phone: '01000000000',
             password: Math.random().toString(36).slice(-12),
             role: 'customer',
             profileCompleted: false,

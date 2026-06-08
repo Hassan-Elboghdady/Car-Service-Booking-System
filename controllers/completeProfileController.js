@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Car = require('../models/Car');
 
@@ -68,6 +69,19 @@ const submitCompleteProfile = async (req, res, next) => {
         emoji: emoji || '🚗',
       });
     }
+
+    // 3. Issue a fresh JWT so the client's cookie immediately reflects profileCompleted: true
+    const newToken = jwt.sign(
+      { id: updatedUser._id, role: updatedUser.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+    res.cookie('as_token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(200).json({
       message: 'Profile completed successfully.',

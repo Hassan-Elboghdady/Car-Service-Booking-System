@@ -92,11 +92,20 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Middleware to force profile completion for customers who logged in via social auth
+// Middleware to force profile completion for OAuth customers who haven't finished yet.
+// Email/password users (authProvider === 'local') are never redirected here.
 app.use((req, res, next) => {
+  const isOAuthUser = req.user && (
+    req.user.authProvider === 'google' ||
+    req.user.authProvider === 'facebook' ||
+    req.user.googleId ||
+    req.user.facebookId
+  );
+
   if (
     req.user &&
     req.user.role === 'customer' &&
+    isOAuthUser &&
     !req.user.profileCompleted &&
     req.path !== '/complete-profile'
   ) {
