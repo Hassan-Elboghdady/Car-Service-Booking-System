@@ -21,6 +21,20 @@ let jFilter = 'all';
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('staff')) return;
+  const staffUser = auth.current() || {};
+  if (!staffUser.isRoleAssigned && !staffUser.staffRole) {
+    const grid = document.getElementById('jobs-grid');
+    if (grid) {
+      grid.innerHTML = `
+        <div class="empty-state" style="padding:48px">
+          <div class="empty-icon">⏳</div>
+          <h3>No Role Assigned</h3>
+          <p>Your account is pending role assignment by an admin. Please contact your manager.</p>
+          <a href="staff-dashboard.ejs" class="btn btn-primary mt-16">Back to Dashboard</a>
+        </div>`;
+    }
+    return;
+  }
   initSidebar();
 
   document.querySelectorAll('[data-jtab]').forEach(btn => {
@@ -119,7 +133,11 @@ function daysDiff(dateStr) {
 }
 
 window.claimJob = async (id) => {
-  const user = auth.current();
+  const user = auth.current() || {};
+  if (!user.isRoleAssigned && !user.staffRole) {
+    showToast('You need an assigned role to claim jobs.', 'error');
+    return;
+  }
   try {
     await api.put(`/bookings/${id}/assign`, { staffId: user.id || user._id });
     showToast('Job claimed! It is now in your My Jobs tab. ✅', 'success');

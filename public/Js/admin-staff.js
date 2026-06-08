@@ -37,7 +37,7 @@ async function renderStats() {
 function renderStaff() {
   const staff = currentStaffList;
   const allB = getAll(KEYS.BOOKINGS);
-  const roleColors = { mechanic: 'badge-blue', manager: 'badge-red' };
+  const roleColors = { mechanic: 'badge-blue', manager: 'badge-red', driver: 'badge-green', detailer: 'badge-gray', receptionist: 'badge-blue' };
 
   document.getElementById('staff-tbody').innerHTML = staff.length ? staff.map(u => {
     const jobs = allB.filter(b => b.assignedStaff === u._id && b.status === 'completed').length;
@@ -49,8 +49,7 @@ function renderStaff() {
       <select class="form-control" style="padding:4px 8px;font-size:.75rem;width:auto;margin-top:6px"
         onchange="assignRole('${u._id}', this.value)">
         <option value=""> Assign Role </option>
-        <option value="mechanic" ${u.staffRole==='mechanic'?'selected':''}>Mechanic</option>
-        <option value="manager" ${u.staffRole==='manager'?'selected':''}>Manager</option>
+        ${STAFF_ROLES.filter(r => r).map(r => `<option value="${r}" ${u.staffRole===r?'selected':''}>${r.charAt(0).toUpperCase()+r.slice(1)}</option>`).join('')}
       </select>`;
 
     return `<tr ${!u.staffRole ? 'style="background:rgba(250,204,21,.05)"' : ''}>

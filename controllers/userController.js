@@ -56,6 +56,7 @@ const register = async (req, res, next) => {
       role: role || 'customer',
       staffCode: staffCode || '',
       staffRole: staffRole || '',
+      isRoleAssigned: false,
       userType: userType || '',
       points: 0,
       authProvider: 'local',
@@ -307,7 +308,7 @@ const updateStaffRole = async (req, res, next) => {
     
     const user = await User.findByIdAndUpdate(
       id,
-      { staffRole },
+      { staffRole, isRoleAssigned: !!staffRole },
       { new: true, runValidators: true }
     );
     

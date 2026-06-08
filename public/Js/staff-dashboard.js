@@ -59,6 +59,39 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // Show role-pending banner if no role assigned
+  const rolePendingBanner = document.getElementById('role-pending-banner');
+  if (rolePendingBanner) {
+    if (!user.staffRole && user.role !== 'admin') {
+      rolePendingBanner.style.display = 'block';
+      rolePendingBanner.innerHTML = `
+        <div style="background:linear-gradient(135deg,#fef3cd,#fff3cd);border:1px solid #ffc107;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.5rem">⚠️</span>
+          <div>
+            <div style="font-weight:700;color:#856404">Role Assignment Pending</div>
+            <div style="font-size:.85rem;color:#856404">Your account is awaiting role assignment by an admin. Some features may be restricted until a role is assigned.</div>
+          </div>
+        </div>`;
+    } else {
+      rolePendingBanner.style.display = 'none';
+    }
+  } else if (!user.staffRole && user.role !== 'admin') {
+    const banner = document.createElement('div');
+    banner.id = 'role-pending-banner';
+    banner.innerHTML = `
+      <div style="background:linear-gradient(135deg,#fef3cd,#fff3cd);border:1px solid #ffc107;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:1.5rem">⚠️</span>
+        <div>
+          <div style="font-weight:700;color:#856404">Role Assignment Pending</div>
+          <div style="font-size:.85rem;color:#856404">Your account is awaiting role assignment by an admin. Some features may be restricted until a role is assigned.</div>
+        </div>
+      </div>`;
+    const statsEl = document.getElementById('staff-stats');
+    if (statsEl && statsEl.parentNode) {
+      statsEl.parentNode.insertBefore(banner, statsEl);
+    }
+  }
+
   // Safely grab names with fallbacks
   const fName = user.firstName || user.name || 'Staff';
   document.getElementById('staff-name').textContent = fName;

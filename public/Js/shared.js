@@ -653,6 +653,7 @@ const bookingsAPI = {
   async withDetails(id) { try { const r = await api.get(`/bookings/${id}`); return formatBackendBooking(r.data); } catch(e) { return null; } },
   async allWithDetails() { try { const r = await api.get('/bookings/all'); return (r.data || []).map(formatBackendBooking); } catch(e) { return []; } },
   async assignStaff(id, staffId) { try { const r = await api.put(`/bookings/${id}/assign`, { staffId }); return formatBackendBooking(r.data); } catch(e) { return null; } },
+  async cancel(id) { try { const r = await api.post(`/bookings/${id}/cancel`); return formatBackendBooking(r.data); } catch(e) { throw e; } },
   async remove(id) { try { await api.del(`/bookings/${id}`); return true; } catch(e) { return false; } },
 };
 

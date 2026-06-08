@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 
-const staffIssueSchema = new mongoose.Schema({
-  staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  bookingId: { type: String },
-  type: { type: String, required: true },
-  severity: { type: String, default: 'low' },
+const customerReportSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', required: true },
+  customerName: { type: String, required: true },
+  email: { type: String, required: true },
+  subject: { type: String, required: true },
+  category: { type: String, required: true },
   desc: { type: String, required: true },
   status: { type: String, enum: ['pending', 'in_progress', 'resolved'], default: 'pending' },
   adminReply: { type: String, default: '' },
@@ -20,8 +22,9 @@ const staffIssueSchema = new mongoose.Schema({
       }
     ],
     default: []
-  },
-  createdAt: { type: Date, default: Date.now }
+  }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('StaffIssue', staffIssueSchema);
+module.exports = mongoose.model('CustomerReport', customerReportSchema);
