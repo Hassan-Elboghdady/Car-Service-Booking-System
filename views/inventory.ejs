@@ -38,7 +38,6 @@
     <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
   </nav>
 </aside>
-
 <div class="main-content">
   <div class="main-header">
     <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Inventory Stock</span></div>
@@ -49,7 +48,6 @@
   </div>
   <div class="content-area">
     <div class="grid-4 mb-28" id="inv-stats"></div>
-    
     <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
       <div class="card">
         <div class="table-wrap" style="border:none;border-radius:0">
@@ -68,7 +66,6 @@
           </table>
         </div>
       </div>
-      
       <div class="card card-body">
         <h4 style="margin-bottom:16px"> Low Stock Alerts</h4>
         <div id="low-stock-list"></div>
@@ -80,7 +77,6 @@
   </div>
 </div>
 </div>
-
 <div class="modal-overlay" id="inv-modal">
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Inventory Item</div><button class="modal-close" onclick="closeModal('inv-modal')">✕</button></div>
@@ -106,10 +102,8 @@
     </div>
   </div>
 </div>
-
 <div id="toast-root"></div>
 <script src="../public/Js/shared.js"></script>
 <script src="../public/Js/inventory.js"></script>
 </body>
 </html>
-

@@ -4,7 +4,6 @@ const STAFF_MILEAGE_NAMES = {
   'pkg-70k':'70,000 km Service','pkg-80k':'80,000 km Service','pkg-90k':'90,000 km Service',
   'pkg-100k':'100,000 km Overhaul',
 };
-
 const SVG_CLIPBOARD = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`;
 const SVG_CLOCK = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
 const SVG_CHECK_CIRCLE = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
@@ -13,7 +12,6 @@ const SVG_HOURGLASS = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height
 const SVG_WRENCH = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const SVG_REVENUE = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
 const SVG_USERS = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
-
 function staffSvcLabel(b) {
   if (b.service?.name) return `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(b.service,'1.1rem')} ${b.service.name}</span>`;
   const ids = b.serviceIds || (b.serviceId ? [b.serviceId] : []);
@@ -22,19 +20,14 @@ function staffSvcLabel(b) {
   if (ids.length > 1) return `🔧 ${ids.length} Services`;
   return '';
 }
-
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   initSidebar();
-
   let user = null;
   try {
-    // Force a fresh API call for the profile
     const res = await api.get('/users/profile');
     if (res && res.data) {
       user = res.data;
-      
-      // Update local storage so other tabs have the fresh data
       const merged = Object.assign({}, auth.current() || {}, {
         staffRole: user.staffRole || '',
         userType: user.userType || '',
@@ -50,16 +43,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {
     console.error('Profile fetch failed:', e);
-    user = auth.current(); // fallback to local cache
+    user = auth.current(); 
   }
-
-  // If completely unauthenticated, kick them out
   if (!user || (user.role !== 'staff' && user.role !== 'admin')) {
     location.href = 'index.ejs';
     return;
   }
-
-  // Show role-pending banner if no role assigned
   const rolePendingBanner = document.getElementById('role-pending-banner');
   if (rolePendingBanner) {
     if (!user.staffRole && user.role !== 'admin') {
@@ -91,17 +80,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       statsEl.parentNode.insertBefore(banner, statsEl);
     }
   }
-
-  // Safely grab names with fallbacks
   const fName = user.firstName || user.name || 'Staff';
   document.getElementById('staff-name').textContent = fName;
   document.getElementById('staff-avatar').textContent = fName.charAt(0).toUpperCase();
-
   const role = (user.staffRole || '').toLowerCase();
-  
   let welcomeIcon = '';
   let badgeHTML = '';
-
   if (role === 'manager') {
     welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 20h18v2H3z"/></svg>`;
     badgeHTML = `<span class="badge badge-red" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-weight: 600;">
@@ -127,7 +111,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     welcomeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); vertical-align: middle;"><path d="M2 18a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4v-2H2v2z"/><path d="M12 2a10 10 0 0 0-10 10h20A10 10 0 0 0 12 2z"/><path d="M12 2v10"/></svg>`;
     badgeHTML = `<span class="badge badge-yellow" style="padding: 4px 8px; font-weight: 600;">No Role Assigned</span>`;
   }
-
   const welcomeIconContainer = document.getElementById('staff-welcome-icon');
   if (welcomeIconContainer) {
     welcomeIconContainer.innerHTML = welcomeIcon;
@@ -136,15 +119,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (roleTag) {
     roleTag.innerHTML = badgeHTML;
   }
-
   const userId = user._id || user.id;
   const allBookings = await bookingsAPI.allWithDetails();
   const myJobs  = allBookings.filter(b => b.assignedStaff === userId);
   const today   = todayStr();
-
   const mechanicLayout = document.getElementById('mechanic-layout');
   const mainLayout = document.getElementById('staff-main-layout');
-
   if (role === 'manager') {
     if (mechanicLayout) mechanicLayout.style.display = 'none';
     if (mainLayout) mainLayout.style.display = 'block';
@@ -155,7 +135,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     renderMechanicDash(myJobs, today);
   }
 });
-
 function renderMechanicDash(myJobs, today) {
   document.getElementById('staff-stats').innerHTML = [
     { l:'Assigned to Me', v:myJobs.length,                                    i:SVG_CLIPBOARD, c:'blue'   },
@@ -163,7 +142,6 @@ function renderMechanicDash(myJobs, today) {
     { l:'Completed',      v:myJobs.filter(j=>j.status==='completed').length,  i:SVG_CHECK_CIRCLE,c:'green'  },
     { l:'Today\'s Jobs',  v:myJobs.filter(j=>j.date===today).length,          i:SVG_CALENDAR,  c:'red'    },
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
-
   const active = myJobs.filter(j => ['pending','in_progress'].includes(j.status));
   const jobsList = document.getElementById('staff-jobs-list');
   jobsList.innerHTML = active.length ? active.map(j => `
@@ -181,23 +159,20 @@ function renderMechanicDash(myJobs, today) {
       </div>
     </div>`).join('')
   : '<div class="empty-state" style="padding:32px"><div class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><p>No active jobs assigned to you. Check back later!</p></div>';
-
   renderTodaySchedule(myJobs, today);
 }
-
 function renderManagerDash(allBookings, myJobs, today) {
   const allStaff  = (store.get(KEYS.USERS)||[]).filter(u=>u.role==='staff'||u.userType==='staff');
   const completed = allBookings.filter(b=>b.status==='completed');
   const totalRev  = completed.reduce((s,b)=>s+(b.total||0), 0);
   const pending   = allBookings.filter(b=>b.status==='pending').length;
   const inProg    = allBookings.filter(b=>b.status==='in_progress').length;
-
   const sidebarWidget = document.getElementById('mgr-sidebar-stats');
   if (sidebarWidget) {
     sidebarWidget.style.display = 'block';
     const todayCompleted = completed.filter(b => b.date === today);
     const todayRev = todayCompleted.reduce((s,b) => s+(b.total||0), 0);
-    const thisMonth = new Date().toISOString().slice(0,7); // YYYY-MM
+    const thisMonth = new Date().toISOString().slice(0,7); 
     const monthRev = completed.filter(b => b.date?.startsWith(thisMonth)).reduce((s,b) => s+(b.total||0), 0);
     document.getElementById('mgr-rev-today').textContent = `EGP ${todayRev.toLocaleString()}`;
     document.getElementById('mgr-rev-today-label').textContent = `from ${todayCompleted.length} completed job(s)`;
@@ -205,7 +180,6 @@ function renderManagerDash(allBookings, myJobs, today) {
     document.getElementById('mgr-pending-count').textContent = pending;
     document.getElementById('mgr-done-count').textContent = completed.length;
   }
-
   document.getElementById('staff-stats').innerHTML = [
     { l:'Total Bookings',   v:allBookings.length,  i:SVG_CLIPBOARD, c:'blue'   },
     { l:'Pending Jobs',     v:pending,             i:SVG_HOURGLASS, c:'yellow' },
@@ -214,14 +188,12 @@ function renderManagerDash(allBookings, myJobs, today) {
     { l:'Total Revenue',    v:'EGP '+totalRev.toLocaleString(), i:SVG_REVENUE, c:'blue'  },
     { l:'Team Size',        v:allStaff.length,     i:SVG_USERS,     c:'yellow' },
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
-
   document.getElementById('staff-main-layout').innerHTML = `
     <div class="card">
       <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Revenue by Service</h3></div>
       <div style="padding:0 24px 24px">
         ${(()=>{
           const svcRev = {};
-          // Strip all HTML tags to get plain service name
           const stripHtml = (html) => html.replace(/<[^>]*>/g, '').trim();
           allBookings.forEach(b => {
             const raw = staffSvcLabel(b);
@@ -237,7 +209,6 @@ function renderManagerDash(allBookings, myJobs, today) {
         })()}
       </div>
     </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px">
       <div class="card">
         <div class="card-header flex-between"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> Active Bookings</h3><span class="badge badge-yellow">${pending+inProg}</span></div>
@@ -253,7 +224,6 @@ function renderManagerDash(allBookings, myJobs, today) {
             </div>`).join('') || '<p class="text-muted" style="padding-top:12px">No active bookings.</p>'}
         </div>
       </div>
-
       <div class="card">
         <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Team Performance</h3></div>
         <div style="padding:0 24px 24px">
@@ -279,7 +249,6 @@ function renderManagerDash(allBookings, myJobs, today) {
         </div>
       </div>
     </div>
-
     <div class="card" style="margin-top:24px">
       <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Today's Full Schedule (${new Date().toLocaleDateString('en-EG',{weekday:'long',month:'short',day:'numeric'})})</h3></div>
       <div style="padding:0 24px 24px">
@@ -298,10 +267,8 @@ function renderManagerDash(allBookings, myJobs, today) {
         })()}
       </div>
     </div>`;
-  
   renderTodaySchedule(myJobs, today);
 }
-
 function renderTodaySchedule(myJobs, today) {
   const sched = document.getElementById('today-schedule');
   if (!sched) return;
@@ -316,7 +283,6 @@ function renderTodaySchedule(myJobs, today) {
     </div>`).join('')
   : '<p style="color:var(--gray-400);font-size:.85rem">No jobs today.</p>';
 }
-
 window.startJob = async (id) => {
   await bookingsAPI.updateStatus(id, 'in_progress');
   showToast('Job started', 'success');
@@ -327,8 +293,6 @@ window.completeJob = async (id) => {
   showToast('Job completed', 'success');
   setTimeout(() => location.reload(), 600);
 };
-// Duplicates removed
-
 function renderMechanicDash(myJobs, today) {
   document.getElementById('staff-stats').innerHTML = [
     { l:'Assigned to Me', v:myJobs.length,                                    i:SVG_CLIPBOARD, c:'blue'   },
@@ -336,7 +300,6 @@ function renderMechanicDash(myJobs, today) {
     { l:'Completed',      v:myJobs.filter(j=>j.status==='completed').length,  i:SVG_CHECK_CIRCLE,c:'green'  },
     { l:'Today\'s Jobs',  v:myJobs.filter(j=>j.date===today).length,          i:SVG_CALENDAR,  c:'red'    },
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
-
   const active = myJobs.filter(j => ['pending','in_progress'].includes(j.status));
   const jobsList = document.getElementById('staff-jobs-list');
   jobsList.innerHTML = active.length ? active.map(j => `
@@ -354,17 +317,14 @@ function renderMechanicDash(myJobs, today) {
       </div>
     </div>`).join('')
   : '<div class="empty-state" style="padding:32px"><div class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><p>No active jobs assigned to you. Check back later!</p></div>';
-
   renderTodaySchedule(myJobs, today);
 }
-
 function renderManagerDash(allBookings, myJobs, today) {
   const allStaff  = (store.get(KEYS.USERS)||[]).filter(u=>u.role==='staff'||u.userType==='staff');
   const completed = allBookings.filter(b=>b.status==='completed');
   const totalRev  = completed.reduce((s,b)=>s+(b.total||0), 0);
   const pending   = allBookings.filter(b=>b.status==='pending').length;
   const inProg    = allBookings.filter(b=>b.status==='in_progress').length;
-
   const sidebarWidget = document.getElementById('mgr-sidebar-stats');
   if (sidebarWidget) {
     sidebarWidget.style.display = 'block';
@@ -378,7 +338,6 @@ function renderManagerDash(allBookings, myJobs, today) {
     document.getElementById('mgr-pending-count').textContent = pending;
     document.getElementById('mgr-done-count').textContent = completed.length;
   }
-
   document.getElementById('staff-stats').innerHTML = [
     { l:'Total Bookings',   v:allBookings.length,  i:SVG_CLIPBOARD, c:'blue'   },
     { l:'Pending Jobs',     v:pending,             i:SVG_HOURGLASS, c:'yellow' },
@@ -387,14 +346,12 @@ function renderManagerDash(allBookings, myJobs, today) {
     { l:'Total Revenue',    v:'EGP '+totalRev.toLocaleString(), i:SVG_REVENUE, c:'blue'  },
     { l:'Team Size',        v:allStaff.length,     i:SVG_USERS,     c:'yellow' },
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
-
   document.getElementById('staff-main-layout').innerHTML = `
     <div class="card">
       <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Revenue by Service</h3></div>
       <div style="padding:0 24px 24px">
         ${(()=>{
           const svcRev = {};
-          // Strip all HTML tags to get plain service name
           const stripHtml = (html) => html.replace(/<[^>]*>/g, '').trim();
           allBookings.forEach(b => {
             const raw = staffSvcLabel(b);
@@ -410,7 +367,6 @@ function renderManagerDash(allBookings, myJobs, today) {
         })()}
       </div>
     </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px">
       <div class="card">
         <div class="card-header flex-between"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> Active Bookings</h3><span class="badge badge-yellow">${pending+inProg}</span></div>
@@ -426,7 +382,6 @@ function renderManagerDash(allBookings, myJobs, today) {
             </div>`).join('') || '<p class="text-muted" style="padding-top:12px">No active bookings.</p>'}
         </div>
       </div>
-
       <div class="card">
         <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Team Performance</h3></div>
         <div style="padding:0 24px 24px">
@@ -452,7 +407,6 @@ function renderManagerDash(allBookings, myJobs, today) {
         </div>
       </div>
     </div>
-
     <div class="card" style="margin-top:24px">
       <div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Today's Full Schedule (${new Date().toLocaleDateString('en-EG',{weekday:'long',month:'short',day:'numeric'})})</h3></div>
       <div style="padding:0 24px 24px">
@@ -471,10 +425,8 @@ function renderManagerDash(allBookings, myJobs, today) {
         })()}
       </div>
     </div>`;
-  
   renderTodaySchedule(myJobs, today);
 }
-
 function renderTodaySchedule(myJobs, today) {
   const sched = document.getElementById('today-schedule');
   if (!sched) return;
@@ -489,7 +441,6 @@ function renderTodaySchedule(myJobs, today) {
     </div>`).join('')
   : '<p style="color:var(--gray-400);font-size:.85rem">No jobs today.</p>';
 }
-
 window.startJob = async (id) => {
   await bookingsAPI.updateStatus(id, 'in_progress');
   showToast('Job started', 'success');

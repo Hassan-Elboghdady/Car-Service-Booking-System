@@ -1,5 +1,4 @@
 'use strict';
-
 const JOB_MILEAGE = {
   'pkg-10k':'10,000 km Service','pkg-20k':'20,000 km Service','pkg-30k':'30,000 km Service',
   'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Service',
@@ -14,10 +13,8 @@ function jobSvcLabel(b) {
   if (ids.length > 1) return `🔧 ${ids.length} Services`;
   return '';
 }
-
 let jTab = 'mine';
 let jFilter = 'all';
-
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('staff')) return;
@@ -36,7 +33,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   initSidebar();
-
   document.querySelectorAll('[data-jtab]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-jtab]').forEach(b => b.classList.remove('active'));
@@ -45,7 +41,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       renderJobs();
     });
   });
-
   document.querySelectorAll('[data-jf]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-jf]').forEach(b => b.classList.remove('active'));
@@ -54,16 +49,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       renderJobs();
     });
   });
-
   await renderJobs();
 });
-
 async function renderJobs() {
   const user = auth.current();
   const allB = await bookingsAPI.allWithDetails();
   const grid = document.getElementById('jobs-grid');
   const statusFilters = document.getElementById('status-filters');
-
   if (jTab === 'available') {
     statusFilters.style.display = 'none';
     const avail = allB.filter(b => b.status === 'pending' && !b.assignedStaff);
@@ -96,11 +88,9 @@ async function renderJobs() {
     }).join('');
     return;
   }
-
   statusFilters.style.display = '';
   let jobs = allB.filter(b => b.assignedStaff === user.id);
   if (jFilter !== 'all') jobs = jobs.filter(j => j.status === jFilter);
-
   if (!jobs.length) {
     grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🔧</div><h3>No jobs found</h3><p>Switch to "Available Jobs" to claim new ones.</p></div>';
     return;
@@ -125,13 +115,11 @@ async function renderJobs() {
       </div>
     </div>`).join('');
 }
-
 function daysDiff(dateStr) {
   const today = new Date(); today.setHours(0,0,0,0);
   const d     = new Date(dateStr); d.setHours(0,0,0,0);
   return Math.round((d - today) / 86400000);
 }
-
 window.claimJob = async (id) => {
   const user = auth.current() || {};
   if (!user.isRoleAssigned && !user.staffRole) {
@@ -146,6 +134,5 @@ window.claimJob = async (id) => {
     showToast(err.message || 'Failed to claim job', 'error');
   }
 };
-
 window.start    = async (id) => { await bookingsAPI.updateStatus(id, 'in_progress'); showToast('Job started! 🔧', 'success'); await renderJobs(); };
 window.complete = async (id) => { await bookingsAPI.updateStatus(id, 'completed');   showToast('Job complete! 🚗', 'success'); await renderJobs(); };

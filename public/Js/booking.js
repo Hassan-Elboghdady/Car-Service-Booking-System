@@ -1,6 +1,5 @@
-// booking.js  Clean version: multi-service, mileage single-select, model-based pricing
-'use strict';
 
+'use strict';
 let currentStep = 1;
 let booking = {
   carId: null,
@@ -12,8 +11,6 @@ let booking = {
 };
 let userCars = [];
 let activeFilter = 'all';
-
-// --- INIT -----------------------------------------------------
 window.addEventListener('DOMContentLoaded', async () => {
   const user = auth.current();
   if (!user) {
@@ -27,19 +24,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   document.getElementById('booking-wizard').style.display = 'block';
   userCars = await carsAPI.forUser(user.id);
-
   const params = new URLSearchParams(location.search);
   if (params.get('service')) booking.serviceIds = [params.get('service')];
   if (params.get('car'))     booking.carId = params.get('car');
-
   renderStep1();
   renderStep2();
   setupStep3();
   setupNav();
   buildAddCarModal();
 });
-
-// --- STEP 1: VEHICLE ------------------------------------------
 function renderStep1() {
   const el = document.getElementById('step1-cars');
   if (!userCars.length) {
@@ -60,30 +53,23 @@ function renderStep1() {
     </div>`;
   }).join('');
 }
-
 window.selectCar = (id) => {
   booking.carId = id;
   renderStep1();
-  renderStep2(); // refresh mileage prices
+  renderStep2(); 
   updateSidebar();
 };
-
-// --- STEP 2: MULTI-SELECT SERVICES ---------------------------
 function renderStep2(filter) {
   if (filter !== undefined) activeFilter = filter;
   const searchQ = (document.getElementById('svc-search')?.value || '').toLowerCase();
   let svcs = getAllServices();
   if (activeFilter !== 'all') svcs = svcs.filter(s => s.cat === activeFilter);
   if (searchQ) svcs = svcs.filter(s => s.name.toLowerCase().includes(searchQ) || (s.desc||'').toLowerCase().includes(searchQ));
-
   const el = document.getElementById('step2-services');
   if (!el) return;
-
   el.innerHTML = svcs.map(s => {
     const sel = booking.serviceIds.includes(s.id);
     const isMileage = s.cat === 'mileage';
-
-    // For mileage, show model-based price if car is selected
     let priceHtml = '';
     if (isMileage) {
       const price = getMileagePriceForCar(s.id);
@@ -93,7 +79,6 @@ function renderStep2(filter) {
     } else {
       priceHtml = `<div class="svc-select-price">EGP ${s.price}</div>`;
     }
-
     return `
       <div class="svc-select-card ${sel?'selected':''} ${isMileage?'mileage-card':''}" onclick="toggleService('${s.id}')">
         <div class="svc-select-icon">${isMileage ? `<span style="font-size:2rem;line-height:1">${s.emoji||'🛣️'}</span>` : renderServiceIconHtml(s,'2rem')}</div>
@@ -107,8 +92,6 @@ function renderStep2(filter) {
         </div>
       </div>`;
   }).join('') || '<p class="text-muted">No services found for this filter.</p>';
-
-  // Bind filter buttons
   document.querySelectorAll('.svc-filter-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.cat === activeFilter);
     if (!btn.hasAttribute('data-bound')) {
@@ -116,24 +99,18 @@ function renderStep2(filter) {
       btn.addEventListener('click', () => renderStep2(btn.dataset.cat));
     }
   });
-
-  // Bind search
   const searchEl = document.getElementById('svc-search');
   if (searchEl && !searchEl.hasAttribute('data-bound')) {
     searchEl.setAttribute('data-bound', '1');
     searchEl.addEventListener('input', () => renderStep2());
   }
-
   updateSelectedCount();
 }
-
 window.toggleService = (id) => {
   const allSvcs = getAllServices();
   const svc = allSvcs.find(s => s.id === id);
   const isMileage = svc && svc.cat === 'mileage';
-
   if (isMileage) {
-    // Radio-style: only one mileage package at a time
     const alreadySel = booking.serviceIds.includes(id);
     booking.serviceIds = booking.serviceIds.filter(sid => {
       const s = allSvcs.find(x => x.id === sid);
@@ -145,17 +122,14 @@ window.toggleService = (id) => {
     if (idx >= 0) booking.serviceIds.splice(idx, 1);
     else booking.serviceIds.push(id);
   }
-
   renderStep2();
   updateSidebar();
 };
-
 window.clearServices = () => {
   booking.serviceIds = [];
   renderStep2();
   updateSidebar();
 };
-
 function updateSelectedCount() {
   const count = booking.serviceIds.length;
   const el = document.getElementById('svc-selected-count');
@@ -163,8 +137,6 @@ function updateSelectedCount() {
   if (el) el.textContent = count ? `${count} service${count>1?'s':''} selected` : 'No services selected';
   if (btn) btn.style.display = count ? 'block' : 'none';
 }
-
-// --- STEP 3: DATE & TIME --------------------------------------
 function setupStep3() {
   const dateEl = document.getElementById('bk-date');
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -172,7 +144,6 @@ function setupStep3() {
   dateEl.addEventListener('change', () => { booking.date = dateEl.value; updateSidebar(); });
   document.getElementById('bk-time').addEventListener('change', e => { booking.time = e.target.value; updateSidebar(); });
   document.getElementById('bk-notes').addEventListener('input', e => { booking.notes = e.target.value; });
-
   document.getElementById('apply-coupon-btn')?.addEventListener('click', () => {
     const code = document.getElementById('bk-coupon').value.trim().toUpperCase();
     const couponEl = document.getElementById('coupon-result');
@@ -187,13 +158,10 @@ function setupStep3() {
     }
   });
 }
-
-// --- NAVIGATION -----------------------------------------------
 function setupNav() {
   document.getElementById('next-btn').addEventListener('click', nextStep);
   document.getElementById('prev-btn').addEventListener('click', prevStep);
 }
-
 async function nextStep() {
   if (currentStep === 1) {
     if (!booking.carId) { showToast('Please select your vehicle.', 'warning'); return; }
@@ -205,7 +173,6 @@ async function nextStep() {
   } else if (currentStep === 3) {
     if (!booking.date) { showToast('Please select a date.', 'warning'); return; }
     if (!booking.time) { showToast('Please select a time.', 'warning'); return; }
-    // Check for duplicate booking on the same date
     const existingBookings = await bookingsAPI.forUser(auth.current()?.id || '');
     const duplicate = existingBookings.find(b =>
       b.date === booking.date && (b.status === 'pending' || b.status === 'in_progress')
@@ -221,9 +188,7 @@ async function nextStep() {
   }
   goToStep(currentStep + 1);
 }
-
 function prevStep() { goToStep(currentStep - 1); }
-
 function goToStep(n) {
   document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('step-' + n)?.classList.add('active');
@@ -237,13 +202,10 @@ function goToStep(n) {
   document.getElementById('prev-btn').style.display = n > 1 ? 'block' : 'none';
   document.getElementById('next-btn').textContent = n === 4 ? 'Confirm Booking' : 'Continue';
 }
-
-// --- STEP 4: CONFIRM ------------------------------------------
 function renderConfirm() {
   const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : {};
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
-
   let subtotal = 0;
   const svcRows = selectedSvcs.map(s => {
     let price = s.price || 0;
@@ -253,11 +215,9 @@ function renderConfirm() {
     subtotal += price;
     return `<div class="sum-row" style="padding-left:12px"><span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(s,'1.2rem')} ${s.name}</span><span>EGP ${price.toLocaleString()}</span></div>`;
   }).join('');
-
   const discount = booking.discount ? Math.round(subtotal * booking.discount / 100) : 0;
   const total = subtotal - discount;
   booking.total = total;
-
   document.getElementById('step4-summary').innerHTML = `
     <div class="sum-row"><span>Vehicle</span><strong>${getBrandLogoHtml(car.brand)} ${car.brand||''} ${car.model||''} (${car.year||''})</strong></div>
     <div class="sum-row"><span>Plate / Color</span><strong>${car.plate||''}  ${car.color||''}</strong></div>
@@ -272,15 +232,11 @@ function renderConfirm() {
     ${discount?`<div class="sum-row" style="color:var(--success)"><span>Discount (${booking.discount}%)</span><strong>-EGP ${discount}</strong></div>`:''}
     <div class="sum-row"><span class="sum-total">Total</span><span class="sum-total">EGP ${total.toLocaleString()}</span></div>`;
 }
-
-// --- CONFIRM BOOKING ------------------------------------------
 async function confirmBooking() {
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
   const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : null;
-
   const paymentMethod = document.getElementById('bk-payment').value;
-
   const firstB = await bookingsAPI.create({
     carId: booking.carId,
     serviceId: booking.serviceIds[0],
@@ -292,15 +248,11 @@ async function confirmBooking() {
     discount: booking.discount,
     paymentMethod,
   });
-
   if (!firstB) { showToast('Error creating booking. Please try again.', 'error'); return; }
-
-  // Build receipt HTML (reusable for both display and print)
   const receiptLines = selectedSvcs.map(s => {
     const price = s.cat === 'mileage' ? getMileagePriceForCar(s.id) : s.price;
     return `<tr><td>${s.name}</td><td style="text-align:right">EGP ${(price||0).toLocaleString()}</td></tr>`;
   }).join('');
-
   const receiptHTML = `
     <div id="print-receipt" style="max-width:520px;margin:0 auto;font-family:Poppins,sans-serif">
       <div style="text-align:center;margin-bottom:20px">
@@ -330,7 +282,6 @@ async function confirmBooking() {
       </div>
       <div style="margin-top:12px;font-size:.75rem;color:#aaa;text-align:center">Thank you for choosing AutoServe  30-day service warranty included.</div>
     </div>`;
-
   document.getElementById('booking-wizard').innerHTML = `
     <div class="booking-success">
       <div class="success-icon">✅</div>
@@ -344,8 +295,6 @@ async function confirmBooking() {
         <button class="btn btn-ghost btn-lg" onclick="window.printReceipt()">🚗 Print Receipt</button>
       </div>
     </div>`;
-
-  // Print function
   window.printReceipt = () => {
     const w = window.open('', '_blank', 'width=680,height=800');
     w.document.write(`<!DOCTYPE html><html><head><title>Receipt  AutoServe</title>
@@ -357,19 +306,15 @@ async function confirmBooking() {
     setTimeout(() => { w.print(); w.close(); }, 400);
   };
 }
-
-// --- SIDEBAR SUMMARY ------------------------------------------
 function updateSidebar() {
   const car = booking.carId ? userCars.find(c => (c._id || c.id) === booking.carId) : null;
   const allSvcs = getAllServices();
   const selectedSvcs = booking.serviceIds.map(id => allSvcs.find(s => s.id === id)).filter(Boolean);
-
   let subtotal = 0;
   selectedSvcs.forEach(s => {
     subtotal += s.cat === 'mileage' ? (getMileagePriceForCar(s.id)||0) : (s.price||0);
   });
   const discount = booking.discount ? Math.round(subtotal * booking.discount / 100) : 0;
-
   document.getElementById('sidebar-summary').innerHTML = `
     <div class="ss-item"><span class="ss-label">Vehicle</span><span>${car ? `${getBrandLogoHtml(car.brand, '18px')} ${car.brand} ${car.model} (${car.year})` : ''}</span></div>
     <div class="ss-item"><span class="ss-label">Services</span><span>${selectedSvcs.length ? selectedSvcs.map(s=>s.name).join(', ') : ''}</span></div>
@@ -377,10 +322,6 @@ function updateSidebar() {
     <div class="ss-item"><span class="ss-label">Time</span><span>${booking.time || ''}</span></div>
     ${subtotal ? `<div class="ss-item"><span class="ss-label">Total</span><span style="font-weight:800;color:var(--primary)">EGP ${(subtotal-discount).toLocaleString()}</span></div>` : ''}`;
 }
-
-// --- ADD CAR FROM BOOKING -------------------------------------
-
-// Plate validation (matches login page)
 function abIsValidPlate(plate) {
   const cleaned = String(plate || '').replace(/\s+/g, '');
   if (!/^[\p{Script=Arabic}0-9]{1,7}$/u.test(cleaned)) return false;
@@ -388,12 +329,9 @@ function abIsValidPlate(plate) {
   const digits  = (cleaned.match(/[0-9]/g) || []).length;
   return letters <= 3 && digits <= 4;
 }
-
 function abExtractArabicLetters(s) {
   return (String(s).match(/\p{Script=Arabic}/gu) || []).slice(0, 3);
 }
-
-// Inline field-error helpers
 function abShowFieldErr(inputId, msg) {
   const alertEl = document.getElementById('ab-alert');
   const el = document.getElementById(inputId);
@@ -406,7 +344,6 @@ function abShowFieldErr(inputId, msg) {
   }
   if (alertEl) alertEl.innerHTML = `<div class="alert alert-danger">${msg}</div>`;
 }
-
 function abClearErrors() {
   const alertEl = document.getElementById('ab-alert');
   if (alertEl) alertEl.innerHTML = '';
@@ -416,18 +353,14 @@ function abClearErrors() {
     const e = el.parentElement.querySelector('.form-error'); if (e) e.remove();
   });
 }
-
 function buildAddCarModal() {
   const bSel = document.getElementById('ab-brand');
   const mSel = document.getElementById('ab-model');
   const ySel = document.getElementById('ab-year');
   if (!bSel) return;
-
-  // Populate brands
   Object.keys(CARS_DB).forEach(b => {
     const o = document.createElement('option'); o.value = b; o.textContent = b; bSel.appendChild(o);
   });
-
   bSel.addEventListener('change', () => {
     mSel.innerHTML = '<option value="">Select model…</option>';
     ySel.innerHTML = '<option value="">Select year…</option>';
@@ -436,19 +369,15 @@ function buildAddCarModal() {
       const o = document.createElement('option'); o.value = m; o.textContent = m; mSel.appendChild(o);
     });
   });
-
   mSel.addEventListener('change', () => {
     ySel.innerHTML = '<option value="">Select year…</option>'; ySel.disabled = !mSel.value;
     (CARS_DB[bSel.value]?.models[mSel.value] || []).slice().reverse().forEach(y => {
       const o = document.createElement('option'); o.value = y; o.textContent = y; ySel.appendChild(o);
     });
   });
-
-  // Plate split formatting
   const plateNumEl = document.getElementById('ab-plate-numbers');
   const plateLetEl = document.getElementById('ab-plate-letters');
   const plateHidEl = document.getElementById('ab-plate');
-
   function formatAbPlateLetters() {
     if (!plateLetEl) return;
     const letters = abExtractArabicLetters(plateLetEl.value);
@@ -467,8 +396,6 @@ function buildAddCarModal() {
     plateNumEl.addEventListener('input', formatAbPlateNumbers);
     plateNumEl.addEventListener('paste', () => setTimeout(formatAbPlateNumbers, 0));
   }
-
-  // Color custom toggle
   const colorSel = document.getElementById('ab-color');
   const colorCustomWrap = document.getElementById('ab-color-custom-wrap');
   const colorCustomInput = document.getElementById('ab-color-custom');
@@ -477,18 +404,13 @@ function buildAddCarModal() {
     if (colorCustomWrap) colorCustomWrap.style.display = showCustom ? 'block' : 'none';
     if (!showCustom && colorCustomInput) colorCustomInput.value = '';
   });
-
-  // Reset modal on open
   document.getElementById('add-car-from-booking')?.addEventListener('click', (e) => {
     if (e.target === document.getElementById('add-car-from-booking')) {
       abClearErrors();
     }
   });
-
-  // Save button with full validation
   document.getElementById('ab-save')?.addEventListener('click', async () => {
     abClearErrors();
-
     const b = bSel.value;
     const m = mSel.value;
     const y = ySel.value;
@@ -497,7 +419,6 @@ function buildAddCarModal() {
     const plate = (plateLettersRaw + plateNumbers).trim();
     const color = colorSel?.value || '';
     const customColor = colorCustomInput?.value.trim() || '';
-
     if (!b) { abShowFieldErr('ab-brand', 'Please select your car brand.'); return; }
     if (!m) { abShowFieldErr('ab-model', 'Please select your car model.'); return; }
     if (!y) { abShowFieldErr('ab-year',  'Please select the car year.'); return; }
@@ -505,10 +426,8 @@ function buildAddCarModal() {
     if (!abIsValidPlate(plate)) { abShowFieldErr('ab-plate-numbers', 'License plate must use up to 3 Arabic letters and up to 4 digits.'); return; }
     if (!color) { abShowFieldErr('ab-color', 'Please select your car color.'); return; }
     if (color === 'Other' && !customColor) { abShowFieldErr('ab-color-custom', 'Please enter your custom color.'); return; }
-
     const finalColor = color === 'Other' ? customColor : color;
     const finalPlate = plate.replace(/\s+/g, '');
-
     const car = await carsAPI.add({
       brand: b, model: m, year: parseInt(y),
       plate: finalPlate, color: finalColor,

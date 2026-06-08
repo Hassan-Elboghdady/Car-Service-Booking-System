@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Notifications – AutoServe Admin</title><link rel="stylesheet" href="../Public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../Public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.html"><span class="s-icon">📋</span> Bookings</a>
+    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div><nav class="sidebar-nav">
+    <a href="admin-staff.html"><span class="s-icon">👷</span> Staff</a>
+    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.html"><span class="s-icon">💰</span> Payments</a>
+    <a href="admin-inventory.html"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
+    <a href="admin-reports.html"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div><nav class="sidebar-nav">
+    <a href="admin-notifications.html" class="active"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html"><span class="s-icon">🖊️</span> CMS</a>
+    <a href="admin-settings.html"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Notifications</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="content-area">
+    <div class="container-sm">
+      <div class="card card-body" id="notif-list"></div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../Public/Js/shared.js"></script>
+<script src="../Public/Js/admin-notifications.js"></script>
+</body>
+</html>
+

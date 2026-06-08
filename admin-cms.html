@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CMS – AutoServe Admin</title><link rel="stylesheet" href="../Public/Css/shared.css"/></head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../Public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div><nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.html"><span class="s-icon">📋</span> Bookings</a>
+    <a href="admin-services.html"><span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div><nav class="sidebar-nav">
+    <a href="admin-staff.html"><span class="s-icon">👷</span> Staff</a>
+    <a href="admin-vehicles.html"><span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.html"><span class="s-icon">💰</span> Payments</a>
+    <a href="admin-inventory.html"><span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div><nav class="sidebar-nav">
+    <a href="admin-reports.html"><span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html"><span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div><nav class="sidebar-nav">
+    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html" class="active"><span class="s-icon">🖊️</span> CMS</a>
+    <a href="admin-settings.html"><span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html"><span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()"><span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+<div class="main-content">
+  <div class="main-header">
+    <div class="flex-gap"><button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon">☰</button><span class="main-title">Content Management (CMS)</span></div>
+    <button class="btn btn-primary btn-sm" id="cms-save">Save All Changes</button>
+  </div>
+  <div class="content-area">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px">🏠 Home Page Content</h4>
+        <div class="form-group"><label class="form-label">Hero Title</label><input class="form-control" id="cms-heroTitle" placeholder="Your Car Deserves the Best Care"/></div>
+        <div class="form-group"><label class="form-label">Hero Subtitle</label><textarea class="form-control" id="cms-heroSubtitle" rows="2"></textarea></div>
+        <div class="form-group"><label class="form-label">Hero CTA Button Text</label><input class="form-control" id="cms-heroCTA" placeholder="Book a Service"/></div>
+        <div class="form-group"><label class="form-label">Announcement Banner</label><input class="form-control" id="cms-announcement" placeholder="Grand Opening — 20% off this month!"/></div>
+      </div>
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px">📞 Contact Information</h4>
+        <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="cms-address" placeholder="15 El-Nasr Road, Nasr City"/></div>
+        <div class="form-group"><label class="form-label">Phone 1</label><input class="form-control" id="cms-phone1" placeholder="+202 2501 5000"/></div>
+        <div class="form-group"><label class="form-label">Phone 2 (WhatsApp)</label><input class="form-control" id="cms-phone2" placeholder="+201 0012 34567"/></div>
+        <div class="form-group"><label class="form-label">Support Email</label><input class="form-control" id="cms-email" placeholder="hello@autoserve.eg"/></div>
+      </div>
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px">⏰ Business Hours</h4>
+        <div class="form-group"><label class="form-label">Sun–Thu</label><input class="form-control" id="cms-hSunThu" placeholder="8:00 AM – 5:00 PM"/></div>
+        <div class="form-group"><label class="form-label">Saturday</label><input class="form-control" id="cms-hSat" placeholder="10:00 AM – 5:00 PM"/></div>
+        <div class="form-group"><label class="form-label">Friday</label><input class="form-control" id="cms-hFri" placeholder="Closed"/></div>
+      </div>
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px">🔗 Social Links</h4>
+        <div class="form-group"><label class="form-label">Facebook URL</label><input class="form-control" id="cms-fb" placeholder="https://facebook.com/autoserve"/></div>
+        <div class="form-group"><label class="form-label">Instagram URL</label><input class="form-control" id="cms-ig" placeholder="https://instagram.com/autoserve"/></div>
+        <div class="form-group"><label class="form-label">Twitter/X URL</label><input class="form-control" id="cms-tw" placeholder="https://twitter.com/autoserve"/></div>
+        <div class="form-group"><label class="form-label">YouTube URL</label><input class="form-control" id="cms-yt" placeholder="https://youtube.com/@autoserve"/></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../Public/Js/shared.js"></script>
+<script src="../Public/Js/admin-cms.js"></script>
+</body>
+</html>
+

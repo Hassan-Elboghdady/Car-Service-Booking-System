@@ -1,23 +1,20 @@
-// admin-payments.js
+
 window.addEventListener('DOMContentLoaded', async () => {
   seedData(); if (!requireRole('admin')) return; initSidebar();
   await renderAll();
   document.getElementById('cp-save').addEventListener('click', addCoupon);
 });
-
 async function renderAll() {
   const allB = await bookingsAPI.allWithDetails();
   const completed = allB.filter(b=>b.status==='completed');
   const totalRev  = completed.reduce((s,b)=>s+(b.total||0),0);
   const avg       = completed.length ? Math.round(totalRev/completed.length) : 0;
-
   document.getElementById('pay-stats').innerHTML = [
     {l:'Total Revenue',   v:'EGP '+totalRev.toLocaleString(), i:SVG_ICONS.revenue, c:'green'},
     {l:'Transactions',    v:completed.length, i:SVG_ICONS.clipboard, c:'blue'},
     {l:'Avg per Booking', v:'EGP '+avg, i:SVG_ICONS.trendingUp, c:'yellow'},
     {l:'Pending',         v:'EGP '+allB.filter(b=>b.status==='pending').reduce((s,b)=>s+(b.total||0),0), i:SVG_ICONS.clock, c:'red'},
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
-
   const PMILEAGE = {
     'pkg-10k':'10,000 km','pkg-20k':'20,000 km','pkg-30k':'30,000 km','pkg-40k':'40,000 km',
     'pkg-50k':'50,000 km','pkg-60k':'60,000 km','pkg-70k':'70,000 km','pkg-80k':'80,000 km',
@@ -39,7 +36,6 @@ async function renderAll() {
       <td>${b.paymentMethod || 'Cash'}</td>
     </tr>`;
   }).join('') || '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No transactions yet.</p></div></td></tr>';
-
   const cpList = await couponsAPI.getAll();
   document.getElementById('coupons-list').innerHTML = cpList.map(c=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
@@ -53,7 +49,6 @@ async function renderAll() {
       </div>
     </div>`).join('') || '<p style="color:var(--gray-400);font-size:.85rem">No coupons yet.</p>';
 }
-
 window.removeCoupon = async (id) => {
   try {
     await couponsAPI.remove(id);
@@ -63,14 +58,12 @@ window.removeCoupon = async (id) => {
     showToast('Failed to remove coupon', 'error');
   }
 };
-
 async function addCoupon() {
   const code = document.getElementById('cp-code').value.trim().toUpperCase();
   const disc = parseInt(document.getElementById('cp-disc').value)||0;
   const min  = parseInt(document.getElementById('cp-min').value)||0;
   const exp  = document.getElementById('cp-exp').value;
   if (!code||!disc) { showToast('Code and discount required','error'); return; }
-  
   try {
     await couponsAPI.create({ code, discount: disc, minOrder: min, exp });
     closeModal('coupon-modal');

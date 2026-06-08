@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const bookingSchema = new mongoose.Schema(
   {
     userId: {
@@ -55,5 +54,4 @@ const bookingSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 module.exports = mongoose.model('Booking', bookingSchema);

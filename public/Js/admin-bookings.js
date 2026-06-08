@@ -1,9 +1,8 @@
-// admin-bookings.js
+
 let allB = [];
+let allStaff = [];
 let bmFilter = 'all';
 let bmSearch = '';
-
-// --- Mileage package name lookup -----------------------------
 const MILEAGE_NAMES = {
   'pkg-10k':'10,000 km Service','pkg-20k':'20,000 km Service','pkg-30k':'30,000 km Service',
   'pkg-40k':'40,000 km Service','pkg-50k':'50,000 km Service','pkg-60k':'60,000 km Major Service',
@@ -18,14 +17,14 @@ function getServiceLabel(b) {
   if (ids.length > 1) return `<span style="font-size:1.1rem;margin-right:4px;vertical-align:middle;display:inline-block">${SVG_ICONS.clipboard}</span> ${ids.length} Services`;
   return '';
 }
-
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
   initSidebar();
+  const staffRes = await api.get('/users/staff');
+  allStaff = staffRes.data || staffRes || [];
   allB = await bookingsAPI.allWithDetails();
   renderStats(); renderTable();
-
   document.querySelectorAll('[data-status]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-status]').forEach(b=>b.classList.remove('active'));
@@ -35,7 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('bm-search').addEventListener('input', function() { bmSearch=this.value.toLowerCase(); renderTable(); });
 });
-
 function renderStats() {
   const c = {pending:0,in_progress:0,completed:0,cancelled:0};
   allB.forEach(b=>{if(c[b.status]!==undefined)c[b.status]++;});
@@ -47,15 +45,12 @@ function renderStats() {
     {l:'Rejected', v:c.cancelled, i:SVG_ICONS.crossCircle, c:'red'},
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
 }
-
 function renderTable() {
   let data = allB;
   if (bmFilter!=='all') data = data.filter(b=>b.status===bmFilter);
   if (bmSearch) data = data.filter(b=>(b.user?.firstName+' '+b.user?.lastName+' '+b.car?.brand+' '+b.car?.model).toLowerCase().includes(bmSearch));
   document.getElementById('bm-count').textContent = `Showing ${data.length} of ${allB.length} bookings`;
-
-  const staffList = getAll(KEYS.USERS).filter(u => u.role === 'staff' || u.userType === 'staff');
-
+  const staffList = allStaff;
   document.getElementById('bm-tbody').innerHTML = data.map(b=>`
     <tr>
       <td><code style="font-size:.72rem;color:var(--gray-500)">${b.id.slice(-8)}</code></td>
@@ -67,7 +62,7 @@ function renderTable() {
       <td>
         <select class="form-control" style="padding:5px 10px;font-size:.78rem;width:auto" onchange="assignStaff('${b.id}',this.value)">
           <option value="">Assign</option>
-          ${staffList.map(u=>`<option value="${u.id}" ${b.assignedStaff===u.id?'selected':''}>${u.firstName} ${u.lastName}</option>`).join('')}
+          ${staffList.map(u=>{ const uid = u._id || u.id; return `<option value="${uid}" ${b.assignedStaff===uid?'selected':''}>${u.firstName} ${u.lastName}</option>` }).join('')}
         </select>
       </td>
       <td>
@@ -84,7 +79,6 @@ function renderTable() {
       </td>
     </tr>`).join('');
 }
-
 async function renderBookings() {
   const response = await bookingsAPI.getPage(bkPage, bkLimit);
   allB = (response.data || []).map(formatBackendBooking);
@@ -103,7 +97,6 @@ async function renderBookings() {
       </div>`;
   }
 }
-
 window.removeBooking = async (id) => {
   const b = allB.find(x=>x.id===id); if(!b) return;
   const customerName = `${b.user?.firstName||''} ${b.user?.lastName||''}`.trim();
@@ -113,7 +106,6 @@ window.removeBooking = async (id) => {
   renderStats(); renderTable();
   showToast(`Booking removed permanently.`, 'success');
 };
-
 window.rejectBooking = async (id) => {
   const b = allB.find(x=>x.id===id); if(!b) return;
   const customerName = `${b.user?.firstName||''} ${b.user?.lastName||''}`.trim();
@@ -122,19 +114,16 @@ window.rejectBooking = async (id) => {
   await renderBookings();
   showToast(`Booking rejected for ${customerName || 'customer'}.`, 'warning');
 };
-
 window.updateStatus = async (id, status) => {
   await bookingsAPI.updateStatus(id, status);
   await renderBookings(); showToast('Status updated','success');
 };
-
 window.assignStaff = async (id, staffId) => {
   await bookingsAPI.assignStaff(id, staffId);
   await renderBookings();
   renderTable();
   showToast('Staff assigned','success');
 };
-
 window.viewDetail = (id) => {
   const b = allB.find(x=>x.id===id); if(!b) return;
   document.getElementById('bm-modal-body').innerHTML = `

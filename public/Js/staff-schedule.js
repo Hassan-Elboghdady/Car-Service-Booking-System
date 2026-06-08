@@ -1,5 +1,4 @@
 'use strict';
-
 const SCHED_MILEAGE = {
   'pkg-10k':'10k km Service','pkg-20k':'20k km Service','pkg-30k':'30k km Service',
   'pkg-40k':'40k km Service','pkg-50k':'50k km Service','pkg-60k':'60k Major',
@@ -13,29 +12,22 @@ function schedSvc(b) {
   if (mId) return `🛣️ ${SCHED_MILEAGE[mId]}`;
   return '🔧 Service';
 }
-
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('staff')) return;
   initSidebar();
-
   const dateEl = document.getElementById('sched-week');
   dateEl.value = todayStr();
   await render(todayStr());
   dateEl.addEventListener('change', async () => await render(dateEl.value));
 });
-
 async function render(anchor) {
   const user   = auth.current();
   const role   = (user?.staffRole || '').toLowerCase();
-
-  // Manager sees ALL bookings; Mechanic sees only their own
   const allB   = await bookingsAPI.allWithDetails();
   const myJobs = role === 'manager'
     ? allB.filter(b => b.status !== 'cancelled')
     : allB.filter(b => b.assignedStaff === user.id);
-
-  // Build week days starting Sunday
   const anc  = new Date(anchor + 'T00:00:00');
   const day  = anc.getDay();
   const days = [];
@@ -44,30 +36,22 @@ async function render(anchor) {
     d.setDate(anc.getDate() - day + i);
     days.push(d);
   }
-
-  // Time slots in 24h format (stored format in booking)
   const HOUR_SLOTS = [
     '08:00','09:00','10:00','11:00','12:00',
     '13:00','14:00','15:00','16:00','17:00',
   ];
-  // Display labels (12h format)
   const HOUR_LABELS = [
     '8 AM','9 AM','10 AM','11 AM','12 PM',
     '1 PM','2 PM','3 PM','4 PM','5 PM',
   ];
-
   const el = document.getElementById('week-schedule');
-
-  // Helper: normalise stored time to HH:MM 24h
   function norm(t) {
     if (!t) return '';
     t = t.trim();
-    // Already 24h like "10:00"
     if (/^\d{1,2}:\d{2}$/.test(t) && !t.match(/[APap]/)) {
       const [h, m] = t.split(':');
       return `${h.padStart(2,'0')}:${m}`;
     }
-    // 12h format "10:00 AM" / "01:00 PM"
     const pm = /pm/i.test(t);
     const nums = t.replace(/[^0-9:]/g, '');
     let [h, m] = nums.split(':').map(Number);
@@ -75,7 +59,6 @@ async function render(anchor) {
     if (!pm && h === 12) h = 0;
     return `${String(h).padStart(2,'0')}:${String(m||0).padStart(2,'0')}`;
   }
-
   el.innerHTML = `
     <div style="overflow-x:auto">
       <table style="min-width:700px;border-collapse:collapse">
@@ -95,7 +78,6 @@ async function render(anchor) {
               <td style="font-size:.73rem;color:var(--gray-400);font-weight:600;padding:6px 8px;vertical-align:top">${HOUR_LABELS[idx]}</td>
               ${days.map(d => {
                 const ds = d.toISOString().split('T')[0];
-                // Find all jobs on this day at this hour slot
                 const jobs = myJobs.filter(j => {
                   if (j.date !== ds) return false;
                   const t = norm(j.time);
