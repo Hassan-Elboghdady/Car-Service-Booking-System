@@ -154,10 +154,19 @@ const deleteBooking = async (req, res, next) => {
   }
 };
 
-// PUT /api/bookings/:id/assign — assign staff (admin only).
+// PUT /api/bookings/:id/assign — assign staff (admin or staff claiming it).
 const assignStaff = async (req, res, next) => {
   try {
     const { staffId } = req.body;
+    if (staffId) {
+      const staffUser = await User.findById(staffId);
+      if (!staffUser || (staffUser.role !== 'staff' && staffUser.role !== 'admin')) {
+        return res.status(400).json({ message: 'User is not a staff member.' });
+      }
+      if (staffUser.role === 'staff' && !staffUser.isRoleAssigned) {
+        return res.status(400).json({ message: 'Staff member does not have an assigned role yet.' });
+      }
+    }
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { assignedStaff: staffId || null },
@@ -225,6 +234,36 @@ const updateBookingByCustomer = async (req, res, next) => {
   }
 };
 
+// POST /api/bookings/:id/cancel — cancel a booking by customer (owner only, pending only).
+const cancelBookingByCustomer = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found.' });
+
+    // Only the owner can cancel
+    if (booking.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    // Prevent cancellation of completed services
+    if (booking.status === 'completed') {
+      return res.status(400).json({ message: 'Cannot cancel a completed booking.' });
+    }
+
+    // Prevent cancellation of in_progress / cancelled services
+    if (booking.status !== 'pending') {
+      return res.status(400).json({ message: `Cannot cancel a booking that is ${booking.status}.` });
+    }
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    res.status(200).json({ message: 'Booking cancelled successfully.', data: booking });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Helper: convert "08:00 AM" -> "08:00"
 function convertTo24h(timeStr) {
   if (!timeStr) return '00:00';
@@ -235,4 +274,5 @@ function convertTo24h(timeStr) {
   return `${hours.padStart(2,'0')}:${minutes}`;
 }
 
-module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, updateBookingStatus, deleteBooking, assignStaff, updateBookingByCustomer };
+module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, updateBookingStatus, deleteBooking, assignStaff, updateBookingByCustomer, cancelBookingByCustomer };
+

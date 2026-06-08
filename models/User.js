@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    isRoleAssigned: {
+      type: Boolean,
+      default: false,
+    },
     userType: {
       type: String,
       default: '',

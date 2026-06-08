@@ -70,7 +70,13 @@ async function renderBookings() {
   }
 
   const myReviews = (await reviewsAPI.getAll()).filter(r => (r.userId?._id || r.userId) === user.id);
-  const allIssues = getAll(KEYS.ISSUES) || [];
+  let allIssues = [];
+  try {
+    const issRes = await api.get('/reports/user/' + user.id);
+    allIssues = issRes.data || [];
+  } catch (e) {
+    allIssues = [];
+  }
 
   list.innerHTML = filtered.map(b => {
     const car     = b.car || {};
@@ -84,16 +90,43 @@ async function renderBookings() {
       : `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(svc,'1.2rem')} ${svc.name || ''}</span>`;
 
     const alreadyReviewed = myReviews.some(r => r.bookingId === b.id);
-    const report = allIssues.find(i => i.bookingId === b.id && i.userId === user.id);
+    const report = allIssues.find(i => (i.bookingId === b.id || i.bookingId?._id === b.id || i.bookingId === b._id || i.bookingId?._id === b._id));
     const canEdit = isEditable(b);
 
-    const reportHtml = report ? `
-      <div style="margin-top:10px;padding:10px;background:var(--gray-50);border-radius:8px;font-size:.8rem;border:1px solid var(--gray-100)">
-        <strong>⚠️ Your Report (${report.type}):</strong> ${report.desc}
-        ${report.adminReply
-          ? `<div style="margin-top:6px;padding:8px;background:#fff0f2;border-radius:6px;border-left:3px solid var(--primary)"><strong>💬 Admin Reply:</strong> ${report.adminReply}</div>`
-          : '<div style="color:var(--gray-400);margin-top:4px">⏳ Awaiting admin reply</div>'}
-      </div>` : '';
+    let reportHtml = '';
+    if (report) {
+      const replies = report.replies || [];
+      let allReplies = [...replies];
+      if (allReplies.length === 0 && report.adminReply && report.adminReply.trim()) {
+        allReplies.push({
+          senderRole: 'admin',
+          senderName: 'Admin',
+          text: report.adminReply,
+          createdAt: report.repliedAt || report.updatedAt || new Date()
+        });
+      }
+
+      const threadHtml = allReplies.map(reply => {
+        const isAdmin = reply.senderRole === 'admin';
+        return `
+          <div style="margin-top:6px;padding:8px;background:${isAdmin ? '#fff0f2' : '#f0f4f8'};border-radius:6px;border-left:3px solid ${isAdmin ? 'var(--primary)' : 'var(--info)'};font-size:.78rem">
+            <strong>${isAdmin ? '💬 Admin Reply' : '👤 You'}:</strong> ${reply.text}
+            <div style="font-size:.65rem;color:var(--gray-400);margin-top:2px">${formatDate(reply.createdAt)}</div>
+          </div>
+        `;
+      }).join('');
+
+      reportHtml = `
+        <div style="margin-top:10px;padding:10px;background:var(--gray-50);border-radius:8px;font-size:.8rem;border:1px solid var(--gray-100)">
+          <strong>⚠️ Your Report (${report.type}):</strong> ${report.desc}
+          ${threadHtml}
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <input class="form-control form-control-sm" id="customer-reply-input-${report._id || report.id}" placeholder="Reply to thread..." style="flex:1;font-size:.78rem;padding:4px 8px;height:auto">
+            <button class="btn btn-primary btn-sm" onclick="sendCustomerReportReply('${report._id || report.id}')" style="padding:4px 8px;font-size:.78rem">Send</button>
+          </div>
+        </div>
+      `;
+    }
 
     return `
       <div class="booking-card status-${b.status}">
@@ -354,14 +387,15 @@ window.submitReport = async (bookingId) => {
   const alertEl = document.getElementById('report-alert');
   if (!desc) { alertEl.innerHTML='<div class="alert alert-danger">Please describe the issue.</div>'; return; }
   const user   = auth.current();
-  const issues = getAll(KEYS.ISSUES) || [];
-  issues.push({ id: genId('iss'), userId: user.id, bookingId, type, desc, status: 'open', adminReply: '', createdAt: new Date().toISOString() });
-  saveAll(KEYS.ISSUES, issues);
-  notify({ message: `Customer ${user.firstName} reported: ${type}`, type: 'warning', icon: '⚠️' });
-  document.getElementById('report-modal-overlay').remove();
-  showToast('Issue reported! Admin will reply soon.', 'success');
-  allUserBookings = await bookingsAPI.forUser(user.id);
-  await renderBookings();
+  try {
+    await api.post('/reports', { bookingId, type, desc });
+    document.getElementById('report-modal-overlay').remove();
+    showToast('Issue reported! Admin will reply soon.', 'success');
+    allUserBookings = await bookingsAPI.forUser(user.id);
+    await renderBookings();
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-danger">${e.message || 'Failed to submit report.'}</div>`;
+  }
 };
 
 // ── DETAIL MODAL ────────────────────────────────────────────────────────────
@@ -401,9 +435,41 @@ window.viewDetail = (id) => {
 
 window.cancelBooking = async (id) => {
   if (!confirm('Cancel this booking?')) return;
-  await bookingsAPI.updateStatus(id, 'cancelled');
-  const b = allUserBookings.find(x => x.id === id);
-  if (b) b.status = 'cancelled';
-  await renderBookings();
-  showToast('Booking cancelled.', 'success');
+  try {
+    await bookingsAPI.cancel(id);
+    const b = allUserBookings.find(x => x.id === id);
+    if (b) b.status = 'cancelled';
+    
+    // Notify admin
+    const user = auth.current();
+    if (typeof notify === 'function') {
+      notify({
+        message: `Booking #${id.slice(-6)} was cancelled by customer ${user.firstName} ${user.lastName}`,
+        type: 'warning',
+        icon: '❌'
+      });
+    }
+    
+    await renderBookings();
+    showToast('Booking cancelled.', 'success');
+  } catch (err) {
+    showToast(err.message || 'Failed to cancel booking', 'error');
+  }
+};
+
+window.sendCustomerReportReply = async (id) => {
+  const input = document.getElementById('customer-reply-input-' + id);
+  const reply = input ? input.value.trim() : '';
+  if (!reply) { showToast('Please type a reply first.', 'error'); return; }
+  try {
+    await api.put(`/reports/${id}/reply`, { reply });
+    showToast('Reply sent!', 'success');
+    const user = auth.current();
+    allUserBookings = await bookingsAPI.forUser(user.id);
+    const issRes = await api.get('/reports/user/' + user.id);
+    allIssues = issRes.data || [];
+    await renderBookings();
+  } catch(e) {
+    showToast(e.message || 'Failed to send reply', 'error');
+  }
 };

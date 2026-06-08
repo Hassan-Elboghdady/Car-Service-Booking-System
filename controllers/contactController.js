@@ -85,6 +85,7 @@ const replyToContact = async (req, res, next) => {
       id,
       {
         $push: { replies: replyPayload },
+        adminReply: messageText,
         status: 'replied',
       },
       { new: true }
@@ -105,9 +106,14 @@ const updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    const update = { status };
+    if (status === 'unread') {
+      update.adminReply = '';
+      update.replies = [];
+    }
     const updated = await ContactMessage.findByIdAndUpdate(
       id,
-      { status },
+      update,
       { new: true }
     );
 

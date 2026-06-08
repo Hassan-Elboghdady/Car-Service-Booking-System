@@ -10,9 +10,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   initSidebar();
   await renderStats();
   await renderReviews();
-  renderReports();
-  renderStaffProblems();
-  renderContactMsgs();
+  await renderReports();
+  await renderStaffProblems();
+  await renderContactMsgs();
 
   document.querySelectorAll('[data-rv]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -25,18 +25,22 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-function getReports() { return getAll(KEYS.ISSUES)  || []; }
-
 // --- STATS ----------------------------------------------------
 async function renderStats() {
   const revs = await reviewsAPI.getAll();
-  const rpts = getReports();
+  let rpts = [];
+  try {
+    const res = await api.get('/reports');
+    rpts = res.data || [];
+  } catch (e) {
+    rpts = [];
+  }
   const avg  = revs.length ? (revs.reduce((s, r) => s + r.rating, 0) / revs.length).toFixed(1) : '';
   document.getElementById('rv-stats').innerHTML = [
     { l: 'Total Reviews', v: revs.length,                                        i: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>', c: 'yellow' },
     { l: 'Approved',      v: revs.filter(r => r.status === 'approved').length,   i: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>', c: 'green'  },
     { l: 'Avg Rating',    v: avg + '/5',                                          i: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;fill:currentColor;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>', c: 'blue'   },
-    { l: 'Open Reports',  v: rpts.filter(r => r.status === 'open').length,       i: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>', c: 'red'    },
+    { l: 'Open Reports',  v: rpts.filter(r => r.status !== 'resolved').length,       i: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>', c: 'red'    },
   ].map(s => `<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
 }
 
@@ -104,129 +108,181 @@ window.removeReview = async (id) => {
   await renderStats(); await renderReviews(); showToast('Review removed.', 'success');
 };
 
+// --- HELPER FOR THREADS ---------------------------------------
+function renderAdminThread(item, type) {
+  const replies = item.replies || [];
+  let allReplies = [...replies];
+  if (allReplies.length === 0 && item.adminReply && item.adminReply.trim()) {
+    allReplies.push({
+      senderRole: 'admin',
+      senderName: 'Admin',
+      text: item.adminReply,
+      createdAt: item.repliedAt || item.updatedAt || new Date()
+    });
+  }
+
+  const threadHtml = allReplies.map(reply => {
+    const isAdmin = reply.senderRole === 'admin';
+    return `
+      <div style="margin-top:6px;padding:8px;background:${isAdmin ? '#fff0f2' : '#f0f4f8'};border-radius:6px;border-left:3px solid ${isAdmin ? 'var(--primary)' : 'var(--info)'};font-size:.78rem">
+        <strong>🚗 ${reply.senderName} (${reply.senderRole}):</strong> ${reply.text}
+        <div style="font-size:.65rem;color:var(--gray-400);margin-top:2px">${formatDate(reply.createdAt)}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div style="margin-top:10px;padding:10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-100)">
+      ${threadHtml}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="form-control form-control-sm" id="reply-input-${type}-${item._id}" placeholder="Type message to reply..." style="flex:1;font-size:.78rem;padding:4px 8px;height:auto">
+        <button class="btn btn-primary btn-sm" onclick="sendAdminThreadReply('${item._id}', '${type}')" style="padding:4px 8px;font-size:.78rem">Reply</button>
+        ${type === 'contact' && !allReplies.length ? `<button class="btn btn-ghost btn-sm" onclick="markContactRead('${item._id}')" style="padding:4px 8px;font-size:.78rem">Mark Read</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+window.sendAdminThreadReply = async (id, type) => {
+  const input = document.getElementById(`reply-input-${type}-${id}`);
+  const reply = input ? input.value.trim() : '';
+  if (!reply) { showToast('Please type a reply first.', 'error'); return; }
+  try {
+    if (type === 'report') {
+      await api.put(`/reports/${id}/reply`, { reply });
+      showToast('Reply sent to customer!', 'success');
+      await renderStats(); await renderReports();
+    } else if (type === 'issue') {
+      await api.put(`/issues/${id}/reply`, { reply });
+      showToast('Reply sent to staff!', 'success');
+      await renderStaffProblems();
+    } else if (type === 'contact') {
+      await api.post(`/contact/${id}/reply`, { reply });
+      showToast('Reply sent to customer!', 'success');
+      await renderContactMsgs();
+    }
+  } catch (e) {
+    showToast(e.message || 'Failed to send reply', 'error');
+  }
+};
+
 // --- CUSTOMER REPORTS -----------------------------------------
-function renderReports() {
+async function renderReports() {
   const el = document.getElementById('reports-list');
   if (!el) return;
-  const rpts = [...getReports()].reverse();
+  let rpts = [];
+  try {
+    const res = await api.get('/reports');
+    rpts = res.data || [];
+  } catch (e) {
+    rpts = [];
+  }
   if (!rpts.length) { el.innerHTML = '<div class="empty-state" style="padding:32px"><div class="empty-icon">🔧</div><p>No reports yet.</p></div>'; return; }
   el.innerHTML = rpts.map(r => {
-    const user = getById(KEYS.USERS, r.userId) || {};
-    const bk   = getById(KEYS.BOOKINGS, r.bookingId) || {};
-    const svcs = getServices();
-    const svc  = svcs.find(s => s.id === bk.serviceId) || {};
-    const hasReply = r.adminReply && r.adminReply.trim();
     return `<div style="padding:18px;margin-bottom:12px;border:1px solid var(--gray-100);border-radius:10px;background:#fff">
       <div class="flex-between mb-8">
         <div class="flex-gap">
-          <div class="nav-avatar" style="width:36px;height:36px;font-size:.8rem;background:var(--warning)">${(user.firstName || 'U').charAt(0)}</div>
+          <div class="nav-avatar" style="width:36px;height:36px;font-size:.8rem;background:var(--warning)">${(r.customerName || 'U').charAt(0)}</div>
           <div>
-            <div style="font-weight:600;font-size:.88rem">${user.firstName || ''} ${user.lastName || ''}</div>
-            <div style="font-size:.72rem;color:var(--gray-500)">${formatDate(r.createdAt)}  ${svc.name || 'Unknown Service'}</div>
+            <div style="font-weight:600;font-size:.88rem">${r.customerName || ''} <span style="font-weight:400;font-size:.75rem;color:var(--gray-500)">(${r.email || ''})</span></div>
+            <div style="font-size:.72rem;color:var(--gray-500)">${formatDate(r.createdAt)} | Subject: <strong>${r.subject || ''}</strong></div>
           </div>
         </div>
         <div class="flex-gap">
-          <span class="badge badge-yellow">${r.type}</span>
-          <span class="badge ${hasReply ? 'badge-green' : 'badge-red'}">${hasReply ? 'Replied' : 'Open'}</span>
+          <span class="badge badge-yellow">${r.category || r.type || ''}</span>
+          <select class="form-control form-control-sm" style="width:110px;font-size:.75rem;padding:2px 6px;height:auto;margin-left:8px" onchange="updateReportStatus('${r._id}', this.value)">
+            <option value="pending" ${r.status==='pending'?'selected':''}>Pending</option>
+            <option value="in_progress" ${r.status==='in_progress'?'selected':''}>In Progress</option>
+            <option value="resolved" ${r.status==='resolved'?'selected':''}>Resolved</option>
+          </select>
+          <button class="btn btn-danger btn-sm" onclick="deleteReport('${r._id}')" style="padding:2px 6px;font-size:.72rem;margin-left:8px">Delete</button>
         </div>
       </div>
       <p style="font-size:.85rem;margin-bottom:12px;padding:10px;background:var(--gray-50);border-radius:8px">${r.desc}</p>
-      ${hasReply
-        ? `<div style="padding:10px;background:#fff0f2;border-radius:8px;border-left:3px solid var(--primary);font-size:.85rem"><strong>🚗 Admin Reply:</strong> ${r.adminReply}
-           <button class="btn btn-ghost btn-sm" style="float:right;font-size:.72rem" onclick="editReply('${r.id}')">Edit</button></div>`
-        : `<div style="display:flex;gap:8px;margin-top:8px">
-             <input class="form-control" id="reply-${r.id}" placeholder="Type your reply to the customer" style="flex:1;font-size:.85rem">
-             <button class="btn btn-primary btn-sm" onclick="sendReply('${r.id}')">Reply</button>
-           </div>`}
+      ${renderAdminThread(r, 'report')}
     </div>`;
   }).join('');
 }
 
-window.sendReply = (id) => {
-  const input = document.getElementById('reply-' + id);
-  const reply = input ? input.value.trim() : '';
-  if (!reply) { showToast('Please type a reply first.', 'error'); return; }
-  const reports = getReports();
-  const r = reports.find(x => x.id === id); if (!r) return;
-  r.adminReply = reply; r.status = 'replied'; r.repliedAt = new Date().toISOString();
-  saveAll(KEYS.ISSUES, reports);
-  notify({ userId: r.userId, message: `Admin replied to your report: "${reply.slice(0, 60)}"`, type: 'info', icon: '🚗' });
-  showToast('Reply sent to customer!', 'success');
-  renderStats(); renderReports();
+window.updateReportStatus = async (id, status) => {
+  try {
+    await api.put(`/reports/${id}/status`, { status });
+    showToast('Report status updated.', 'success');
+    await renderReports();
+  } catch (e) {
+    showToast(e.message || 'Failed to update status', 'error');
+  }
 };
 
-window.editReply = (id) => {
-  const reports = getReports();
-  const r = reports.find(x => x.id === id); if (!r) return;
-  r.adminReply = ''; r.status = 'open';
-  saveAll(KEYS.ISSUES, reports);
-  renderReports();
+window.deleteReport = async (id) => {
+  if (!confirm('Delete this report?')) return;
+  try {
+    await api.request(`/reports/${id}`, { method: 'DELETE' });
+    showToast('Report deleted successfully.', 'success');
+    await renderReports();
+  } catch (e) {
+    showToast(e.message || 'Failed to delete report', 'error');
+  }
 };
 
 // --- STAFF PROBLEMS -------------------------------------------
-function renderStaffProblems() {
+async function renderStaffProblems() {
   const el = document.getElementById('staff-problems-list');
   if (!el) return;
-  const problems = JSON.parse(localStorage.getItem('as_staff_issues') || '[]').reverse();
+  let problems = [];
+  try {
+    const res = await api.get('/issues/all');
+    problems = res.data || [];
+  } catch (e) {
+    problems = [];
+  }
   if (!problems.length) { el.innerHTML = '<div class="empty-state" style="padding:32px"><div class="empty-icon">🔧</div><p>No staff reports yet.</p></div>'; return; }
   el.innerHTML = problems.map(p => {
-    const staff = getById(KEYS.USERS, p.staffId) || {};
-    const hasReply = p.adminReply && p.adminReply.trim();
+    const staff = p.staffId || {};
     return `<div style="padding:18px;margin-bottom:12px;border:1px solid var(--gray-100);border-radius:10px;background:#fff;border-left:3px solid var(--warning)">
       <div class="flex-between mb-8">
         <div class="flex-gap">
           <div class="nav-avatar" style="width:36px;height:36px;font-size:.8rem;background:var(--warning)">${(staff.firstName || 'S').charAt(0)}</div>
           <div>
-            <div style="font-weight:600;font-size:.88rem">🚗 ${staff.firstName || ''} ${staff.lastName || ''} <span style="font-size:.72rem;color:var(--gray-400)">(Staff)</span></div>
-            <div style="font-size:.72rem;color:var(--gray-500)">${formatDate(p.createdAt)}  ${p.type || 'General'}</div>
+            <div style="font-weight:600;font-size:.88rem">🚗 ${staff.firstName || ''} ${staff.lastName || ''} <span style="font-size:.72rem;color:var(--gray-400)">(Staff ID: ${staff.email || ''})</span></div>
+            <div style="font-size:.72rem;color:var(--gray-500)">${formatDate(p.createdAt)} | Title: <strong>${p.type || 'General'}</strong></div>
           </div>
         </div>
-        <span class="badge ${hasReply ? 'badge-green' : 'badge-yellow'}">${hasReply ? 'Replied' : 'Pending'}</span>
+        <select class="form-control form-control-sm" style="width:110px;font-size:.75rem;padding:2px 6px;height:auto" onchange="updateStaffProblemStatus('${p._id}', this.value)">
+          <option value="pending" ${p.status==='pending'?'selected':''}>Pending</option>
+          <option value="in_progress" ${p.status==='in_progress'?'selected':''}>In Progress</option>
+          <option value="resolved" ${p.status==='resolved'?'selected':''}>Resolved</option>
+        </select>
       </div>
       <p style="font-size:.85rem;margin-bottom:12px;padding:10px;background:var(--gray-50);border-radius:8px">${p.desc}</p>
-      ${hasReply
-        ? `<div style="padding:10px;background:#fff0f2;border-radius:8px;border-left:3px solid var(--primary);font-size:.85rem"><strong>🚗 Admin Reply:</strong> ${p.adminReply}
-           <button class="btn btn-ghost btn-sm" style="float:right;font-size:.72rem" onclick="editStaffReply('${p.id}')">Edit</button></div>`
-        : `<div style="display:flex;gap:8px;margin-top:8px">
-             <input class="form-control" id="sreply-${p.id}" placeholder="Reply to this staff member" style="flex:1;font-size:.85rem">
-             <button class="btn btn-primary btn-sm" onclick="sendStaffReply('${p.id}')">Reply</button>
-           </div>`}
+      ${renderAdminThread(p, 'issue')}
     </div>`;
   }).join('');
 }
 
-window.sendStaffReply = (id) => {
-  const input = document.getElementById('sreply-' + id);
-  const reply = input ? input.value.trim() : '';
-  if (!reply) { showToast('Please type a reply first.', 'error'); return; }
-  const problems = JSON.parse(localStorage.getItem('as_staff_issues') || '[]');
-  const p = problems.find(x => x.id === id); if (!p) return;
-  p.adminReply = reply; p.repliedAt = new Date().toISOString();
-  localStorage.setItem('as_staff_issues', JSON.stringify(problems));
-  notify({ userId: p.staffId, message: `Admin replied to your report: "${reply.slice(0, 60)}"`, type: 'info', icon: '🚗' });
-  showToast('Reply sent to staff!', 'success');
-  renderStaffProblems();
-};
-
-window.editStaffReply = (id) => {
-  const problems = JSON.parse(localStorage.getItem('as_staff_issues') || '[]');
-  const p = problems.find(x => x.id === id); if (!p) return;
-  p.adminReply = '';
-  localStorage.setItem('as_staff_issues', JSON.stringify(problems));
-  renderStaffProblems();
+window.updateStaffProblemStatus = async (id, status) => {
+  try {
+    await api.put(`/issues/${id}/status`, { status });
+    showToast('Staff problem status updated.', 'success');
+    await renderStaffProblems();
+  } catch (e) {
+    showToast(e.message || 'Failed to update status', 'error');
+  }
 };
 
 // --- CONTACT US MESSAGES --------------------------------------
-function getContactMsgs() { return JSON.parse(localStorage.getItem('as_contact_msgs') || '[]'); }
-function saveContactMsgs(msgs) { localStorage.setItem('as_contact_msgs', JSON.stringify(msgs)); }
-
-function renderContactMsgs() {
+async function renderContactMsgs() {
   const el = document.getElementById('contact-msgs-list');
   if (!el) return;
-  const msgs = [...getContactMsgs()].reverse();
+  let msgs = [];
+  try {
+    const res = await api.get('/contact');
+    msgs = res.data || [];
+  } catch (e) {
+    msgs = [];
+  }
   if (!msgs.length) { el.innerHTML = '<div class="empty-state" style="padding:32px"><div class="empty-icon">🔧</div><p>No contact messages yet.</p></div>'; return; }
   el.innerHTML = msgs.map(m => {
-    const hasReply = m.adminReply && m.adminReply.trim();
     return `<div style="padding:18px;margin-bottom:12px;border:1px solid var(--gray-100);border-radius:10px;background:#fff;${m.status === 'unread' ? 'border-left:3px solid var(--primary);' : ''}">
       <div class="flex-between mb-8">
         <div class="flex-gap">
@@ -239,43 +295,14 @@ function renderContactMsgs() {
         <span class="badge badge-yellow">${m.subject}</span>
       </div>
       <p style="font-size:.85rem;margin-bottom:10px;padding:10px;background:var(--gray-50);border-radius:8px">${m.msg}</p>
-      ${hasReply
-        ? `<div style="padding:10px;background:#fff0f2;border-radius:8px;border-left:3px solid var(--primary);font-size:.85rem">
-             <strong>🚗 Admin Reply:</strong> ${m.adminReply}
-             <button class="btn btn-ghost btn-sm" style="float:right;font-size:.72rem" onclick="editContactReply('${m.id}')">Edit</button>
-           </div>`
-        : `<div style="display:flex;gap:8px;margin-top:8px">
-             <input class="form-control" id="creply-${m.id}" placeholder="Type your reply" style="flex:1;font-size:.85rem">
-             <button class="btn btn-primary btn-sm" onclick="sendContactReply('${m.id}')">Reply</button>
-             <button class="btn btn-ghost btn-sm" onclick="markContactRead('${m.id}')">Mark Read</button>
-           </div>`}
+      ${renderAdminThread(m, 'contact')}
     </div>`;
   }).join('');
 }
 
-window.sendContactReply = (id) => {
-  const input = document.getElementById('creply-' + id);
-  const reply = input ? input.value.trim() : '';
-  if (!reply) { showToast('Please type a reply first.', 'error'); return; }
-  const msgs = getContactMsgs();
-  const m = msgs.find(x => x.id === id); if (!m) return;
-  m.adminReply = reply; m.status = 'replied'; m.repliedAt = new Date().toISOString();
-  saveContactMsgs(msgs);
-  if (m.userId && typeof notify === 'function') {
-    notify({ userId: m.userId, message: `Admin replied to your contact message: "${reply.slice(0, 60)}"`, type: 'info', icon: '🚗' });
-  }
-  showToast('Reply sent to customer!', 'success');
-  renderContactMsgs();
-};
-
-window.markContactRead = (id) => {
-  const msgs = getContactMsgs();
-  const m = msgs.find(x => x.id === id); if (!m) return;
-  m.status = 'read'; saveContactMsgs(msgs); renderContactMsgs();
-};
-
-window.editContactReply = (id) => {
-  const msgs = getContactMsgs();
-  const m = msgs.find(x => x.id === id); if (!m) return;
-  m.adminReply = ''; m.status = 'unread'; saveContactMsgs(msgs); renderContactMsgs();
+window.markContactRead = async (id) => {
+  try {
+    await api.request(`/contact/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'read' }), headers: { 'Content-Type': 'application/json' } });
+    await renderContactMsgs();
+  } catch(e) { showToast(e.message || 'Failed to update status', 'error'); }
 };

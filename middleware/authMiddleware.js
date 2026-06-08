@@ -67,4 +67,16 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+// Require staff to have an assigned role before carrying out actions.
+const requireStaffRole = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authenticated.' });
+  }
+  if (req.user.role === 'admin') return next();
+  if (req.user.role === 'staff' && !req.user.isRoleAssigned) {
+    return res.status(403).json({ message: 'No role assigned. Please contact your admin.' });
+  }
+  next();
+};
+
+module.exports = { protect, authorize, requireStaffRole };

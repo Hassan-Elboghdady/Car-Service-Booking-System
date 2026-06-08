@@ -21,6 +21,7 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const staffCodeRoutes = require('./routes/staffCodeRoutes');
 const couponRoutes = require('./routes/couponRoutes');
 const authRoutes = require('./routes/authRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 const isAuthenticated = require('./middleware/isAuthenticated');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -185,6 +186,7 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/staff-codes', staffCodeRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Keep existing links working: /booking.ejs -> render booking.ejs.
 app.get('/:page.ejs', (req, res, next) => {
