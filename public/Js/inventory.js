@@ -3,21 +3,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!requireRole('admin')) return;
   initSidebar();
   await refresh();
-  
   document.getElementById('inv-search').addEventListener('input', refresh);
   document.getElementById('in-save').addEventListener('click', saveItem);
 });
-
 async function refresh() {
   const items = await inventoryAPI.getAll();
   const q = document.getElementById('inv-search').value.toLowerCase();
   const filtered = items.filter(i => i.name.toLowerCase().includes(q));
-  
   renderStats(items);
   renderTable(filtered);
   renderLowStock(items);
 }
-
 function renderStats(items) {
   const low = items.filter(i => i.qty <= (i.lowAt || 5)).length;
   document.getElementById('inv-stats').innerHTML = [
@@ -27,7 +23,6 @@ function renderStats(items) {
     { l: 'Out of Stock', v: items.filter(i=>i.qty===0).length, i: '🚗', c: 'red' },
   ].map(s => `<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
 }
-
 function renderTable(items) {
   const tbody = document.getElementById('inv-tbody');
   tbody.innerHTML = items.map(i => {
@@ -49,7 +44,6 @@ function renderTable(items) {
       </tr>`;
   }).join('') || '<tr><td colspan="6" class="text-center">No items found</td></tr>';
 }
-
 function renderLowStock(items) {
   const low = items.filter(i => i.qty <= (i.lowAt || 5));
   document.getElementById('low-stock-list').innerHTML = low.length ? low.map(i => `
@@ -62,29 +56,24 @@ function renderLowStock(items) {
       <button class="btn btn-primary btn-sm" style="padding:4px 8px; font-size:.7rem" onclick="adjust('${i._id}', 10)">Order</button>
     </div>`).join('') : '<p class="text-muted" style="font-size:.85rem">All items well stocked.</p>';
 }
-
 window.adjust = async (id, amt) => {
   await inventoryAPI.adjust(id, amt);
   await refresh();
 };
-
 window.remItem = async (id) => {
   if (confirm('Delete this item from inventory?')) {
     await inventoryAPI.remove(id);
     await refresh();
   }
 };
-
 async function saveItem() {
   const name = document.getElementById('in-name').value;
   const qty = parseInt(document.getElementById('in-qty').value);
   if (!name) return;
-  
   await inventoryAPI.add({ name, qty, lowAt: parseInt(document.getElementById('in-low').value)||5, unit: 'units' });
   closeModal('inv-modal');
   await refresh();
 }
-
 window.generateOrder = () => {
   showToast('Purchase Order generated and sent to suppliers.', 'success');
 };

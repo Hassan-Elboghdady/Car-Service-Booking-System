@@ -1,13 +1,9 @@
-// my-bookings.js
-'use strict';
 
+'use strict';
 let allUserBookings = [];
 let activeFilter    = 'all';
 let selectedStar    = 0;
-
-// All known services (fetched once on load)
 let allKnownServices = [];
-
 window.addEventListener('DOMContentLoaded', async () => {
   const user = auth.current();
   if (!user) { showAuthGuard('bookings-auth-guard', 'Login to see and manage your bookings.'); return; }
@@ -16,14 +12,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => location.href = 'staff-dashboard.ejs', 1000);
     return;
   }
-
-  // Pre-load services catalogue
   allKnownServices = getAllServices();
-
   document.getElementById('bookings-content').style.display = 'block';
   allUserBookings = await bookingsAPI.forUser(user.id);
   await renderBookings();
-
   document.querySelectorAll('[data-status]').forEach(btn => {
     btn.addEventListener('click', async () => {
       document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
@@ -33,16 +25,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   });
 });
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-/** Resolve service names for a booking (supports serviceIds array + legacy serviceId) */
 function resolveServices(b) {
   const ids = (b.serviceIds && b.serviceIds.length) ? b.serviceIds : (b.serviceId ? [b.serviceId] : []);
   return ids.map(id => allKnownServices.find(s => s.id === id)).filter(Boolean);
 }
-
-/** Check if booking is more than 9 hours away */
 function isEditable(b) {
   if (b.status !== 'pending') return false;
   const timeStr = b.time || '08:00 AM';
@@ -54,21 +40,16 @@ function isEditable(b) {
   const hoursUntil = (bookingDT - Date.now()) / (1000 * 60 * 60);
   return hoursUntil > 9;
 }
-
-// ── Render ─────────────────────────────────────────────────────────────────
-
 async function renderBookings() {
   const list = document.getElementById('bookings-list');
   const user = auth.current();
   let filtered = activeFilter === 'all' ? allUserBookings : allUserBookings.filter(b => b.status === activeFilter);
-
   if (!filtered.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔧</div><h3>No bookings found</h3>
       <p>${activeFilter === 'all' ? 'You have no bookings yet.' : 'No ' + activeFilter + ' bookings.'}</p>
       <a href="booking.ejs" class="btn btn-primary mt-16">Book Now</a></div>`;
     return;
   }
-
   const myReviews = (await reviewsAPI.getAll()).filter(r => (r.userId?._id || r.userId) === user.id);
   let allIssues = [];
   try {
@@ -77,22 +58,17 @@ async function renderBookings() {
   } catch (e) {
     allIssues = [];
   }
-
   list.innerHTML = filtered.map(b => {
     const car     = b.car || {};
     const svcs    = resolveServices(b);
-    const svc     = svcs[0] || b.service || {};           // fallback for display
+    const svc     = svcs[0] || b.service || {};           
     const multiSvc = svcs.length > 1;
-
-    // Service title: all names joined, emoji only if single service
     const svcTitle = multiSvc
       ? svcs.map(s => s.name).join(', ')
       : `<span style="display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(svc,'1.2rem')} ${svc.name || ''}</span>`;
-
     const alreadyReviewed = myReviews.some(r => r.bookingId === b.id);
     const report = allIssues.find(i => (i.bookingId === b.id || i.bookingId?._id === b.id || i.bookingId === b._id || i.bookingId?._id === b._id));
     const canEdit = isEditable(b);
-
     let reportHtml = '';
     if (report) {
       const replies = report.replies || [];
@@ -105,7 +81,6 @@ async function renderBookings() {
           createdAt: report.repliedAt || report.updatedAt || new Date()
         });
       }
-
       const threadHtml = allReplies.map(reply => {
         const isAdmin = reply.senderRole === 'admin';
         return `
@@ -115,7 +90,6 @@ async function renderBookings() {
           </div>
         `;
       }).join('');
-
       reportHtml = `
         <div style="margin-top:10px;padding:10px;background:var(--gray-50);border-radius:8px;font-size:.8rem;border:1px solid var(--gray-100)">
           <strong>⚠️ Your Report (${report.type}):</strong> ${report.desc}
@@ -127,7 +101,6 @@ async function renderBookings() {
         </div>
       `;
     }
-
     return `
       <div class="booking-card status-${b.status}">
         <div class="bk-top">
@@ -158,18 +131,12 @@ async function renderBookings() {
       </div>`;
   }).join('');
 }
-
-// ── EDIT MODAL ─────────────────────────────────────────────────────────────
-
 window.openEditModal = (bookingId) => {
   const b = allUserBookings.find(x => x.id === bookingId);
   if (!b) return;
-
   const svcs = resolveServices(b);
   const currentSvcIds = svcs.map(s => s.id);
   const car = b.car || {};
-
-  // Build service checkboxes instead of dropdown to allow multiple
   const svcCheckboxes = allKnownServices.map(s => {
     let price = s.price || 0;
     if (s.cat === 'mileage') price = getMileagePriceForCar(s.id, null, car) || 0;
@@ -181,19 +148,13 @@ window.openEditModal = (bookingId) => {
       </label>
     `;
   }).join('');
-
-  // Payment method options
   const pmOptions = ['Cash', 'Card (Visa/MC)', 'Bank Transfer', 'InstaPay'].map(pm => 
     `<option value="${pm}" ${b.paymentMethod === pm ? 'selected' : ''}>${pm}</option>`
   ).join('');
-
-  // Tomorrow min date
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
-
   const el = document.getElementById('edit-modal-overlay');
   if (el) el.remove();
-
   const overlay = document.createElement('div');
   overlay.id = 'edit-modal-overlay';
   overlay.className = 'modal-overlay open';
@@ -243,32 +204,23 @@ window.openEditModal = (bookingId) => {
     </div>`;
   document.body.appendChild(overlay);
 };
-
 window.submitEdit = async (bookingId) => {
   const alertEl = document.getElementById('edit-alert');
   const date    = document.getElementById('edit-date').value;
   const time    = document.getElementById('edit-time').value;
   const notes   = document.getElementById('edit-notes').value.trim();
   const paymentMethod = document.getElementById('edit-payment').value;
-  
-  // Get checked services
   const checked = Array.from(document.querySelectorAll('.edit-svc-cb:checked'));
   if (!checked.length) { alertEl.innerHTML = '<div class="alert alert-danger">Please select at least one service.</div>'; return; }
-  
-  // Check mileage constraint
   const mileageCount = checked.filter(cb => cb.dataset.cat === 'mileage').length;
   if (mileageCount > 1) { alertEl.innerHTML = '<div class="alert alert-danger">Only one mileage package allowed per booking.</div>'; return; }
-  
   const svcIds = checked.map(cb => cb.value);
   const total = checked.reduce((sum, cb) => sum + parseFloat(cb.dataset.price), 0);
-  
   if (!date) { alertEl.innerHTML = '<div class="alert alert-danger">Please select a date.</div>'; return; }
   if (!time) { alertEl.innerHTML = '<div class="alert alert-danger">Please select a time.</div>'; return; }
-
   try {
     const updated = await bookingsAPI.editBooking(bookingId, { date, time, serviceId: svcIds[0], serviceIds: svcIds, notes, total, paymentMethod });
     document.getElementById('edit-modal-overlay').remove();
-    // Update local data
     const idx = allUserBookings.findIndex(x => x.id === bookingId);
     if (idx >= 0 && updated) {
       allUserBookings[idx] = { ...allUserBookings[idx], ...updated, serviceIds: svcIds, paymentMethod };
@@ -279,9 +231,6 @@ window.submitEdit = async (bookingId) => {
     alertEl.innerHTML = `<div class="alert alert-danger">${e?.data?.message || e.message || 'Could not save changes.'}</div>`;
   }
 };
-
-// ── REVIEW MODAL ────────────────────────────────────────────────────────────
-
 window.openReviewModal = (bookingId) => {
   const el = document.getElementById('review-modal-overlay');
   if (el) el.remove();
@@ -312,7 +261,6 @@ window.openReviewModal = (bookingId) => {
     </div>`;
   document.body.appendChild(overlay);
 };
-
 window.selectStar = (n) => {
   selectedStar = n;
   document.querySelectorAll('#star-row [data-star]').forEach(s => {
@@ -322,7 +270,6 @@ window.selectStar = (n) => {
     s.style.transform = v <= n ? 'scale(1.1)' : 'scale(1)';
   });
 };
-
 window.submitReview = async (bookingId) => {
   const text    = document.getElementById('review-text').value.trim();
   const alertEl = document.getElementById('review-alert');
@@ -341,9 +288,6 @@ window.submitReview = async (bookingId) => {
     alertEl.innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
   }
 };
-
-// ── REPORT MODAL ────────────────────────────────────────────────────────────
-
 window.openReportModal = (bookingId) => {
   const el = document.getElementById('report-modal-overlay');
   if (el) el.remove();
@@ -380,7 +324,6 @@ window.openReportModal = (bookingId) => {
     </div>`;
   document.body.appendChild(overlay);
 };
-
 window.submitReport = async (bookingId) => {
   const desc    = document.getElementById('report-desc').value.trim();
   const type    = document.getElementById('report-type').value;
@@ -397,20 +340,15 @@ window.submitReport = async (bookingId) => {
     alertEl.innerHTML = `<div class="alert alert-danger">${e.message || 'Failed to submit report.'}</div>`;
   }
 };
-
-// ── DETAIL MODAL ────────────────────────────────────────────────────────────
-
 window.viewDetail = (id) => {
   const b = allUserBookings.find(x => x.id === id);
   if (!b) return;
   const car  = b.car || {};
   const svcs = resolveServices(b);
   const svc  = svcs[0] || b.service || {};
-
   const svcRows = svcs.length
     ? svcs.map(s => `<div style="font-weight:600;display:inline-flex;align-items:center;gap:8px">${renderServiceIconHtml(s,'1rem')} ${s.name}</div>`).join('')
     : `<div style="font-weight:600">${svc.name || '—'}</div>`;
-
   document.getElementById('detail-modal-body').innerHTML = `
     <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius-sm);padding:20px;color:#fff;margin-bottom:20px">
       <div style="font-size:1.1rem;font-weight:700">${svcs.length > 1 ? svcs.map(s=>s.name).join(' + ') : (svc.name || '')}</div>
@@ -430,17 +368,12 @@ window.viewDetail = (id) => {
   document.getElementById('detail-track-btn').href = `tracker.ejs?id=${b.id}`;
   openModal('detail-modal');
 };
-
-// ── CANCEL ──────────────────────────────────────────────────────────────────
-
 window.cancelBooking = async (id) => {
   if (!confirm('Cancel this booking?')) return;
   try {
     await bookingsAPI.cancel(id);
     const b = allUserBookings.find(x => x.id === id);
     if (b) b.status = 'cancelled';
-    
-    // Notify admin
     const user = auth.current();
     if (typeof notify === 'function') {
       notify({
@@ -449,14 +382,12 @@ window.cancelBooking = async (id) => {
         icon: '❌'
       });
     }
-    
     await renderBookings();
     showToast('Booking cancelled.', 'success');
   } catch (err) {
     showToast(err.message || 'Failed to cancel booking', 'error');
   }
 };
-
 window.sendCustomerReportReply = async (id) => {
   const input = document.getElementById('customer-reply-input-' + id);
   const reply = input ? input.value.trim() : '';

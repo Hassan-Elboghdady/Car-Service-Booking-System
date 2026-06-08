@@ -1,5 +1,4 @@
 let editingId = null;
-
 window.addEventListener('DOMContentLoaded', async () => {
   seedData();
   if (!requireRole('admin')) return;
@@ -9,7 +8,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('inv-search').addEventListener('input', function() { renderList(this.value.toLowerCase()); });
   document.getElementById('inv-save').addEventListener('click', addItem);
 });
-
 function resetInvForm() {
   ['inv-name','inv-unit','inv-cost','inv-qty','inv-low','inv-supplier','inv-minorder'].forEach(id => {
     const el = document.getElementById(id);
@@ -18,7 +16,6 @@ function resetInvForm() {
   const cat = document.getElementById('inv-cat');
   if (cat) cat.value = 'oils';
 }
-
 function setModalMode(mode) {
   const title = document.getElementById('inv-modal-title');
   const btn = document.getElementById('inv-save');
@@ -31,14 +28,12 @@ function setModalMode(mode) {
     btn.textContent = 'Add Item';
   }
 }
-
 window.openAddItemModal = () => {
   editingId = null;
   resetInvForm();
   setModalMode('add');
   openModal('inv-modal');
 };
-
 window.openEditItem = async (id) => {
   const items = await getItems();
   const item = items.find(i => i._id === id);
@@ -58,7 +53,6 @@ window.openEditItem = async (id) => {
   document.getElementById('inv-minorder').value = item.minOrder ?? 1;
   openModal('inv-modal');
 };
-
 async function seedInventory() {
   const existing = await inventoryAPI.getAll();
   if (existing.length > 0) return;
@@ -104,11 +98,7 @@ async function seedInventory() {
     try { await inventoryAPI.add(item); } catch(e){}
   }
 }
-
 async function getItems() { return await inventoryAPI.getAll(); }
-
-
-
 async function renderAll() {
   const items = await getItems();
   const low   = items.filter(i=>i.qty<=i.lowAt);
@@ -120,7 +110,6 @@ async function renderAll() {
   ].map(s=>`<div class="stat-card"><div class="stat-icon ${s.c}">${s.i}</div><div><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
   await renderList(); await renderLowStock();
 }
-
 async function renderList(q='') {
   const catLabel = { oils:'Oils', filters:'Filters', brakes:'Brakes', electrical:'Electrical', fluids:'Fluids', cleaning:'Cleaning', belts:'Belts', parts:'Parts', tools:'Tools', other:'Other' };
   const catColor = { oils:'badge-yellow', filters:'badge-blue', brakes:'badge-red', electrical:'badge-purple', fluids:'badge-blue', cleaning:'badge-green', belts:'badge-gray', parts:'badge-gray', tools:'badge-gray', other:'badge-gray' };
@@ -151,11 +140,9 @@ async function renderList(q='') {
         <button class="btn btn-danger btn-sm" onclick="removeItem('${i._id}')">${SVG_ICONS.trash}</button>
       </div>`;
   };
-
   const grouped = categoryOrder
     .map(cat => ({ cat, items: items.filter(i => (i.cat || 'other') === cat) }))
     .filter(group => group.items.length > 0);
-
   document.getElementById('inv-list').innerHTML = grouped.length
     ? grouped.map(group => `
         <div style="padding:16px 0 6px;font-weight:700;color:var(--gray-700)">${catLabel[group.cat] || group.cat || 'Other'}</div>
@@ -163,8 +150,6 @@ async function renderList(q='') {
       `).join('')
     : '<p style="color:var(--gray-400);font-size:.85rem;padding:20px 0">No items found.</p>';
 }
-
-
 async function renderLowStock() {
   const low = (await getItems()).filter(i=>i.qty<=i.lowAt);
   document.getElementById('low-stock-list').innerHTML = low.length
@@ -174,7 +159,6 @@ async function renderLowStock() {
       </div>`).join('')
     : '<p style="color:var(--success);font-size:.83rem">✓ All stocked!</p>';
 }
-
 window.adj = async (id, delta) => {
   await inventoryAPI.adjust(id, delta);
   await renderAll();
@@ -196,12 +180,10 @@ async function addItem() {
   const minOrder = parseInt(document.getElementById('inv-minorder').value) || 1;
   if (!name) { showToast('Item name is required', 'error'); return; }
   const items = await getItems();
-  
   if (items.some(i => i.name.toLowerCase() === name.toLowerCase() && i._id !== editingId)) {
     showToast(`Inventory item "${name}" already exists!`, 'error');
     return;
   }
-
   try {
     if (isEdit) {
       await inventoryAPI.update(editingId, { name, cat, unit, cost, qty, lowAt, supplier, minOrder });

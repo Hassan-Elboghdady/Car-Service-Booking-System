@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Dashboard – AutoServe</title>
+  <link rel="stylesheet" href="../Public/Css/shared.css"/>
+  <link rel="stylesheet" href="../Public/Css/admin-dashboard.css"/>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;">
+    <img src="../Public/images/LogoBrand/AutoServeLogo.jpg" alt="AutoServe" style="height:36px; border-radius:6px; margin-right:10px;">
+    <div class="name" style="font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;">Auto<span style="color:var(--primary)">Serve</span></div>
+    <div class="role-tag">Admin Panel</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav">
+    <a href="admin-dashboard.html"    class="active"><span class="s-icon">📊</span> Dashboard</a>
+    <a href="admin-bookings.html">    <span class="s-icon">📋</span> Bookings</a>
+    <a href="admin-services.html">    <span class="s-icon">🔧</span> Services</a>
+  </nav>
+  <div class="sidebar-section">Management</div>
+  <nav class="sidebar-nav">
+    <a href="admin-staff.html">       <span class="s-icon">👷</span> Staff</a>
+    <a href="admin-vehicles.html">    <span class="s-icon">🚗</span> Vehicles</a>
+    <a href="admin-payments.html">    <span class="s-icon">💰</span> Payments</a>
+    <a href="admin-inventory.html">   <span class="s-icon">📦</span> Inventory</a>
+  </nav>
+  <div class="sidebar-section">Analytics</div>
+  <nav class="sidebar-nav">
+    <a href="admin-reports.html">     <span class="s-icon">📈</span> Reports</a>
+    <a href="admin-reviews.html">     <span class="s-icon">⭐</span> Reviews</a>
+  </nav>
+  <div class="sidebar-section">System</div>
+  <nav class="sidebar-nav">
+    <a href="admin-notifications.html"><span class="s-icon">🔔</span> Notifications</a>
+    <a href="admin-cms.html">          <span class="s-icon">🖊️</span> CMS</a>
+    <a href="admin-settings.html">     <span class="s-icon">⚙️</span> Settings</a>
+    <a href="index.html">              <span class="s-icon">🏠</span> Main Site</a>
+    <a href="#" onclick="doLogout()">  <span class="s-icon">🚪</span> Logout</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="main-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-sm btn-icon" aria-label="Toggle sidebar">☰</button>
+      <span class="main-title">Dashboard</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="admin-notifications.html" class="btn btn-ghost btn-sm btn-icon" title="Notifications">🔔</a>
+      <div class="nav-avatar" id="admin-avatar" title="Admin">A</div>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Welcome -->
+    <div class="flex-between flex-wrap mb-28" style="gap:12px">
+      <div>
+        <h2 style="margin-bottom:4px">Welcome back, <span id="admin-name">Admin</span> 👋</h2>
+        <p id="admin-date" style="font-size:.85rem"></p>
+      </div>
+      <a href="booking.html" class="btn btn-primary">+ Create Booking</a>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="grid-4 mb-28" id="admin-stats"></div>
+
+    <!-- ROW: Recent bookings + Quick actions -->
+    <div class="dash-row mb-28">
+      <div class="card">
+        <div class="card-header flex-between">
+          <h3>Recent Bookings</h3>
+          <a href="admin-bookings.html" class="btn btn-ghost btn-sm">View All</a>
+        </div>
+        <div class="table-wrap" style="border:none;border-radius:0" id="recent-bookings-tbl"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card card-body">
+          <h4 style="margin-bottom:16px">Quick Actions</h4>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <a href="admin-bookings.html" class="btn btn-primary btn-block">📋 Manage Bookings</a>
+            <a href="admin-staff.html"    class="btn btn-outline btn-block">👷 Staff & Codes</a>
+            <a href="admin-services.html" class="btn btn-ghost btn-block">🔧 Edit Services</a>
+            <a href="admin-inventory.html"class="btn btn-ghost btn-block">📦 Inventory</a>
+          </div>
+        </div>
+        <div class="card card-body">
+          <h4 style="margin-bottom:14px">Status Overview</h4>
+          <div id="status-overview"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW: Revenue + Customers -->
+    <div class="dash-row">
+      <div class="card card-body">
+        <h4 style="margin-bottom:16px">Revenue by Service</h4>
+        <div id="revenue-by-service"></div>
+      </div>
+      <div class="card card-body">
+        <h4 style="margin-bottom:14px">Recent Customers</h4>
+        <div id="recent-customers"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="toast-root"></div>
+<script src="../Public/Js/shared.js"></script>
+<script src="../Public/Js/admin-dashboard.js"></script>
+</body>
+</html>
+

@@ -10,7 +10,6 @@
 </head>
 <body>
 <div id="navbar-wrap"></div>
-
 <div class="page-header">
   <div class="container">
     <div class="breadcrumb"><a href="index.ejs">Home</a><span class="breadcrumb-sep"></span><span>Booking</span></div>
@@ -18,13 +17,10 @@
     <p>Choose your vehicle, select services, pick a date & confirm  done in minutes.</p>
   </div>
 </div>
-
 <section class="section-sm">
   <div class="container">
     <div id="booking-auth-guard"></div>
     <div id="booking-wizard" style="display:none">
-
-      <!-- Progress steps -->
       <div class="wizard-steps">
         <div class="wizard-step active" data-step="1"><div class="step-circle">1</div><div class="step-label">Vehicle</div></div>
         <div class="wizard-connector"></div>
@@ -34,22 +30,15 @@
         <div class="wizard-connector"></div>
         <div class="wizard-step" data-step="4"><div class="step-circle">4</div><div class="step-label">Confirm</div></div>
       </div>
-
       <div class="wizard-layout">
         <div class="wizard-main">
-
-          <!-- Step 1: Vehicle -->
           <div class="wizard-panel active" id="step-1">
             <h3 class="wizard-panel-title">Choose Your Vehicle</h3>
             <div id="step1-cars"></div>
             <button class="btn btn-ghost btn-sm mt-16" onclick="openModal('add-car-from-booking')">+ Add New Vehicle</button>
           </div>
-
-          <!-- Step 2: Services -->
           <div class="wizard-panel" id="step-2">
             <h3 class="wizard-panel-title">Select Services <span style="font-size:.8rem;color:var(--gray-500);font-weight:400">(multi-select  one mileage package)</span></h3>
-
-            <!-- Filter tabs -->
             <div class="svc-filter-bar" id="svc-filter-bar">
               <button class="svc-filter-btn active" data-cat="all"> All</button>
               <button class="svc-filter-btn" data-cat="maintenance"> Maintenance</button>
@@ -57,22 +46,15 @@
               <button class="svc-filter-btn" data-cat="repair"> Repair</button>
               <button class="svc-filter-btn" data-cat="mileage"> Mileage Packages</button>
             </div>
-
-            <!-- Search -->
             <div style="margin:12px 0">
               <input class="form-control" id="svc-search" placeholder="Search services" style="max-width:320px"/>
             </div>
-
-            <!-- Selection count -->
             <div class="flex-between mb-12">
               <span id="svc-selected-count" style="font-size:.85rem;color:var(--gray-500)">No services selected</span>
               <button class="btn btn-ghost btn-sm" onclick="clearServices()" id="clear-svcs-btn" style="display:none">Clear all</button>
             </div>
-
             <div id="step2-services"></div>
           </div>
-
-          <!-- Step 3: Date & Time -->
           <div class="wizard-panel" id="step-3">
             <h3 class="wizard-panel-title"> Date & Time</h3>
             <div class="form-row">
@@ -100,8 +82,6 @@
             </div>
             <div id="coupon-result"></div>
           </div>
-
-          <!-- Step 4: Confirm -->
           <div class="wizard-panel" id="step-4">
             <h3 class="wizard-panel-title">Review & Confirm</h3>
             <div id="step4-summary" class="booking-summary-box"></div>
@@ -116,8 +96,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Sidebar -->
         <div class="wizard-sidebar">
           <div class="card card-body">
             <h4 style="margin-bottom:16px">Booking Summary</h4>
@@ -134,8 +112,6 @@
     </div>
   </div>
 </section>
-
-<!-- Add car modal -->
 <div class="modal-overlay" id="add-car-from-booking">
   <div class="modal">
     <div class="modal-header">
@@ -197,10 +173,8 @@
     </div>
   </div>
 </div>
-
 <div id="footer-wrap"></div>
 <script src="../public/Js/shared.js"></script>
 <script src="../public/Js/booking.js"></script>
 </body>
 </html>
-

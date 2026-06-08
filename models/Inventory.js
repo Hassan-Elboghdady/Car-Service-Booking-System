@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const inventorySchema = new mongoose.Schema({
   name: { type: String, required: true },
   icon: { type: String },
@@ -12,5 +11,4 @@ const inventorySchema = new mongoose.Schema({
   minOrder: { type: Number, default: 1 },
   notes: { type: String }
 }, { timestamps: true });
-
 module.exports = mongoose.model('Inventory', inventorySchema);

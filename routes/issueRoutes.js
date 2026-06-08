@@ -1,13 +1,10 @@
 const express = require('express');
 const { submitIssue, getIssues, getAllIssues, replyToIssue, updateIssueStatus } = require('../controllers/issueController');
 const { protect, authorize } = require('../middleware/authMiddleware');
-
 const router = express.Router();
-
 router.post('/', protect, submitIssue);
 router.get('/all', protect, authorize('admin'), getAllIssues);
 router.get('/', protect, getIssues);
 router.put('/:id/reply', protect, replyToIssue);
 router.put('/:id/status', protect, authorize('admin'), updateIssueStatus);
-
 module.exports = router;

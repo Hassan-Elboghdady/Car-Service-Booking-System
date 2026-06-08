@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const staffIssueSchema = new mongoose.Schema({
   staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   bookingId: { type: String },
@@ -23,5 +22,4 @@ const staffIssueSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now }
 });
-
 module.exports = mongoose.model('StaffIssue', staffIssueSchema);

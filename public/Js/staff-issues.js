@@ -9,7 +9,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   const params = new URLSearchParams(location.search);
   if (params.get('bid')) bSel.value = params.get('bid');
-
   document.getElementById('iss-submit').addEventListener('click', async () => {
     const type = document.getElementById('iss-type').value;
     const sev  = document.getElementById('iss-severity').value;
@@ -35,7 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   renderPast();
 });
-
 async function renderPast() {
   try {
     const issues = await api.get('/issues');
