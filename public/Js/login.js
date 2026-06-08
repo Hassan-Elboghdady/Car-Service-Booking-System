@@ -158,7 +158,7 @@ function calcStrength(p) {
   if (/[^A-Za-z0-9]/.test(p)) s++;
   return s;
 }
-const strengthLabels = ['Enter a password', 'Weak', 'Fair', 'Good', 'Strong ?'];
+const strengthLabels = ['Enter a password', 'Weak', 'Fair', 'Good', 'Strong'];
 const strengthColors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
 
 function bindStrength(inputId, barId, labelId) {
